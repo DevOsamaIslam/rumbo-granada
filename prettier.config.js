@@ -1,0 +1,11 @@
+module.exports = {
+  semi: false,
+  singleQuote: true,
+  tabWidth: 2,
+  trailingComma: 'es6',
+  printWidth: 100,
+  bracketSpacing: true,
+  arrowParens: 'avoid',
+  endOfLine: 'lf',
+  plugins: ['prettier-plugin-packagejson'],
+};

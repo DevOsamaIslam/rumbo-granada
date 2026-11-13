@@ -7,18 +7,18 @@
 ### Phase 1: Project Scaffolding
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 1.1 | `npx create-expo-app@latest granabus --template blank-typescript` | ⬜ | |
-| 1.2 | Install deps: `react-native-paper`, `react-native-maps`, `expo-router`, `@tanstack/react-query`, `zustand`, `react-native-mmkv`, `expo-notifications`, `expo-task-manager`, `expo-background-fetch` | ⬜ | |
-| 1.3 | Configure `tsconfig.json` (strict, path aliases `@/*`, `src/*`) | ⬜ | |
-| 1.4 | Configure `eslint.config.js` (Airbnb + Prettier + React Native) | ⬜ | |
-| 1.5 | Configure `prettier.config.js` | ⬜ | |
-| 1.6 | Configure `metro.config.js` (SVG, fonts, GTFS JSON transform) | ⬜ | |
-| 1.7 | Create `.env.example` with all required vars | ⬜ | |
-| 1.8 | Create full directory structure per `docs/sections/02-project-structure.md` | ⬜ | |
-| 1.9 | Install Vitest + `@testing-library/react-native` + `jest-expo` | ⬜ | |
-| 1.10 | Configure `vitest.config.ts` with `react-native` preset | ⬜ | |
-| 1.11 | Create test setup file with Paper theme provider mock | ⬜ | |
-| 1.12 | Verify: `npm run dev` starts without errors | ⬜ | Dev server boots, no TS errors |
+| 1.1 | `npx create-expo-app@latest granabus --template blank-typescript` | ✅ | |
+| 1.2 | Install deps: `react-native-paper`, `react-native-maps`, `expo-router`, `@tanstack/react-query`, `zustand`, `react-native-mmkv`, `expo-notifications`, `expo-task-manager`, `expo-background-fetch` | ✅ | |
+| 1.3 | Configure `tsconfig.json` (strict, path aliases `@/*`, `src/*`) | ✅ | |
+| 1.4 | Configure `eslint.config.js` (Airbnb + Prettier + React Native) | ✅ | |
+| 1.5 | Configure `prettier.config.js` | ✅ | |
+| 1.6 | Configure `metro.config.js` (SVG, fonts, GTFS JSON transform) | ✅ | |
+| 1.7 | Create `.env.example` with all required vars | ✅ | |
+| 1.8 | Create full directory structure per `docs/sections/02-project-structure.md` | ✅ | |
+| 1.9 | Install Vitest + `@testing-library/react-native` + `jest-expo` | ✅ | |
+| 1.10 | Configure `vitest.config.ts` with `react-native` preset | ✅ | |
+| 1.11 | Create test setup file with Paper theme provider mock | ✅ | |
+| 1.12 | Verify: `npm run dev` starts without errors | ✅ | Dev server boots, no TS errors |
 
 **Depends on:** —  
 **Blocks:** 2, 3
@@ -332,5 +332,5 @@ graph TD
 ---
 
 *Last updated: 2024-11-13*  
-*Next task: Phase 1.1 — Project Scaffolding*
+*Next task: Phase 2.1 — Navigation & Tab Shell*
 **Blocks:** 5, 6, 7, 8
