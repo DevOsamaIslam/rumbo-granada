@@ -9,6 +9,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   icon: './assets/images/icon.png',
   userInterfaceStyle: 'automatic',
   assetBundlePatterns: ['**/*'],
+  scheme: 'granabus',
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.granabus.app',

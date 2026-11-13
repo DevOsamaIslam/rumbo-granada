@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Title } from 'react-native-paper';
 
@@ -6,19 +6,24 @@ export default function MapScreen() {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <Title style={styles.title}>Map Screen</Title>
-      <Text style={styles.subtitle}>OpenStreetMap with bus stops and real-time tracking</Text>
-    </View>
+    <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={styles.content}>
+        <Title style={styles.title}>Map Screen</Title>
+        <Text style={styles.subtitle}>OpenStreetMap with bus stops and real-time tracking</Text>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 16,
+  },
+  content: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
   },
   title: {
     marginBottom: 8,

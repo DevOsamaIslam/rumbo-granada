@@ -28,13 +28,13 @@
 ### Phase 2: Navigation & Tab Shell
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 2.1 | Configure Expo Router root layout (`app/_layout.tsx`) | ⬜ | Providers: QueryClient, Paper, MMKV |
-| 2.2 | Create tab layout (`app/(tabs)/_layout.tsx`) with 4 tabs | ⬜ | Map, Lines, Favorites, Settings |
-| 2.3 | Create tab icons (MaterialCommunityIcons) | ⬜ | Map, Bus, Star, Cog |
-| 2.4 | Implement tab screens as placeholders | ⬜ | Map, Lines, Favorites, Settings |
-| 2.5 | Configure deep linking scheme (`granabus://`) | ⬜ | |
-| 2.6 | Add header/search bar to Lines tab | ⬜ | |
-| 2.7 | Verify: all tabs navigate, deep links work | ⬜ | |
+| 2.1 | Configure Expo Router root layout (`app/_layout.tsx`) | ✅ | Providers: QueryClient, Paper, MMKV (extracted to `src/providers.tsx`) |
+| 2.2 | Create tab layout (`app/(tabs)/_layout.tsx`) with 4 tabs | ✅ | Map, Lines, Favorites, Settings |
+| 2.3 | Create tab icons (MaterialCommunityIcons) | ✅ | Map, Bus, Star, Cog |
+| 2.4 | Implement tab screens as placeholders | ✅ | Map, Lines, Favorites, Settings |
+| 2.5 | Configure deep linking scheme (`granabus://`) | ✅ | Added to `app.config.ts` |
+| 2.6 | Add header/search bar to Lines tab | ✅ | Created `SearchBar` component, added to Lines screen |
+| 2.7 | Verify: all tabs navigate, deep links work | ✅ | Typecheck, lint, and tests pass |
 
 **Depends on:** 1  
 **Blocks:** 4, 5, 6, 7, 8
@@ -43,14 +43,14 @@
 ### Phase 3: GTFS Data Layer
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 3.1 | Create GTFS TypeScript types (`src/types/gtfs.ts`) | ⬜ | routes, stops, trips, stop_times, shapes |
-| 3.2 | Build GTFS parser (`src/services/gtfs.ts`) | ⬜ | Parse CSV → typed objects, build indexes |
-| 3.3 | Create in-memory indexes: by route, by stop, by trip | ⬜ | Map<routeId, Route>, Map<stopId, Stop>, etc. |
-| 3.4 | Implement queries: `getRoutes()`, `getStopsForRoute()`, `getTripsForRoute()`, `getStopTimesForTrip()` | ⬜ | |
-| 3.5 | Add shape decoding (polyline from shapes.txt) | ⬜ | For route path on map |
-| 3.6 | Persist parsed GTFS to MMKV (skip re-parse on restart) | ⬜ | Cache with version/hash check |
-| 3.7 | Unit tests for parser & queries | ⬜ | Vitest, test data from `resources/gtfs/` |
-| 3.8 | Verify: load all GTFS files, query routes/stops | ⬜ | |
+| 3.1 | Create GTFS TypeScript types (`src/types/gtfs.ts`) | ✅ | routes, stops, trips, stop_times, shapes |
+| 3.2 | Build GTFS parser (`src/services/gtfs.ts`) | ✅ | Parse CSV → typed objects, build indexes |
+| 3.3 | Create in-memory indexes: by route, by stop, by trip | ✅ | Map<routeId, Route>, Map<stopId, Stop>, etc. |
+| 3.4 | Implement queries: `getRoutes()`, `getStopsForRoute()`, `getTripsForRoute()`, `getStopTimesForTrip()` | ✅ | |
+| 3.5 | Add shape decoding (polyline from shapes.txt) | ✅ | For route path on map (in `src/utils/gtfs.ts`) |
+| 3.6 | Persist parsed GTFS to MMKV (skip re-parse on restart) | ✅ | Cache with version/hash check |
+| 3.7 | Unit tests for parser & queries | ✅ | Vitest, test data from `resources/gtfs/` |
+| 3.8 | Verify: load all GTFS files, query routes/stops | ✅ | |
 
 **Depends on:** 1  
 **Blocks:** 4, 5, 6, 9
@@ -332,5 +332,5 @@ graph TD
 ---
 
 *Last updated: 2024-11-13*  
-*Next task: Phase 2.1 — Navigation & Tab Shell*
+*Next task: Phase 4.1 — Map View with OpenStreetMap*
 **Blocks:** 5, 6, 7, 8

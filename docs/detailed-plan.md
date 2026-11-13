@@ -67,9 +67,9 @@ src/components/StopMarker.tsx → Custom stop markers
 
 | Phase | Title | Status | Dependencies |
 |-------|-------|--------|--------------|
-| 1 | Project Scaffolding | ⬜ | — |
-| 2 | Navigation & Tab Shell | ⬜ | 1 |
-| 3 | GTFS Data Layer | ⬜ | 1 |
+| 1 | Project Scaffolding | ✅ | — |
+| 2 | Navigation & Tab Shell | ✅ | 1 |
+| 3 | GTFS Data Layer | ✅ | 1 |
 | 4 | Map View with OSM | ⬜ | 2, 3 |
 | 5 | Bus Lines List & Detail | ⬜ | 3, 4 |
 | 6 | Stop Detail & Arrivals | ⬜ | 3, 5 |
