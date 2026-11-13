@@ -1,0 +1,23 @@
+curl --url 'https://www.transportesrober.com/flotamovimiento/linea_paradas.php' \
+  -H 'accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8' \
+  -H 'accept-language: en-US,en;q=0.8' \
+  -H 'cache-control: no-cache' \
+  -H 'content-type: application/x-www-form-urlencoded' \
+  -b 'us_par=1021; visid_incap_3013554=DnBXxN/GSeC3B+WGwZlS54co92oAAAAAQUIPAAAAAADUbZ/ALMj/Xcp7qdDMmgYt; incap_ses_4557_3013554=csQ9VdWU+ius2PE8qLc9P4co92oAAAAAyZk9J5eLwuOoVyo8DQ0vUw==' \
+  -H 'origin: https://www.transportesrober.com' \
+  -H 'pragma: no-cache' \
+  -H 'priority: u=0, i' \
+  -H 'referer: https://www.transportesrober.com/flotamovimiento/linea_paradas.php' \
+  -H 'sec-ch-ua: "Not-A.Brand";v="99", "Brave";v="157", "Chromium";v="157"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "Linux"' \
+  -H 'sec-fetch-dest: document' \
+  -H 'sec-fetch-mode: navigate' \
+  -H 'sec-fetch-site: same-origin' \
+  -H 'sec-fetch-user: ?1' \
+  -H 'sec-gpc: 1' \
+  -H 'upgrade-insecure-requests: 1' \
+  -H 'user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36' \
+  --data-raw 'ln=C34'
+
+  Replace C34 with the line.
