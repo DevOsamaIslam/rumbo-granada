@@ -6,7 +6,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: 'granabus',
   version: '1.0.0',
   orientation: 'portrait',
-  icon: './assets/images/icon.png',
+  icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
   assetBundlePatterns: ['**/*'],
   scheme: 'granabus',
@@ -21,7 +21,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     adaptiveIcon: {
-      foregroundImage: './assets/images/adaptive-icon.png',
+      foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#6200EE',
     },
     package: 'com.granabus.app',
@@ -41,7 +41,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-notifications',
       {
-        icon: './assets/images/notification-icon.png',
+        icon: './assets/notification-icon.png',
         color: '#6200EE',
         defaultChannel: 'default',
       },

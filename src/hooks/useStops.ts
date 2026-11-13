@@ -1,6 +1,7 @@
 // Stops Hook
 import { useCallback, useState } from 'react';
 import { Stop, StopTime } from '@/types/gtfs';
+import { gtfsService } from '@/services/gtfs';
 
 export function useStops() {
   const [stops, setStops] = useState<Stop[]>([]);
@@ -12,10 +13,9 @@ export function useStops() {
     setIsLoading(true);
     setError(null);
     try {
-      // TODO: Load from GTFS service
-      // const data = await gtfsService.getStopsForRoute(routeId);
-      // setStops(data);
-      setStops([]); // Placeholder
+      await gtfsService.load();
+      const data = gtfsService.getStopsForRoute(routeId);
+      setStops(data);
     } catch {
       setError(new Error('Failed to load stops'));
     } finally {
@@ -27,10 +27,9 @@ export function useStops() {
     setIsLoading(true);
     setError(null);
     try {
-      // TODO: Load from GTFS service
-      // const data = await gtfsService.getStopTimesForTrip(tripId);
-      // setStopTimes(data);
-      setStopTimes([]); // Placeholder
+      await gtfsService.load();
+      const data = gtfsService.getStopTimesForTrip(tripId);
+      setStopTimes(data);
     } catch {
       setError(new Error('Failed to load stop times'));
     } finally {

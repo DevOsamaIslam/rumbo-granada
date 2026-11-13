@@ -1,6 +1,7 @@
 // Lines Hook
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { Route } from '@/types/gtfs';
+import { gtfsService } from '@/services/gtfs';
 
 export function useLines() {
   const [routes, setRoutes] = useState<Route[]>([]);
@@ -11,16 +12,20 @@ export function useLines() {
     setIsLoading(true);
     setError(null);
     try {
-      // TODO: Load from GTFS service
-      // const data = await gtfsService.getRoutes();
-      // setRoutes(data);
-      setRoutes([]); // Placeholder
+      await gtfsService.load();
+      const data = gtfsService.getRoutes();
+      setRoutes(data);
     } catch (err) {
       setError(err as Error);
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadLines();
+  }, [loadLines]);
 
   const searchLines = useCallback((query: string): Route[] => {
     const lowerQuery = query.toLowerCase();

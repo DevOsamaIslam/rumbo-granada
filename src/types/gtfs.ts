@@ -10,6 +10,7 @@ export interface Route {
   route_color?: string;
   route_text_color?: string;
   route_sort_order?: number;
+  shape_id?: string;
 }
 
 export interface Stop {

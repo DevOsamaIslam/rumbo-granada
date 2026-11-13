@@ -13,6 +13,18 @@ class Storage {
     }
     return Storage.instance;
   }
+
+  static getItem(key: string): string | undefined {
+    return Storage.getInstance().getString(key);
+  }
+
+  static setItem(key: string, value: string): void {
+    Storage.getInstance().set(key, value);
+  }
+
+  static removeItem(key: string): void {
+    Storage.getInstance().remove(key);
+  }
 }
 
 export { Storage };

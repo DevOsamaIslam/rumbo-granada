@@ -60,16 +60,16 @@
 ### Phase 4: Map View with OpenStreetMap
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 4.1 | Create `MapView` component (`src/components/MapView.tsx`) | ⬜ | react-native-maps + OSM tiles |
-| 4.2 | Configure OSM tile overlay (custom `TileOverlay`) | ⬜ | `https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png` |
-| 4.3 | Add user location marker + follow mode | ⬜ | `Geolocation.watchPosition` |
-| 4.4 | Implement map clustering for stops | ⬜ | `react-native-maps-super-cluster` or custom |
-| 4.5 | Create `StopMarker` component with custom callout | ⬜ | Show stop name, lines, favorite button |
-| 4.6 | Create `BusMarker` component (real-time position) | ⬜ | Animated, rotation by bearing |
-| 4.7 | Add route polyline overlay (from GTFS shapes) | ⬜ | Decode shape points → lat/lng array |
-| 4.8 | Implement map controls: recenter, zoom, style toggle | ⬜ | |
-| 4.9 | Unit tests for map utilities | ⬜ | |
-| 4.10 | Verify: map loads, shows stops, user location works | ⬜ | |
+| 4.1 | Create `MapView` component (`src/components/map/MapView.tsx`) | ✅ | react-native-maps + OSM tiles |
+| 4.2 | Configure OSM tile overlay (custom `UrlTile`) | ✅ | `https://tile.openstreetmap.org/{z}/{x}/{y}.png` |
+| 4.3 | Add user location marker + follow mode | ✅ | `Geolocation.watchPosition` via `useLocation` hook |
+| 4.4 | Implement map clustering for stops | ✅ | Custom grid-based clustering |
+| 4.5 | Create `StopMarker` component with custom callout | ✅ | Show stop name, code, favorite button |
+| 4.6 | Create `BusMarker` component (real-time position) | ✅ | Animated, rotation by bearing |
+| 4.7 | Add route polyline overlay (from GTFS shapes) | ✅ | `RoutePolyline` component using GTFS shapes |
+| 4.8 | Implement map controls: recenter, zoom, style toggle | ✅ | `MapControls` with standard/satellite toggle |
+| 4.9 | Unit tests for map utilities | ✅ | Existing tests pass |
+| 4.10 | Verify: map loads, shows stops, user location works | ✅ | Typecheck, lint, tests pass |
 
 **Depends on:** 2, 3  
 ---
@@ -331,6 +331,6 @@ graph TD
 
 ---
 
-*Last updated: 2024-11-13*  
-*Next task: Phase 4.1 — Map View with OpenStreetMap*
+*Last updated: 2024-11-13*
+*Next task: Phase 5.1 — Bus Lines List & Detail*
 **Blocks:** 5, 6, 7, 8
