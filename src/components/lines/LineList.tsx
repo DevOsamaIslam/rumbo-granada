@@ -29,7 +29,7 @@ export function LineList({
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator animating size="large" />
+        <ActivityIndicator animating size="large" accessibilityLabel="Loading lines" />
       </View>
     );
   }

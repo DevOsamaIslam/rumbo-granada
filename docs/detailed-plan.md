@@ -70,9 +70,9 @@ src/components/StopMarker.tsx → Custom stop markers
 | 1 | Project Scaffolding | ✅ | — |
 | 2 | Navigation & Tab Shell | ✅ | 1 |
 | 3 | GTFS Data Layer | ✅ | 1 |
-| 4 | Map View with OSM | ⬜ | 2, 3 |
-| 5 | Bus Lines List & Detail | ⬜ | 3, 4 |
-| 6 | Stop Detail & Arrivals | ⬜ | 3, 5 |
+| 4 | Map View with OSM | ✅ | 2, 3 |
+| 5 | Bus Lines List & Detail | ✅ | 3, 4 |
+| 6 | Stop Detail & Arrivals | ✅ | 3, 4, 5 |
 | 7 | Favorites: Buses | ⬜ | 4, 5 |
 | 8 | Favorites: Stops with Labels | ⬜ | 4, 6 |
 | 9 | Live API Integration | ⬜ | 3 |

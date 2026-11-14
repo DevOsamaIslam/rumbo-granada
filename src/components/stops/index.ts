@@ -1,4 +1,7 @@
-// Stops components - placeholder exports
-// export * from './StopList';
-// export * from './StopItem';
-// export * from './ArrivalsList';
+// Stops components
+export { ArrivalsList } from './ArrivalsList';
+export type { ArrivalsListProps } from './ArrivalsList';
+export { ArrivalRow, formatArrivalMinutes } from './ArrivalRow';
+export type { ArrivalRowProps } from './ArrivalRow';
+export { StopInfoHeader } from './StopInfoHeader';
+export type { StopInfoHeaderProps } from './StopInfoHeader';

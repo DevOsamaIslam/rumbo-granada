@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import { Route } from '@/types/gtfs';
+import { getBadgeBackgroundColor, getBadgeTextColor } from '@/utils/colors';
 
 interface LineItemProps {
   route: Route;
@@ -10,8 +11,8 @@ interface LineItemProps {
 }
 
 export function LineItem({ route, isFavorite, onPress, onToggleFavorite }: LineItemProps) {
-  const color = route.route_color ? `#${route.route_color}` : '#6200EE';
-  const textColor = route.route_text_color ? `#${route.route_text_color}` : '#FFFFFF';
+  const color = getBadgeBackgroundColor(route.route_color, '#6200EE');
+  const textColor = getBadgeTextColor(color, route.route_text_color);
 
   return (
     <Pressable

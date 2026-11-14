@@ -93,13 +93,13 @@
 ### Phase 6: Stop Detail & Arrivals
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 6.1 | Create Stop detail screen (`app/stop/[id].tsx`) | ⬜ | Stop info, lines serving it |
-| 6.2 | Integrate live arrivals API (`src/services/liveApi.ts`) | ⬜ | Scrape `paradas.htm` for stop |
-| 6.3 | Create arrivals list component (real-time countdown) | ⬜ | Auto-refresh every 30s |
-| 6.4 | Add "Favorite this stop" with label input | ⬜ | Modal for custom label |
-| 6.5 | Show stop on map action | ⬜ | Navigate to map centered on stop |
-| 6.6 | Unit tests for live API & stop screen | ⬜ | Mock API responses |
-| 6.7 | Verify: stop detail shows arrivals, favorite works | ⬜ | |
+| 6.1 | Create Stop detail screen (`app/stop/[id].tsx`) | ✅ | Stop info, lines serving it, Llegadas/Líneas tabs |
+| 6.2 | Integrate live arrivals API (`src/services/liveApi.ts`) | ✅ | Posts `paradas.htm`, session cookie, retry, MMKV cache |
+| 6.3 | Create arrivals list component (real-time countdown) | ✅ | `ArrivalsList`/`ArrivalRow`, 30s polling via `useStopArrivals` |
+| 6.4 | Add "Favorite this stop" with label input | ✅ | `AddStopLabelModal`, wired to favorites store |
+| 6.5 | Show stop on map action | ✅ | Map centres on the stop via `focusStop` param |
+| 6.6 | Unit tests for live API & stop screen | ✅ | 40 tests: HTML parsers, client, hook, components |
+| 6.7 | Verify: stop detail shows arrivals, favorite works | ✅ | Typecheck, lint, 85 tests, web bundle, live API check |
 
 **Depends on:** 3, 4, 5  
 **Blocks:** 8
@@ -331,6 +331,6 @@ graph TD
 
 ---
 
-*Last updated: 2024-11-13*
-*Next task: Phase 5.1 — Bus Lines List & Detail*
+*Last updated: 2026-11-14*
+*Next task: Phase 7 — Favorites: Buses*
 **Blocks:** 5, 6, 7, 8

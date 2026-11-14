@@ -3,7 +3,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     globals: true,
-    environment: 'jsdom',
+    environment: 'node',
     setupFiles: ['./src/test/setup.tsx'],
     include: ['src/**/*.test.{ts,tsx}', 'src/**/*.spec.{ts,tsx}'],
     coverage: {
@@ -27,6 +27,10 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      // ESM `import ... from 'react-native'` is resolved by Vite, which would
+      // otherwise parse RN 0.88's Flow-typed entry and fail. CJS `require()` is
+      // handled by the Module._load patch in `src/test/rn-patch.cjs`.
+      'react-native': '/home/tovia/Projects/granabus/src/test/rn.cjs',
       '@': '/home/tovia/Projects/granabus/src',
       '~': '/home/tovia/Projects/granabus/src',
     },

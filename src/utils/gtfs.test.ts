@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { filterLines, orderStopsBySequence, getRouteTypeName } from '@/utils/gtfs';
-import { StopTime } from '@/types/gtfs';
 import type { Route, Stop, StopTime } from '@/types/gtfs';
 
 const makeRoute = (overrides: Partial<Route>): Route => ({
@@ -88,13 +87,14 @@ describe('getRouteTypeName', () => {
     expect(getRouteTypeName(3)).toBe('Autobús');
     expect(getRouteTypeName(4)).toBe('Ferry');
     expect(getRouteTypeName(5)).toBe('Teleférico');
-    expect(getRouteTypeName(6)).toBe('Teleférico');
-    expect(getRouteTypeName(11)).toBe('Teleférico');
-    expect(getRouteTypeName(12)).toBe('Teleférico');
+    expect(getRouteTypeName(6)).toBe('Funicular');
+    expect(getRouteTypeName(7)).toBe('Trolebús');
+    expect(getRouteTypeName(11)).toBe('Tranvía');
+    expect(getRouteTypeName(12)).toBe('Monorraíl');
   });
 
   it('returns Desconocido for unknown route types', () => {
-    expect(getRouteTypeName(7)).toBe('Desconocido');
     expect(getRouteTypeName(-1)).toBe('Desconocido');
+    expect(getRouteTypeName(99)).toBe('Desconocido');
   });
 });

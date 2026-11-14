@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { Platform } from 'react-native';
 import { GTFSService } from './gtfs';
 import * as Papa from 'papaparse';
 
@@ -61,7 +62,11 @@ describe('GTFSService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockStorage.clear();
-    
+
+    // The service reads GTFS from `/gtfs/*.txt` on web and from bundled assets on
+    // native. Tests stub `fetch`, so pin the platform to web.
+    Platform.OS = 'web';
+
     service = new GTFSService();
     
     const mockParse = vi.fn((text: string, options: { complete: (result: { data: unknown[]; errors: unknown[] }) => void }) => {
@@ -87,6 +92,8 @@ describe('GTFSService', () => {
       else if (url.includes('shapes.txt')) csvContent = 'shape_id,shape_pt_lat\n';
       
       return Promise.resolve({
+        ok: true,
+        status: 200,
         text: () => Promise.resolve(csvContent),
       });
     });

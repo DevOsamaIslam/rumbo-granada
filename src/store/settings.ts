@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { createMMKV } from 'react-native-mmkv';
+import { createSafeMMKV } from '@/services/mmkv';
 
 interface SettingsState {
   notificationThresholdMinutes: number;
@@ -16,7 +16,7 @@ interface SettingsState {
   loadFromStorage: () => void;
 }
 
-const storage = createMMKV({ id: 'settings' });
+const storage = createSafeMMKV({ id: 'settings' });
 
 const mmkvStorage = {
   getItem: (name: string) => {

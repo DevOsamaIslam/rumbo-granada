@@ -1,4 +1,3 @@
-// Favorites components - placeholder exports
-// export * from './FavoriteBusList';
-// export * from './FavoriteStopList';
-// export * from './AddStopLabelModal';
+// Favorites components
+export { AddStopLabelModal } from './AddStopLabelModal';
+export type { AddStopLabelModalProps } from './AddStopLabelModal';

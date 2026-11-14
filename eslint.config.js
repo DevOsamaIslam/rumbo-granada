@@ -27,6 +27,17 @@ module.exports = defineConfig([
     },
   },
   {
-    ignores: ['dist/', 'node_modules/', '.expo/', 'coverage/', '*.config.js', '*.config.ts', 'src/test/setup.tsx'],
+    ignores: [
+      'dist/',
+      'node_modules/',
+      '.expo/',
+      'coverage/',
+      '*.config.js',
+      '*.config.ts',
+      '*.config.mjs',
+      'src/test/setup.tsx',
+      // CommonJS test shims run under Node, not the app bundler.
+      'src/test/*.cjs',
+    ],
   },
 ]);

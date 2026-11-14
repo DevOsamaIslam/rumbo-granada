@@ -52,6 +52,8 @@ export function useFavorites() {
     favoriteStops,
     toggleFavoriteBus,
     toggleFavoriteStop,
+    addFavoriteStop,
+    removeFavoriteStop,
     updateStopLabel,
     isBusFavorite,
     isStopFavorite,

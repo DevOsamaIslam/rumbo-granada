@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PaperProvider, MD3Theme, DefaultTheme } from 'react-native-paper';
-import { createMMKV } from 'react-native-mmkv';
+import { createSafeMMKV } from '@/services/mmkv';
 import { Storage } from '@/services/storage';
 import { COLORS } from '@/constants/colors';
 
 // Create MMKV instance for general storage
-const storage = createMMKV();
-Storage.setInstance(storage);
+const storage = createSafeMMKV({ id: 'granabus-general' });
+Storage.setInstance(storage as never);
 
 // Create theme for Paper (Material Design 3)
 const theme: MD3Theme = {

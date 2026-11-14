@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { createMMKV } from 'react-native-mmkv';
+import { createSafeMMKV } from '@/services/mmkv';
 
 interface FavoriteBus {
   routeId: string;
@@ -29,7 +29,7 @@ interface FavoritesState {
   loadFromStorage: () => void;
 }
 
-const storage = createMMKV({ id: 'favorites' });
+const storage = createSafeMMKV({ id: 'favorites' });
 
 const mmkvStorage = {
   getItem: (name: string) => {

@@ -37,6 +37,9 @@ const DEFAULT_REGION: MapRegion = {
   zoomLevel: CONFIG.MAP_DEFAULT_ZOOM,
 };
 
+/** Zoom used when the map is asked to focus a single stop. */
+const MAP_FOCUS_ZOOM = 16;
+
 // OpenStreetMap raster tiles — no Google Maps engine or Google tiles.
 const OSM_STANDARD_STYLE: StyleSpecification = {
   version: 8,
@@ -81,6 +84,7 @@ const SATELLITE_STYLE: StyleSpecification = {
 export function MapViewComponent({
   initialRegion,
   selectedLineId,
+  focusStop = null,
   trackedBuses = [],
   onStopPress,
   onBusPress,
@@ -170,6 +174,19 @@ export function MapViewComponent({
   const handleToggleFollow = useCallback(() => {
     setFollowMode((prev) => !prev);
   }, []);
+
+  // Centre the map on a stop when the caller asks for it (e.g. "Show on map"
+  // from the stop detail screen). Only fires when the focused stop changes.
+  const focusLat = focusStop?.latitude;
+  const focusLon = focusStop?.longitude;
+  useEffect(() => {
+    if (focusLat === undefined || focusLon === undefined) return;
+    cameraRef.current?.easeTo({
+      center: [focusLon, focusLat],
+      zoom: MAP_FOCUS_ZOOM,
+      duration: 500,
+    });
+  }, [focusLat, focusLon]);
 
   return (
     <View style={styles.container}>

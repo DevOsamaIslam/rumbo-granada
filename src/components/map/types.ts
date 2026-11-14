@@ -10,6 +10,8 @@ export interface Region {
 export interface MapViewProps {
   initialRegion?: Region;
   selectedLineId?: string;
+  /** When set, the map centres on this stop (e.g. arriving from the stop screen). */
+  focusStop?: { latitude: number; longitude: number } | null;
   trackedBuses?: { id: string; latitude: number; longitude: number; heading?: number }[];
   onStopPress?: (stop: Stop) => void;
   onBusPress?: (bus: { id: string; latitude: number; longitude: number }) => void;

@@ -1,5 +1,5 @@
 import * as Papa from 'papaparse';
-import { createMMKV } from 'react-native-mmkv';
+import { createSafeMMKV } from './mmkv';
 import { Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Asset } from 'expo-asset';
@@ -17,10 +17,47 @@ const stopTimesTxtModule = require('../../resources/gtfs/stop_times.txt');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const shapesTxtModule = require('../../resources/gtfs/shapes.txt');
 
-const mmkv = createMMKV({ id: 'gtfs-cache' });
-const CACHE_VERSION = '1.0.0';
+const mmkv = createSafeMMKV({ id: 'gtfs-cache' });
+// Bumped whenever the parsed shape changes, so a stale MMKV cache is discarded
+// instead of feeding old (e.g. numeric) values into the new code.
+const CACHE_VERSION = '1.1.0';
 const GTFS_CACHE_KEY = 'gtfs-data';
 const GTFS_VERSION_KEY = 'gtfs-version';
+
+/**
+ * Columns whose GTFS type is a string but whose values are often all digits, so
+ * `dynamicTyping` would otherwise coerce them to numbers. `stop_code` is the one
+ * that matters at runtime: the live API client calls `.trim()` on it.
+ */
+const ID_STRING_FIELDS = new Set([
+  'stop_code',
+  'route_short_name',
+  'route_id',
+  'stop_id',
+  'trip_id',
+  'shape_id',
+  'agency_id',
+  'service_id',
+  'zone_id',
+  'parent_station',
+  'stop_timezone',
+  'stop_url',
+  'route_url',
+  'agency_url',
+  'agency_timezone',
+  'trip_headsign',
+  'trip_short_name',
+  'stop_headsign',
+  'arrival_time',
+  'departure_time',
+  'start_date',
+  'end_date',
+  'date',
+  // Colours are hex strings, but all-digit values (e.g. `525252`) would be coerced
+  // to numbers, and `getBadgeBackgroundColor` would then fail on `.trim()`.
+  'route_color',
+  'route_text_color',
+]);
 
 export interface GTFSData {
   routes: Map<string, Route>;
@@ -139,7 +176,10 @@ class GTFSService {
       Papa.parse<T>(text, {
         header: true,
         skipEmptyLines: true,
-        dynamicTyping: true,
+        // Keep declared-string identifier columns as strings. Without this,
+        // `dynamicTyping` turns stop_code `9` into the number 9, and downstream
+        // string operations (e.g. `.trim()` in the live API client) throw.
+        dynamicTyping: ((field: string) => !ID_STRING_FIELDS.has(field)) as never,
         complete: (results) => {
           if (results.errors.length > 0) {
             console.warn(`GTFS parse warnings for ${source}:`, results.errors);

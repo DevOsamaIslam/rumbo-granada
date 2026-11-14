@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { createMMKV } from 'react-native-mmkv';
+import { createSafeMMKV } from '@/services/mmkv';
 
 interface TrackedPair {
   id: string;
@@ -23,7 +23,7 @@ interface TrackingState {
   loadFromStorage: () => void;
 }
 
-const storage = createMMKV({ id: 'tracking' });
+const storage = createSafeMMKV({ id: 'tracking' });
 
 const mmkvStorage = {
   getItem: (name: string) => {
