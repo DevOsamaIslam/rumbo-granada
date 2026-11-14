@@ -256,8 +256,8 @@ import { MMKV } from 'react-native-mmkv';
 import { Storage } from 'zustand/middleware';
 
 const mmkv = new MMKV({
-  id: 'granabus-storage',
-  encryptionKey: 'granabus-secure-key',
+  id: 'rumbo-granada-storage',
+  encryptionKey: 'rumbo-granada-secure-key',
 });
 
 export const mmkvStorage: Storage = {

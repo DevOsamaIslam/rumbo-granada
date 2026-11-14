@@ -22,8 +22,8 @@ import type { MapViewProps, MapStyle } from "./types";
 
 export type { MapViewProps, MapStyle };
 
-const STORAGE_KEY_MAP_REGION = "granabus.map.region";
-const STORAGE_KEY_MAP_STYLE = "granabus.map.style";
+const STORAGE_KEY_MAP_REGION = "rumbo-granada.map.region";
+const STORAGE_KEY_MAP_STYLE = "rumbo-granada.map.style";
 
 interface MapRegion {
   latitude: number;
@@ -248,5 +248,3 @@ const styles = StyleSheet.create({
 
 export { MapViewComponent as MapView };
 export default MapViewComponent;
-
-

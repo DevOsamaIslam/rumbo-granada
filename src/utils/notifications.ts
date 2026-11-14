@@ -23,8 +23,10 @@ export function createTrackingNotificationContent(
 }
 
 export function getNotificationChannelId(type: 'arrival' | 'tracking' | 'general'): string {
-  return `granabus-${type}`;
+  return `rumbo-granada-${type}`;
 }
+
+const APP_NAME = process.env.EXPO_PUBLIC_APP_NAME || 'Rumbo Granada';
 
 export function getNotificationChannelName(type: 'arrival' | 'tracking' | 'general'): string {
   switch (type) {
@@ -33,8 +35,8 @@ export function getNotificationChannelName(type: 'arrival' | 'tracking' | 'gener
     case 'tracking':
       return 'Seguimiento activo';
     case 'general':
-      return 'Notificaciones generales';
+      return APP_NAME;
     default:
-      return 'Granabus';
+      return APP_NAME;
   }
 }

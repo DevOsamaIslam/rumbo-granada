@@ -59,7 +59,7 @@ export class LiveApiClient {
   private async fetchWithSession(url: string, options: RequestInit = {}): Promise<Response> {
     const headers = new Headers(options.headers);
     headers.set('Cookie', this.sessionCookie ?? '');
-    headers.set('User-Agent', 'Mozilla/5.0 (Linux; Android 14) Granabus/1.0');
+    headers.set('User-Agent', 'Mozilla/5.0 (Linux; Android 14) Rumbo Granada/1.0');
     headers.set('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8');
     headers.set('Referer', BASE_URL + '/');
 

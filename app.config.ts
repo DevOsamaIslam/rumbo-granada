@@ -2,20 +2,20 @@ import { ConfigContext, ExpoConfig } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'Granabus',
-  slug: 'granabus',
+  name: 'Rumbo Granada',
+  slug: 'rumbo-granada',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/logo.png',
   userInterfaceStyle: 'automatic',
   assetBundlePatterns: ['**/*'],
-  scheme: 'granabus',
+  scheme: 'rumbo-granada',
   ios: {
     supportsTablet: true,
-    bundleIdentifier: 'com.granabus.app',
+    bundleIdentifier: 'com.rumbo.granada.app',
     infoPlist: {
-      NSLocationWhenInUseUsageDescription: 'This app uses your location to show nearby bus stops and track buses.',
-      NSLocationAlwaysAndWhenInUseUsageDescription: 'This app uses your location to show nearby bus stops and track buses in the background.',
+      NSLocationWhenInUseUsageDescription: 'This app uses your location to show nearby bus stops and track buses in Rumbo Granada',
+      NSLocationAlwaysAndWhenInUseUsageDescription: 'This app uses your location to show nearby bus stops and track buses in Rumbo Granada in the background.',
       UIBackgroundModes: ['location', 'fetch', 'remote-notification'],
     },
   },
@@ -26,7 +26,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       monochromeImage: './assets/android-icon-monochrome.png',
       backgroundColor: '#E6F4FE',
     },
-    package: 'com.granabus.app',
+    package: 'com.rumbo.granada.app',
     permissions: [
       'ACCESS_FINE_LOCATION',
       'ACCESS_COARSE_LOCATION',
@@ -52,7 +52,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-location',
       {
-        locationAlwaysAndWhenInUsePermission: 'Allow Granabus to access your location to show nearby bus stops and track buses.',
+        locationAlwaysAndWhenInUsePermission: 'Allow Rumbo Granada to access your location to show nearby bus stops and track buses.',
       },
     ],
   ],

@@ -1,4 +1,4 @@
-# Granabus
+# Rumbo Granada
 
 A React Native mobile app for Granada bus tracking using OpenStreetMap. Built with React Native Paper (Material Design 3) and GTFS data.
 
@@ -29,7 +29,7 @@ A React Native mobile app for Granada bus tracking using OpenStreetMap. Built wi
 ## Project Structure
 
 ```
-granabus/
+rumbo-granada/
 ├── app/                    # Expo Router pages
 │   ├── (tabs)/            # Tab navigation screens
 │   │   ├── index.tsx      # Home / Map

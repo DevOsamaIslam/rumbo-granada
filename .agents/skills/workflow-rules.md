@@ -1,8 +1,8 @@
-# Granabus — Agent Workflow Rules
+# Rumbo Granada — Agent Workflow Rules
 
 ## Overview
 
-This document defines the workflow for AI/agent contributors working on the Granabus project. Follow these rules for all contributions.
+This document defines the workflow for AI/agent contributors working on the Rumbo Granada project. Follow these rules for all contributions.
 
 ## Workflow Process
 

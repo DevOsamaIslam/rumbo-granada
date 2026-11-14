@@ -1,4 +1,4 @@
-# Granabus — Progress Tracker
+# Rumbo Granada — Progress Tracker
 
 **Legend:** ⬜ Not started | 🔄 In progress | ✅ Complete | ⏸️ Blocked
 
@@ -7,7 +7,7 @@
 ### Phase 1: Project Scaffolding
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 1.1 | `npx create-expo-app@latest granabus --template blank-typescript` | ✅ | |
+| 1.1 | `npx create-expo-app@latest rumbo-granada --template blank-typescript` | ✅ | |
 | 1.2 | Install deps: `react-native-paper`, `react-native-maps`, `expo-router`, `@tanstack/react-query`, `zustand`, `react-native-mmkv`, `expo-notifications`, `expo-task-manager`, `expo-background-fetch` | ✅ | |
 | 1.3 | Configure `tsconfig.json` (strict, path aliases `@/*`, `src/*`) | ✅ | |
 | 1.4 | Configure `eslint.config.js` (Airbnb + Prettier + React Native) | ✅ | |
@@ -32,7 +32,7 @@
 | 2.2 | Create tab layout (`app/(tabs)/_layout.tsx`) with 4 tabs | ✅ | Map, Lines, Favorites, Settings |
 | 2.3 | Create tab icons (MaterialCommunityIcons) | ✅ | Map, Bus, Star, Cog |
 | 2.4 | Implement tab screens as placeholders | ✅ | Map, Lines, Favorites, Settings |
-| 2.5 | Configure deep linking scheme (`granabus://`) | ✅ | Added to `app.config.ts` |
+| 2.5 | Configure deep linking scheme (`rumbo-granada://`) | ✅ | Added to `app.config.ts` |
 | 2.6 | Add header/search bar to Lines tab | ✅ | Created `SearchBar` component, added to Lines screen |
 | 2.7 | Verify: all tabs navigate, deep links work | ✅ | Typecheck, lint, and tests pass |
 

@@ -8,7 +8,7 @@ import { useSettingsStore } from '@/store/settings';
 import { useEffect } from 'react';
 
 // Initialize MMKV storage
-const storage = createSafeMMKV({ id: 'granabus-general' });
+const storage = createSafeMMKV({ id: 'rumbo-granada-general' });
 Storage.setInstance(storage as never);
 
 export default function RootLayout() {

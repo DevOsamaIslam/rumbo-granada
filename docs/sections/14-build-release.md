@@ -38,12 +38,12 @@ import { ConfigContext, ExpoConfig } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'Granabus',
-  slug: 'granabus',
+  name: 'Rumbo Granada',
+  slug: 'rumbo-granada',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/logo.png',
-  scheme: 'granabus',
+  scheme: 'rumbo-granada',
   userInterfaceStyle: 'automatic',
   splash: {
     image: './assets/logo.png',
@@ -53,7 +53,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   assetBundlePatterns: ['**/*'],
   ios: {
     supportsTablet: false,
-    bundleIdentifier: 'com.granabus.app',
+    bundleIdentifier: 'com.rumbo-granada.app',
     buildNumber: '1',
     infoPlist: {
       NSLocationWhenInUseUsageDescription: 'Show your location on the map',
@@ -66,7 +66,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       foregroundImage: './assets/logo.png',
       backgroundColor: '#1976D2',
     },
-    package: 'com.granabus.app',
+    package: 'com.rumbo-granada.app',
     versionCode: 1,
     permissions: [
       'ACCESS_FINE_LOCATION',
@@ -82,7 +82,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-notifications',
     'expo-task-manager',
     ['expo-background-fetch', { minimumInterval: 15 }],
-    ['expo-location', { locationAlwaysAndWhenInUsePermission: 'Allow Granabus to track buses in background' }],
+    ['expo-location', { locationAlwaysAndWhenInUsePermission: 'Allow Rumbo Granada to track buses in background' }],
   ],
   extra: {
     eas: { projectId: 'your-project-id' },

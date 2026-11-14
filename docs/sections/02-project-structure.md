@@ -3,7 +3,7 @@
 ## Directory Layout
 
 ```
-granabus/
+rumbo-granada/
 ├── app/                          # Expo Router pages (file-based routing)
 │   ├── _layout.tsx               # Root layout: providers, theme, global styles
 │   ├── +not-found.tsx            # 404 screen

@@ -6,7 +6,7 @@ import { Storage } from '@/services/storage';
 import { COLORS } from '@/constants/colors';
 
 // Create MMKV instance for general storage
-const storage = createSafeMMKV({ id: 'granabus-general' });
+const storage = createSafeMMKV({ id: 'rumbo-granada-general' });
 Storage.setInstance(storage as never);
 
 // Create theme for Paper (Material Design 3)

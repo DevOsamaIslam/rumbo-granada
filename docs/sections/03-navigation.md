@@ -117,23 +117,23 @@ export default function TabLayout() {
 
 ## Deep Linking
 
-Scheme: `granabus://`
+Scheme: `rumbo-granada://`
 
 | URL | Opens |
 |-----|-------|
-| `granabus://` | Home (Map) |
-| `granabus://lines` | Lines tab |
-| `granabus://line/b4ab663b-...` | Line detail |
-| `granabus://stop/a164fda3-...` | Stop detail |
-| `granabus://favorites` | Favorites tab |
-| `granabus://settings` | Settings tab |
+| `rumbo-granada://` | Home (Map) |
+| `rumbo-granada://lines` | Lines tab |
+| `rumbo-granada://line/b4ab663b-...` | Line detail |
+| `rumbo-granada://stop/a164fda3-...` | Stop detail |
+| `rumbo-granada://favorites` | Favorites tab |
+| `rumbo-granada://settings` | Settings tab |
 
 Configured in `app.config.ts`:
 
 ```ts
 export default {
   expo: {
-    scheme: 'granabus',
+    scheme: 'rumbo-granada',
     // ...
   },
 };

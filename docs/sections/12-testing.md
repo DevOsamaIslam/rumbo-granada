@@ -149,7 +149,7 @@ describe('StopMarker', () => {
 
 ```yaml
 # maestro/flows/track-bus.yaml
-appId: com.granabus.app
+appId: com.rumbo-granada.app
 ---
 - launchApp
 - tapOn: "Lines"

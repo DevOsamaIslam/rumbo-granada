@@ -100,7 +100,7 @@ export function useBatteryOptimization() {
       if (!isIgnoring) {
         Alert.alert(
           'Battery Optimization',
-          'For reliable bus tracking notifications, please disable battery optimization for Granabus.',
+          'For reliable bus tracking notifications, please disable battery optimization for Rumbo Granada.',
           [
             { text: 'Later', style: 'cancel' },
             { text: 'Open Settings', onPress: () => Linking.openSettings() },

@@ -1,4 +1,4 @@
-# Granabus — Detailed Architecture Plan
+# Rumbo Granada — Detailed Architecture Plan
 
 This document indexes all architecture sections and serves as a quick reference for the codebase.
 
