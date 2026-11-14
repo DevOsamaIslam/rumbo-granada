@@ -42,11 +42,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: 'granabus',
   version: '1.0.0',
   orientation: 'portrait',
-  icon: './assets/images/icon.png',
+  icon: './assets/logo.png',
   scheme: 'granabus',
   userInterfaceStyle: 'automatic',
   splash: {
-    image: './assets/images/splash.png',
+    image: './assets/logo.png',
     resizeMode: 'contain',
     backgroundColor: '#1976D2',
   },
@@ -63,7 +63,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     adaptiveIcon: {
-      foregroundImage: './assets/images/adaptive-icon.png',
+      foregroundImage: './assets/logo.png',
       backgroundColor: '#1976D2',
     },
     package: 'com.granabus.app',

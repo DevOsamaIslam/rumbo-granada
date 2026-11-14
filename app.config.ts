@@ -6,7 +6,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: 'granabus',
   version: '1.0.0',
   orientation: 'portrait',
-  icon: './assets/icon.png',
+  icon: './assets/logo.png',
   userInterfaceStyle: 'automatic',
   assetBundlePatterns: ['**/*'],
   scheme: 'granabus',
@@ -44,7 +44,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-notifications',
       {
-        icon: './assets/splash-icon.png',
+        icon: './assets/logo.png',
         color: '#6200EE',
         defaultChannel: 'default',
       },
