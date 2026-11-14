@@ -5,7 +5,7 @@
 // the site expects, caches the last good response in MMKV, and retries transient
 // failures with a short backoff.
 import { CONFIG } from '@/constants/config';
-import type { Arrival, StopSearchResult } from '@/types/api';
+import type { Arrival, LiveApiLineStopsResponse, LiveApiStop, StopSearchResult } from '@/types/api';
 import {
   isStopNotFoundError,
   parseStopArrivalsHtml,
@@ -62,6 +62,7 @@ export interface LiveApiClientOptions {
 
 export class LiveApiClient {
   private sessionCookie: string | null = null;
+  private cookieExpiry: number = 0;
   private readonly retryDelayMs: number;
   private readonly maxRetries: number;
   private readonly timeoutMs: number;
@@ -114,6 +115,52 @@ export class LiveApiClient {
     return parseStopSearchHtml(html);
   }
 
+  /** Retrieves all stops for a given line code by posting to `linea_paradas.php`. */
+  async getLineStops(lineCode: string): Promise<LiveApiStop[]> {
+    const code = lineCode.trim();
+    if (!code) return [];
+
+    const html = await this.postForm(`${BASE_URL}/linea_paradas.php`, {
+      linea: code,
+    });
+
+    if (isStopNotFoundError(html)) return [];
+
+    // Parse the HTML response to extract stop information.
+    // The response contains hidden inputs with stop details inside table rows.
+    const stopPattern = /<input[^>]*name=\"parada\"[^>]*value=\"([^\"]*)\"[^>]*>\s*<div class=\"tfccs\"[^>]*>([\\s\\S]*?)<\/div>/gi;
+    const stops: LiveApiStop[] = [];
+
+    let match: RegExpExecArray | null;
+    while ((match = stopPattern.exec(html)) !== null) {
+      const stopId = match[1].trim();
+      const stopNameRaw = match[2];
+      const stopName = stopRaw
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/&/gi, '&')
+        .replace(/"/gi, '\"')
+        .replace(/&#0?39;|&apos;/gi, "'")
+        .replace(/</gi, '<')
+        .replace(/>/gi, '>')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (!stopId) continue;
+
+      stops.push({
+        stopId,
+        stopName,
+        lat: 0,
+        lon: 0,
+        order: stops.length,
+      });
+    }
+
+    return stops;
+  }
+
+
   /** Returns the last cached arrivals for a stop, if any. */
   getCachedArrivals(stopCode: string | number): Arrival[] | null {
     const code = toStopCode(stopCode);
@@ -140,6 +187,9 @@ export class LiveApiClient {
     fields: Record<string, string>,
   ): Promise<string> {
     let lastError: unknown;
+
+    // Refresh session cookie if needed before making the request
+    await this.refreshSessionIfNeeded();
 
     for (let attempt = 0; attempt <= this.maxRetries; attempt += 1) {
       try {
@@ -202,11 +252,47 @@ export class LiveApiClient {
     const cookie = setCookie.split(';')[0];
     if (!cookie) return;
     this.sessionCookie = cookie;
+    // Parse expiry date from the cookie to track when it expires
+    const expiryMatch = setCookie.match(/expires=([^;]+)/i);
+    if (expiryMatch) {
+      const expiryDate = new Date(expiryMatch[1]).getTime();
+      if (!isNaN(expiryDate)) {
+        this.cookieExpiry = expiryDate;
+      }
+    }
     try {
       getCache().set(SESSION_COOKIE_KEY, cookie);
     } catch {
       // Best-effort: the cookie still works for this session.
     }
+  }
+
+  /** Checks if the stored session cookie is close to expiry and refreshes it if needed. */
+  private async refreshSessionIfNeeded(): Promise<boolean> {
+    const now = Date.now();
+    // Refresh if cookie expires within the next 5 minutes or has already expired
+    if (this.cookieExpiry > 0 && now >= this.cookieExpiry - 5 * 60 * 1000) {
+      // Clear the old cookie and try to get a new one from the site
+      this.sessionCookie = null;
+      this.cookieExpiry = 0;
+      try {
+        // Fetch the main page to get a fresh session cookie
+        const response = await this.fetchWithTimeout(`${BASE_URL}/paradas.htm`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'text/html,application/xhtml+xml',
+            'Referer': `${BASE_URL}/paradas.htm`,
+          },
+        });
+        if (response.ok) {
+          this.rememberSessionCookie(response);
+          return true;
+        }
+      } catch {
+        // Ignore errors during refresh; the current session may still work
+      }
+    }
+    return false;
   }
 }
 

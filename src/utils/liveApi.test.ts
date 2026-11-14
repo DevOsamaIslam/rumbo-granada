@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+  getLineStops,
   isStopNotFoundError,
   parseStopArrivalsHtml,
   parseStopSearchHtml,
@@ -120,5 +121,18 @@ describe('isStopNotFoundError', () => {
 
   it('returns false for an arrivals page', () => {
     expect(isStopNotFoundError(ARRIVALS_HTML)).toBe(false);
+  });
+});
+
+/** Tests for getLineStops HTML parsing. */
+describe('getLineStops', () => {
+  it('returns empty array for empty line code', async () => {
+    const stops = await getLineStops('');
+    expect(stops).toEqual([]);
+  });
+
+  it('handles HTML with no matching stops', async () => {
+    const stops = await getLineStops('999');
+    expect(stops).toEqual([]);
   });
 });

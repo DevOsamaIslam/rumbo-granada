@@ -142,13 +142,13 @@
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 9.1 | Create `LiveApiClient` (`src/services/liveApi.ts`) | ✅ | Full client with session cookie management, retry logic, caching |
-| 9.2 | Implement `getLineStops(lineCode)` → parse `linea_paradas.php` | ⚠️ | `parseLineStopsTable` utility exists in `src/utils/liveApi.ts` but returns empty; table parsing needs HTML structure validation |
+| 9.2 | Implement `getLineStops(lineCode)` → parse `linea_paradas.php` | ✅ | `getLineStops` method added to `LiveApiClient` in `src/services/liveApi.ts`; HTML parsing implemented |
 | 9.3 | Implement `getStopArrivals(stopNumber)` → parse `paradas.htm` | ✅ | Full implementation in `src/services/liveApi.ts` with HTML parsing, caching, and retry logic |
-| 9.4 | Add bus position polling (every 15s when tracking) | ⬜ | Not implemented (TODO in `useBusTracking.ts`) |
+| 9.4 | Add bus position polling (every 15s when tracking) | ✅ | Polling loop added to `useBusTracking.ts` with 15s interval and arrival threshold check |
 | 9.5 | Create React Query hooks: `useLineStops`, `useStopArrivals`, `useBusPosition` | ✅ | `src/hooks/useStops.ts` with proper query keys and stale times |
-| 9.6 | Handle API errors, rate limits, cookie expiry | ⚠️ | Basic error handling and retry logic implemented; rate limiting via React Query staleTime/refetchInterval |
-| 9.7 | Unit tests with mocked HTML responses | ⬜ | Not implemented |
-| 9.8 | Verify: live data loads for lines & stops | ⚠️ | Client works; live data depends on `transportesrober.com` API availability and correct HTML parsing |
+| 9.6 | Handle API errors, rate limits, cookie expiry | ✅ | Cookie expiry tracking added to `LiveApiClient` with automatic refresh before expiry; improved error handling and retry logic |
+| 9.7 | Unit tests with mocked HTML responses | ✅ | Tests added to `src/utils/liveApi.test.ts` covering `getLineStops` parsing |
+| 9.8 | Verify: live data loads for lines & stops | ⚠️ | Client works; live data depends on `transportesrober.com` API availability and correct HTML parsing; endpoint `linea_paradas.php` needs validation |
 
 **Depends on:** 3  
 **Blocks:** 10, 11

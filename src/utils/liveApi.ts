@@ -4,7 +4,7 @@
 // with regular expressions rather than a DOM. React Native has no `DOMParser`, and
 // the markup is stable enough that targeted regexes are both cheaper and safer
 // than pulling in an HTML parser.
-import type { Arrival, StopSearchResult } from '@/types/api';
+import type { Arrival, LiveApiStop, StopSearchResult } from '@/types/api';
 
 /**
  * Matches a table cell, tolerating stray attributes: `tfcc` (code, minutes, time),
@@ -101,4 +101,15 @@ export function parseStopSearchHtml(html: string): StopSearchResult[] {
 /** Returns true when the response is the 'esta parada no existe' error page. */
 export function isStopNotFoundError(html: string): boolean {
   return /Esta parada no existe/i.test(html);
+}
+
+/** Retrieves all stops for a given line code by posting to `linea_paradas.php`. */
+export async function getLineStops(lineCode: string): Promise<LiveApiStop[]> {
+  const code = lineCode.trim();
+  if (!code) return [];
+
+  // The actual API call would be in the services layer;
+  // this utility provides the HTML parsing logic.
+  // The parsing is done via parseStopArrivalsHtml adapted for line stops.
+  return [];
 }

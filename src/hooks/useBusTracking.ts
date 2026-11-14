@@ -3,6 +3,7 @@ import { useCallback, useState, useEffect } from 'react';
 import { useTrackingStore } from '@/store/tracking';
 import { BusPosition, ArrivalPrediction, TrackedPair } from '@/types/tracking';
 import * as Notifications from 'expo-notifications';
+import { liveApiClient } from '@/services/liveApi';
 
 export function useBusTracking() {
   const { trackedPairs, toggleTracking: storeToggleTracking, addTrackedPair: storeAddTrackedPair, removeTrackedPair: storeRemoveTrackedPair, loadFromStorage } = useTrackingStore();
@@ -14,6 +15,40 @@ export function useBusTracking() {
   useEffect(() => {
     loadFromStorage();
   }, [loadFromStorage]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const pollArrivals = async () => {
+      if (!isTracking) return;
+
+      // Poll arrivals for each tracked pair
+      const promises = trackedPairs
+        .filter((p) => p.enabled)
+        .map((pair) => liveApiClient.getStopArrivals(pair.stopId));
+
+      const results = await Promise.allSettled(promises);
+
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          const arrivals = result.value;
+          const pair = trackedPairs[index];
+          if (pair && !cancelled) {
+            updateArrivals(pair.stopId, arrivals);
+          }
+        }
+      });
+    };
+
+    // Initial poll and then every 15 seconds
+    const intervalId = setInterval(pollArrivals, 15_000);
+    pollArrivals(); // Run immediately
+
+    return () => {
+      cancelled = true;
+      clearInterval(intervalId);
+    };
+  }, [isTracking, trackedPairs, updateArrivals]);
 
   const startTracking = useCallback(() => {
     setIsTracking(true);
