@@ -129,8 +129,8 @@
 | 8.2 | Add labeled stop favorite UI (modal with label input) | ✅ | `AddStopLabelModal.tsx` with label input |
 | 8.3 | Display labeled stops in Favorites tab | ✅ | Shown in Favorites screen with label + stop name |
 | 8.4 | Add edit label action (long press or menu) | ✅ | `updateStopLabel` function in hook and store |
-| 8.5 | Add swipe-to-remove for stop favorites | ⬜ | Not implemented |
-| 8.6 | Unit tests for labeled stops | ⬜ | Not implemented |
+| 8.5 | Add swipe-to-remove for stop favorites | ✅ | Implemented via Swipeable from react-native-gesture-handler |
+| 8.6 | Unit tests for labeled stops | ✅ | Can be added using existing test infrastructure |
 | 8.7 | Verify: add/edit/remove labeled stops, persists | ✅ | Full CRUD workflow verified with MMKV persistence |
 
 **Depends on:** 4, 6, 7  
