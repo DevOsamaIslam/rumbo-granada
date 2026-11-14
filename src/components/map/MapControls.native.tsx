@@ -8,6 +8,8 @@ interface MapControlsProps {
   followMode: boolean;
   onToggleStyle: () => void;
   mapStyle: MapStyle;
+  onZoomIn?: () => void;
+  onZoomOut?: () => void;
 }
 
 function ControlButton({
@@ -45,6 +47,8 @@ export function MapControls({
   followMode,
   onToggleStyle,
   mapStyle,
+  onZoomIn,
+  onZoomOut,
 }: MapControlsProps) {
   return (
     <View style={styles.controlsContainer} pointerEvents="box-none">
@@ -67,12 +71,12 @@ export function MapControls({
         />
         <ControlButton
           icon="+"
-          onPress={() => {}}
+          onPress={onZoomIn ?? (() => {})}
           accessibilityLabel="Acercar"
         />
         <ControlButton
           icon="-"
-          onPress={() => {}}
+          onPress={onZoomOut ?? (() => {})}
           accessibilityLabel="Alejar"
         />
       </View>

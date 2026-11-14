@@ -2,6 +2,7 @@
 import { useCallback, useState, useEffect } from 'react';
 import { Route } from '@/types/gtfs';
 import { gtfsService } from '@/services/gtfs';
+import { filterLines } from '@/utils/gtfs';
 
 export function useLines() {
   const [routes, setRoutes] = useState<Route[]>([]);
@@ -27,14 +28,7 @@ export function useLines() {
     loadLines();
   }, [loadLines]);
 
-  const searchLines = useCallback((query: string): Route[] => {
-    const lowerQuery = query.toLowerCase();
-    return routes.filter(
-      (route) =>
-        route.route_short_name.toLowerCase().includes(lowerQuery) ||
-        route.route_long_name.toLowerCase().includes(lowerQuery)
-    );
-  }, [routes]);
+  const searchLines = useCallback((query: string): Route[] => filterLines(routes, query), [routes]);
 
   return {
     routes,

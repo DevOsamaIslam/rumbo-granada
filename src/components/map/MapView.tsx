@@ -1,5 +1,5 @@
 // Web-safe MapView entry point.
-// Metro resolves this file on web (react-native-maps native codegen is not
+// Metro resolves this file on web (MapLibre native codegen is not
 // web-compatible), while MapView.native.tsx is resolved on iOS/Android.
 import { MapWebFallback } from './MapViewWeb';
 import type { MapViewProps, MapStyle } from './types';

@@ -1,32 +1,218 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLocalSearchParams } from 'expo-router';
-import { Title } from 'react-native-paper';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, IconButton } from 'react-native-paper';
+import { gtfsService } from '@/services/gtfs';
+import { useFavorites } from '@/hooks/useFavorites';
+import { Route, Stop } from '@/types/gtfs';
 
 export default function LineDetailScreen() {
   const insets = useSafeAreaInsets();
-  const { id } = useLocalSearchParams();
+  const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const [route, setRoute] = useState<Route | null>(null);
+  const [stops, setStops] = useState<Stop[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { isBusFavorite, toggleFavoriteBus } = useFavorites();
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      if (!id || typeof id !== 'string') {
+        setIsLoading(false);
+        return;
+      }
+      try {
+        await gtfsService.load();
+        const r = gtfsService.getRoute(id);
+        const s = gtfsService.getOrderedStopsForRoute(id);
+        if (!cancelled) {
+          setRoute(r ?? null);
+          setStops(s);
+        }
+      } catch {
+        if (!cancelled) {
+          setRoute(null);
+          setStops([]);
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  const handleShowOnMap = () => {
+    if (id) {
+      router.push({ pathname: '/', params: { lineId: id } });
+    }
+  };
+
+  const handleToggleFavorite = () => {
+    if (!route) return;
+    toggleFavoriteBus({
+      routeId: route.route_id,
+      routeShortName: route.route_short_name,
+      routeLongName: route.route_long_name,
+      routeColor: route.route_color ?? '',
+      routeTextColor: route.route_text_color ?? '',
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.centered, { paddingTop: insets.top }]}>
+        <ActivityIndicator animating size="large" />
+      </View>
+    );
+  }
+
+  if (!route) {
+    return (
+      <View style={[styles.container, styles.centered, { paddingTop: insets.top }]}>
+        <Text style={styles.errorText}>Line not found</Text>
+      </View>
+    );
+  }
+
+  const isFavorite = isBusFavorite(route.route_id);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <Title style={styles.title}>Line Detail: {id}</Title>
-      <Text style={styles.subtitle}>Line info, stops, and map view</Text>
-    </View>
+    <ScrollView
+      style={[styles.container, { paddingTop: insets.top }]}
+      contentContainerStyle={styles.content}
+    >
+      <View style={styles.header}>
+        <View style={[styles.badge, { backgroundColor: route.route_color ? `#${route.route_color}` : '#6200EE' }]}>
+          <Text style={styles.badgeText}>{route.route_short_name}</Text>
+        </View>
+        <View style={styles.headerInfo}>
+          <Text style={styles.title}>Line {route.route_short_name}</Text>
+          <Text style={styles.subtitle}>{route.route_long_name}</Text>
+        </View>
+        <IconButton
+          icon={isFavorite ? 'star' : 'star-outline'}
+          onPress={handleToggleFavorite}
+          accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        />
+      </View>
+
+      <Pressable
+        style={styles.mapButton}
+        onPress={handleShowOnMap}
+        accessibilityRole="button"
+        accessibilityLabel="Show on map"
+      >
+        <Text style={styles.mapButtonText}>Show on Map</Text>
+      </Pressable>
+
+      <Text style={styles.sectionTitle}>Stops ({stops.length})</Text>
+      {stops.map((stop, index) => (
+        <Pressable
+          key={`${stop.stop_id}-${index}`}
+          style={styles.stopRow}
+          onPress={() => router.push(`/stop/${stop.stop_id}`)}
+          accessibilityRole="button"
+          accessibilityLabel={`Stop ${stop.stop_name}`}
+        >
+          <Text style={styles.stopNumber}>{index + 1}</Text>
+          <Text style={styles.stopName}>{stop.stop_name}</Text>
+        </Pressable>
+      ))}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  centered: {
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
   },
+  content: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  badge: {
+    minWidth: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  headerInfo: {
+    flex: 1,
+    gap: 2,
+  },
   title: {
-    marginBottom: 8,
+    fontSize: 22,
+    fontWeight: '600',
   },
   subtitle: {
+    fontSize: 14,
     color: '#79747E',
+  },
+  errorText: {
+    color: '#B00020',
+    fontSize: 15,
+  },
+  mapButton: {
+    backgroundColor: '#6200EE',
+    borderRadius: 8,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  mapButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  stopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  stopNumber: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#6200EE',
+    color: '#FFFFFF',
     textAlign: 'center',
+    lineHeight: 28,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  stopName: {
+    flex: 1,
+    fontSize: 15,
   },
 });

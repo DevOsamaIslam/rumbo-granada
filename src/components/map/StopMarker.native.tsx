@@ -1,10 +1,10 @@
-import React from 'react';
-import { Marker, Callout } from 'react-native-maps';
-import { Stop } from '@/types/gtfs';
-import { StyleSheet, View, Text } from 'react-native';
+import React from "react";
+import { Marker, Callout } from "@maplibre/maplibre-react-native";
+import { Stop } from "@/types/gtfs";
+import { StyleSheet, View, Text } from "react-native";
 
 interface StopMarkerProps {
-  coordinate: { latitude: number; longitude: number };
+  lngLat: [number, number];
   stop: Stop;
   isCluster?: boolean;
   pointCount?: number;
@@ -12,7 +12,7 @@ interface StopMarkerProps {
 }
 
 export function StopMarker({
-  coordinate,
+  lngLat,
   stop,
   isCluster = false,
   pointCount,
@@ -20,55 +20,78 @@ export function StopMarker({
 }: StopMarkerProps) {
   return (
     <Marker
-      coordinate={coordinate}
-      title={isCluster ? `${pointCount} paradas` : stop.stop_name}
-      description={isCluster ? undefined : stop.stop_code}
+      lngLat={lngLat}
+      anchor="bottom"
       onPress={() => onPress?.(stop)}
-      tracksViewChanges={false}
-      zIndex={isCluster ? 50 : 10}
     >
-      <Callout
-        style={styles.callout}
-        tooltip={true}
-        onPress={() => onPress?.(stop)}
-      >
-        <View style={styles.calloutContent}>
-          <Text style={styles.calloutText} numberOfLines={1}>
-            {isCluster ? `${pointCount} paradas agrupadas` : stop.stop_name}
+      <View style={styles.annotation}>
+        <View style={styles.markerDot}>
+          <Text style={styles.markerText}>
+            {isCluster ? `${pointCount}+` : "🚏"}
           </Text>
-          {!isCluster && stop.stop_code && (
-            <Text style={styles.calloutSubText}>Código: {stop.stop_code}</Text>
-          )}
         </View>
-      </Callout>
+        <Callout style={styles.callout}>
+          <View style={styles.calloutContent}>
+            <Text style={styles.calloutText} numberOfLines={1}>
+              {isCluster ? `${pointCount} paradas agrupadas` : stop.stop_name}
+            </Text>
+            {!isCluster && stop.stop_code && (
+              <Text style={styles.calloutSubText}>
+                Código: {stop.stop_code}
+              </Text>
+            )}
+          </View>
+        </Callout>
+      </View>
     </Marker>
   );
 }
 
 const styles = StyleSheet.create({
+  markerDot: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#6200EE",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  annotation: {
+    position: "relative",
+  },
+  markerText: {
+    fontSize: 12,
+    color: "white",
+  },
   callout: {
     padding: 8,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 8,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
   },
   calloutContent: {
-    padding: 4,
+    alignItems: "center",
   },
   calloutText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
   },
   calloutSubText: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
     marginTop: 2,
   },
 });
 
 export default StopMarker;
+

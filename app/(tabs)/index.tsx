@@ -1,14 +1,16 @@
 import React, { useEffect } from 'react';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useLocalSearchParams } from 'expo-router';
 import { MapView } from '@/components/map';
 import { useLines } from '@/hooks/useLines';
-import { StyleSheet } from 'react-native';
 import { Stop } from '@/types/gtfs';
 
 export default function MapScreen() {
   const insets = useSafeAreaInsets();
   const { routes, loadLines } = useLines();
+  const params = useLocalSearchParams<{ lineId?: string }>();
+  const lineId = typeof params.lineId === 'string' ? params.lineId : routes[0]?.route_id;
 
   useEffect(() => {
     loadLines();
@@ -27,8 +29,8 @@ export default function MapScreen() {
   return (
     <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
       <MapView
-        initialRegion={{ latitude: 37.1773, longitude: -3.5986, latitudeDelta: 0.05, longitudeDelta: 0.05 }}
-        selectedLineId={routes[0]?.route_id}
+        initialRegion={{ latitude: 37.1773, longitude: -3.5986, zoomLevel: 13 }}
+        selectedLineId={lineId}
         onStopPress={handleStopPress}
         onBusPress={handleBusPress}
       />

@@ -1,13 +1,14 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 
-import type { Region } from 'react-native-maps';
+import type { Region } from './types';
 
 interface MapWebFallbackProps {
   initialRegion?: Region;
 }
 
 export const MapWebFallback = ({ initialRegion }: MapWebFallbackProps) => {
+  void initialRegion;
   return (
     <View style={styles.map}>
       <View style={styles.fallbackContainer}>

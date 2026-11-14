@@ -1,5 +1,7 @@
 import * as Papa from 'papaparse';
 import { createMMKV } from 'react-native-mmkv';
+import { Platform } from 'react-native';
+import { orderStopsBySequence } from '@/utils/gtfs';
 import type { Route, Stop, Trip, StopTime, Shape } from '@/types/gtfs';
 
 const mmkv = createMMKV({ id: 'gtfs-cache' });
@@ -62,10 +64,20 @@ class GTFSService {
   }
 
   private parseFile<T>(filename: string): Promise<T[]> {
-    const path = `../resources/gtfs/${filename}`;
+    // On web, GTFS files are served statically from `public/gtfs/`.
+    // On native, Metro serves them from `../resources/gtfs/`.
+    const path = Platform.OS === 'web' ? `/gtfs/${filename}` : `../resources/gtfs/${filename}`;
     return fetch(path)
-      .then((response) => response.text())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ${filename}: ${response.status}`);
+        }
+        return response.text();
+      })
       .then((text) => {
+        if (text.trimStart().startsWith('<')) {
+          throw new Error(`Unexpected HTML response when fetching ${filename}`);
+        }
         return new Promise<T[]>((resolve, reject) => {
           Papa.parse<T>(text, {
             header: true,
@@ -240,6 +252,16 @@ class GTFSService {
     return Array.from(stopIds)
       .map((id) => this.data?.stops.get(id))
       .filter((stop): stop is Stop => stop !== undefined);
+  }
+
+  getOrderedStopsForRoute(routeId: string): Stop[] {
+    if (!this.data) return [];
+    return orderStopsBySequence(
+      this.data.tripsByRoute,
+      this.data.stopTimes,
+      this.data.stops,
+      routeId
+    );
   }
 
   getTripsForRoute(routeId: string): Trip[] {

@@ -1,10 +1,11 @@
 // Test setup file for Vitest
 import '@testing-library/jest-native';
 import { vi } from 'vitest';
-import { View } from 'react-native';
+import { View, Text } from 'react-native';
 
 // Make View globally available for mocks
 global.View = View;
+global.Text = Text;
 
 // Mock React Native Paper
 vi.mock('react-native-paper', () => {
@@ -76,15 +77,23 @@ vi.mock('expo-background-fetch', () => ({
   setMinimumIntervalAsync: vi.fn(),
 }));
 
-vi.mock('react-native-maps', () => {
+vi.mock('@maplibre/maplibre-react-native', () => {
   const React = require('react');
   const { View } = require('react-native');
   return {
     __esModule: true,
-    default: ({ children, ...props }: any) => React.createElement(View, props, children),
+    MapLibreGL: {
+      setAccessToken: vi.fn(),
+    },
+    Map: ({ children, ...props }: any) => React.createElement(View, props, children),
+    Camera: ({ children, ...props }: any) => React.createElement(View, props, children),
     Marker: ({ children, ...props }: any) => React.createElement(View, props, children),
+    RasterSource: ({ children, ...props }: any) => React.createElement(View, props, children),
+    GeoJSONSource: ({ children, ...props }: any) => React.createElement(View, props, children),
+    Layer: ({ children, ...props }: any) => React.createElement(View, props, children),
+    UserLocation: ({ ...props }: any) => React.createElement(View, props),
     Callout: ({ children, ...props }: any) => React.createElement(View, props, children),
-    Polyline: ({ ...props }: any) => React.createElement(View, props),
+    ViewAnnotation: ({ children, ...props }: any) => React.createElement(View, props, children),
   };
 });
 

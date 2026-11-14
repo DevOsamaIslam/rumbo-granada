@@ -23,6 +23,20 @@ export function useStops() {
     }
   }, []);
 
+  const loadOrderedStopsForRoute = useCallback(async (routeId: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await gtfsService.load();
+      const data = gtfsService.getOrderedStopsForRoute(routeId);
+      setStops(data);
+    } catch {
+      setError(new Error('Failed to load stops'));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const loadStopTimes = useCallback(async (tripId: string) => {
     setIsLoading(true);
     setError(null);
@@ -52,6 +66,7 @@ export function useStops() {
     isLoading,
     error,
     loadStopsForRoute,
+    loadOrderedStopsForRoute,
     loadStopTimes,
     searchStops,
   };

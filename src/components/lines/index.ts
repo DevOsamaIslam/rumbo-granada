@@ -1,4 +1,3 @@
-// Lines components - placeholder exports
-// export * from './LineList';
-// export * from './LineItem';
-// export * from './LineDetail';
+// Lines components
+export { LineItem } from './LineItem';
+export { LineList } from './LineList';

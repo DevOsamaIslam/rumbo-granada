@@ -21,8 +21,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     adaptiveIcon: {
-      foregroundImage: './assets/adaptive-icon.png',
-      backgroundColor: '#6200EE',
+      foregroundImage: './assets/android-icon-foreground.png',
+      backgroundImage: './assets/android-icon-background.png',
+      monochromeImage: './assets/android-icon-monochrome.png',
+      backgroundColor: '#E6F4FE',
     },
     package: 'com.granabus.app',
     permissions: [
@@ -34,14 +36,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
   },
   web: {
-    favicon: './assets/images/favicon.png',
+    favicon: './assets/favicon.png',
   },
   plugins: [
+    '@maplibre/maplibre-react-native',
     'expo-router',
     [
       'expo-notifications',
       {
-        icon: './assets/notification-icon.png',
+        icon: './assets/splash-icon.png',
         color: '#6200EE',
         defaultChannel: 'default',
       },

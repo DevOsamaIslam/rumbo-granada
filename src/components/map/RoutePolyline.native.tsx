@@ -1,7 +1,7 @@
-import React from 'react';
-import { Polyline } from 'react-native-maps';
-import { Route } from '@/types/gtfs';
-import { gtfsService } from '@/services/gtfs';
+import React, { useMemo } from "react";
+import { GeoJSONSource, Layer } from "@maplibre/maplibre-react-native";
+import { Route } from "@/types/gtfs";
+import { gtfsService } from "@/services/gtfs";
 
 interface RoutePolylineProps {
   lineId: string;
@@ -10,31 +10,47 @@ interface RoutePolylineProps {
 
 export function RoutePolyline({ lineId, routes }: RoutePolylineProps) {
   const route = routes.find((r) => r.route_id === lineId);
-  if (!route?.shape_id) return null;
+  const geojson = useMemo(() => {
+    if (!route?.shape_id) return null;
+    const shapes = gtfsService.getShapeForRoute(lineId);
+    if (shapes.length === 0) return null;
+    const coordinates = shapes.map((shape) => [
+      shape.shape_pt_lon,
+      shape.shape_pt_lat,
+    ]);
+    return {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "LineString",
+            coordinates,
+          },
+        },
+      ],
+    } as GeoJSON.FeatureCollection;
+  }, [route, lineId]);
 
-  // Get shape points from GTFS service
-  const shapes = gtfsService.getShapeForRoute(lineId);
-  if (shapes.length === 0) return null;
+  if (!geojson) return null;
 
-  // Convert shape points to coordinates
-  const coordinates = shapes.map((shape) => ({
-    latitude: shape.shape_pt_lat,
-    longitude: shape.shape_pt_lon,
-  }));
-
-  if (coordinates.length === 0) return null;
-
-  // Get route color if available
-  const strokeColor = route.route_color ? `#${route.route_color}` : '#1976D2';
+  const routeColor = route?.route_color || "#6200EE";
 
   return (
-    <Polyline
-      coordinates={coordinates}
-      strokeColor={strokeColor}
-      strokeWidth={4}
-      geodesic={true}
-      zIndex={5}
-    />
+    <GeoJSONSource id="route-line" data={geojson}>
+      <Layer
+        id="route-line-layer"
+        type="line"
+        source="route-line"
+        paint={{
+          "line-color": routeColor,
+          "line-width": 3,
+          "line-opacity": 0.8,
+        }}
+        layout={{ "line-join": "round", "line-cap": "round" }}
+      />
+    </GeoJSONSource>
   );
 }
 

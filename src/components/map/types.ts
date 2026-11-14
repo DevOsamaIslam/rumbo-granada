@@ -1,5 +1,11 @@
-import type { Region } from 'react-native-maps';
 import type { Stop } from '@/types/gtfs';
+
+// Local region type so web components don't depend on a map library.
+export interface Region {
+  latitude: number;
+  longitude: number;
+  zoomLevel: number;
+}
 
 export interface MapViewProps {
   initialRegion?: Region;
@@ -10,7 +16,6 @@ export interface MapViewProps {
   onRegionChange?: (region: Region) => void;
   showUserLocation?: boolean;
   followUserLocation?: boolean;
-  enableClustering?: boolean;
 }
 
 export type MapStyle = 'standard' | 'satellite';

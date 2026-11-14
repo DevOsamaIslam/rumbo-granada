@@ -1,0 +1,96 @@
+import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator } from 'react-native-paper';
+import { Route } from '@/types/gtfs';
+import { LineItem } from './LineItem';
+
+interface LineListProps {
+  routes: Route[];
+  isLoading: boolean;
+  error: Error | null;
+  isFavorite: (routeId: string) => boolean;
+  onPress: (route: Route) => void;
+  onToggleFavorite: (route: Route) => void;
+  onRefresh: () => void;
+  refreshing: boolean;
+  emptyMessage?: string;
+}
+
+export function LineList({
+  routes,
+  isLoading,
+  error,
+  isFavorite,
+  onPress,
+  onToggleFavorite,
+  onRefresh,
+  refreshing,
+  emptyMessage = 'No lines found',
+}: LineListProps) {
+  if (isLoading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator animating size="large" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.errorText}>Failed to load lines</Text>
+      </View>
+    );
+  }
+
+  return (
+    <FlatList
+      data={routes}
+      keyExtractor={(route) => route.route_id}
+      renderItem={({ item }) => (
+        <LineItem
+          route={item}
+          isFavorite={isFavorite(item.route_id)}
+          onPress={onPress}
+          onToggleFavorite={onToggleFavorite}
+        />
+      )}
+      ItemSeparatorComponent={() => <View style={styles.separator} />}
+      ListEmptyComponent={
+        <View style={styles.centered}>
+          <Text style={styles.emptyText}>{emptyMessage}</Text>
+        </View>
+      }
+      contentContainerStyle={styles.listContent}
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      initialNumToRender={15}
+      maxToRenderPerBatch={15}
+      windowSize={7}
+    />
+  );
+}
+
+const styles = StyleSheet.create({
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  listContent: {
+    paddingVertical: 8,
+    paddingBottom: 24,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#E0E0E0',
+  },
+  errorText: {
+    color: '#B00020',
+    fontSize: 15,
+  },
+  emptyText: {
+    color: '#79747E',
+    fontSize: 15,
+  },
+});

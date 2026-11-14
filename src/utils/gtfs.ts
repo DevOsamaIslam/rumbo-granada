@@ -1,4 +1,5 @@
 // GTFS Utilities
+import type { Route, Stop, StopTime } from '@/types/gtfs';
 
 export function parseTime(timeStr: string): Date {
   const [hours, minutes, seconds] = timeStr.split(':').map(Number);
@@ -101,6 +102,43 @@ export function haversineDistance(
 export function formatDistance(meters: number): string {
   if (meters < 1000) return `${Math.round(meters)} m`;
   return `${(meters / 1000).toFixed(1)} km`;
+}
+
+export function filterLines(
+  routes: Route[],
+  query: string
+): Route[] {
+  const lowerQuery = query.trim().toLowerCase();
+  if (!lowerQuery) return routes;
+  return routes.filter(
+    (route) =>
+      route.route_short_name.toLowerCase().includes(lowerQuery) ||
+      route.route_long_name.toLowerCase().includes(lowerQuery)
+  );
+}
+
+export function orderStopsBySequence(
+  tripsByRoute: Map<string, string[]>,
+  stopTimes: Map<string, StopTime[]>,
+  stops: Map<string, Stop>,
+  routeId: string
+): Stop[] {
+  const tripIds = tripsByRoute.get(routeId) ?? [];
+  const minSequenceByStop = new Map<string, number>();
+
+  for (const tripId of tripIds) {
+    for (const stopTime of stopTimes.get(tripId) ?? []) {
+      const current = minSequenceByStop.get(stopTime.stop_id);
+      if (current === undefined || stopTime.stop_sequence < current) {
+        minSequenceByStop.set(stopTime.stop_id, stopTime.stop_sequence);
+      }
+    }
+  }
+
+  return Array.from(minSequenceByStop.entries())
+    .sort((a, b) => a[1] - b[1])
+    .map(([stopId]) => stops.get(stopId))
+    .filter((stop): stop is Stop => stop !== undefined);
 }
 
 export function getRouteTypeName(type: number): string {

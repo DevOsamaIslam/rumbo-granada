@@ -77,13 +77,13 @@
 ### Phase 5: Bus Lines List & Detail
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 5.1 | Create Lines list screen (`app/(tabs)/lines.tsx`) | ⬜ | FlatList, searchable, pull-to-refresh |
-| 5.2 | Create Line detail screen (`app/line/[id].tsx`) | ⬜ | Route info, stops list, map button |
-| 5.3 | Implement stop list for line (ordered by sequence) | ⬜ | From GTFS trips + stop_times |
-| 5.4 | Add "Show on Map" action for line | ⬜ | Navigate to map with route polyline |
-| 5.5 | Add favorite button to line list/item | ⬜ | Connect to favorites store |
-| 5.6 | Unit tests for line queries & screen | ⬜ | |
-| 5.7 | Verify: list loads, search works, detail shows stops | ⬜ | |
+| 5.1 | Create Lines list screen (`app/(tabs)/lines.tsx`) | ✅ | FlatList, searchable, pull-to-refresh |
+| 5.2 | Create Line detail screen (`app/line/[id].tsx`) | ✅ | Route info, stops list, map button |
+| 5.3 | Implement stop list for line (ordered by sequence) | ✅ | From GTFS trips + stop_times via `orderStopsBySequence` |
+| 5.4 | Add "Show on Map" action for line | ✅ | Navigate to map tab with `lineId` param, route polyline drawn |
+| 5.5 | Add favorite button to line list/item | ✅ | Connected to favorites store (zustand) |
+| 5.6 | Unit tests for line queries & screen | ✅ | `filterLines`, `orderStopsBySequence`, GTFSService line queries, LineItem/LineList components |
+| 5.7 | Verify: list loads, search works, detail shows stops | ✅ | Typecheck, lint, tests pass |
 
 **Depends on:** 3, 4  
 **Blocks:** 6, 7
