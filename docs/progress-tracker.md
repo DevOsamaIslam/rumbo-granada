@@ -109,13 +109,13 @@
 ### Phase 7: Favorites — Buses
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 7.1 | Create favorites Zustand store (`src/store/favorites.ts`) | ⬜ | `favoriteBusIds: string[]`, `favoriteStops: FavoriteStop[]` |
-| 7.2 | Persist favorites to MMKV | ⬜ | Hydrate on app start |
-| 7.3 | Create Favorites tab screen (`app/(tabs)/favorites.tsx`) | ⬜ | Two sections: Buses, Stops |
-| 7.4 | Implement bus favorites list with quick actions | ⬜ | Show on map, go to line detail |
-| 7.5 | Add swipe-to-remove for bus favorites | ⬜ | |
-| 7.6 | Unit tests for favorites store | ⬜ | |
-| 7.7 | Verify: add/remove bus favorites, persists across restarts | ⬜ | |
+| 7.1 | Create favorites Zustand store (`src/store/favorites.ts`) | ✅ | `favoriteBusIds: string[]`, `favoriteStops: FavoriteStop[]` with MMKV persistence |
+| 7.2 | Persist favorites to MMKV | ✅ | Hydrate on app start, versioned storage |
+| 7.3 | Create Favorites tab screen (`app/(tabs)/favorites.tsx`) | ✅ | Two sections: Buses, Stops with full UI |
+| 7.4 | Implement bus favorites list with quick actions | ✅ | Integrated in Lines screen, show on map, go to line detail |
+| 7.5 | Add swipe-to-remove for bus favorites | ⬜ | Not implemented |
+| 7.6 | Unit tests for favorites store | ⬜ | Tests exist for GTFS parser (Phase 3), not favorites-specific |
+| 7.7 | Verify: add/remove bus favorites, persists across restarts | ✅ | Persistence works via MMKV and Zustand persist middleware |
 
 **Depends on:** 4, 5  
 **Blocks:** 8, 10
@@ -124,13 +124,13 @@
 ### Phase 8: Favorites — Stops with Labels
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 8.1 | Extend `FavoriteStop` type: `{ stopId: string; label: string; createdAt: number }` | ⬜ | |
-| 8.2 | Add labeled stop favorite UI (modal with label input) | ⬜ | Default label = stop name |
-| 8.3 | Display labeled stops in Favorites tab | ⬜ | Show label + stop name + next arrival |
-| 8.4 | Add edit label action (long press or menu) | ⬜ | |
-| 8.5 | Add swipe-to-remove for stop favorites | ⬜ | |
-| 8.6 | Unit tests for labeled stops | ⬜ | |
-| 8.7 | Verify: add/edit/remove labeled stops, persists | ⬜ | |
+| 8.1 | Extend `FavoriteStop` type: `{ stopId: string; label: string; createdAt: number }` | ✅ | Type defined in `src/types/favorites.ts` |
+| 8.2 | Add labeled stop favorite UI (modal with label input) | ✅ | `AddStopLabelModal.tsx` with label input |
+| 8.3 | Display labeled stops in Favorites tab | ✅ | Shown in Favorites screen with label + stop name |
+| 8.4 | Add edit label action (long press or menu) | ✅ | `updateStopLabel` function in hook and store |
+| 8.5 | Add swipe-to-remove for stop favorites | ⬜ | Not implemented |
+| 8.6 | Unit tests for labeled stops | ⬜ | Not implemented |
+| 8.7 | Verify: add/edit/remove labeled stops, persists | ✅ | Full CRUD workflow verified with MMKV persistence |
 
 **Depends on:** 4, 6, 7  
 **Blocks:** 10
@@ -140,14 +140,14 @@
 ### Phase 9: Live API Integration
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 9.1 | Create `LiveApiClient` (`src/services/liveApi.ts`) | ⬜ | Fetch with session cookies, retry logic |
-| 9.2 | Implement `getLineStops(lineCode)` → parse `linea_paradas.php` | ⬜ | Return ordered stops with live position |
-| 9.3 | Implement `getStopArrivals(stopNumber)` → parse `paradas.htm` | ⬜ | Return arrivals with minutes |
-| 9.4 | Add bus position polling (every 15s when tracking) | ⬜ | |
-| 9.5 | Create React Query hooks: `useLineStops`, `useStopArrivals`, `useBusPosition` | ⬜ | |
-| 9.6 | Handle API errors, rate limits, cookie expiry | ⬜ | |
-| 9.7 | Unit tests with mocked HTML responses | ⬜ | |
-| 9.8 | Verify: live data loads for lines & stops | ⬜ | |
+| 9.1 | Create `LiveApiClient` (`src/services/liveApi.ts`) | ✅ | Full client with session cookie management, retry logic, caching |
+| 9.2 | Implement `getLineStops(lineCode)` → parse `linea_paradas.php` | ⚠️ | `parseLineStopsTable` utility exists in `src/utils/liveApi.ts` but returns empty; table parsing needs HTML structure validation |
+| 9.3 | Implement `getStopArrivals(stopNumber)` → parse `paradas.htm` | ✅ | Full implementation in `src/services/liveApi.ts` with HTML parsing, caching, and retry logic |
+| 9.4 | Add bus position polling (every 15s when tracking) | ⬜ | Not implemented (TODO in `useBusTracking.ts`) |
+| 9.5 | Create React Query hooks: `useLineStops`, `useStopArrivals`, `useBusPosition` | ✅ | `src/hooks/useStops.ts` with proper query keys and stale times |
+| 9.6 | Handle API errors, rate limits, cookie expiry | ⚠️ | Basic error handling and retry logic implemented; rate limiting via React Query staleTime/refetchInterval |
+| 9.7 | Unit tests with mocked HTML responses | ⬜ | Not implemented |
+| 9.8 | Verify: live data loads for lines & stops | ⚠️ | Client works; live data depends on `transportesrober.com` API availability and correct HTML parsing |
 
 **Depends on:** 3  
 **Blocks:** 10, 11
@@ -157,15 +157,15 @@
 ### Phase 10: Bus Tracking & Notifications
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 10.1 | Create tracking store (`src/store/tracking.ts`) | ⬜ | `trackedPairs: TrackedPair[]` { busId, stopId, label } |
-| 10.2 | Implement tracking logic (`src/hooks/useBusTracking.ts`) | ⬜ | Poll bus position, check distance to stop |
-| 10.3 | Define "arrival" threshold (e.g., 200m or 2 stops away) | ⬜ | Configurable in settings |
-| 10.4 | Schedule local notification on arrival | ⬜ | `expo-notifications` + `TaskManager` |
-| 10.5 | Create "Track this bus to this stop" UI | ⬜ | From stop detail or favorites |
-| 10.6 | Show active tracking in Favorites tab | ⬜ | Live countdown, cancel button |
-| 10.7 | Handle app background/foreground transitions | ⬜ | Pause/resume polling |
-| 10.8 | Unit tests for tracking logic | ⬜ | Mock positions, time |
-| 10.9 | Verify: track bus → get notification at stop | ⬜ | |
+| 10.1 | Create tracking store (`src/store/tracking.ts`) | ✅ | `trackedPairs: TrackedPair[]` with MMKV persistence, `activeTrackingId` |
+| 10.2 | Implement tracking logic (`src/hooks/useBusTracking.ts`) | 🔄 | Hook exists with state management for positions, arrivals, and tracking toggle; TODOs remain for background fetch integration |
+| 10.3 | Define "arrival" threshold (e.g., 200m or 2 stops away) | ⬜ | Not configured; would need settings integration |
+| 10.4 | Schedule local notification on arrival | ⬜ | Notification service exists (Phase 11) but not linked to tracking |
+| 10.5 | Create "Track this bus to this stop" UI | ⬜ | Not implemented |
+| 10.6 | Show active tracking in Favorites tab | ⬜ | Not implemented |
+| 10.7 | Handle app background/foreground transitions | ⬜ | Not implemented |
+| 10.8 | Unit tests for tracking logic | ⬜ | Not implemented |
+| 10.9 | Verify: track bus → get notification at stop | ⬜ | End-to-end not verified |
 
 **Depends on:** 7, 8, 9  
 **Blocks:** 11
@@ -174,13 +174,13 @@
 ### Phase 11: Background Fetch & Persistence
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 11.1 | Configure `expo-background-fetch` for tracking | ⬜ | Minimum interval 15 min (iOS) / flexible (Android) |
-| 11.2 | Register background task for notification check | ⬜ | `TaskManager.defineTask` |
-| 11.3 | Implement background polling logic | ⬜ | Fetch positions, check thresholds, notify |
-| 11.4 | Add battery optimization handling (Android) | ⬜ | Request ignore battery optimization |
-| 11.5 | Persist tracking state to MMKV for restore | ⬜ | Survive app kill |
-| 11.6 | Test background execution on both platforms | ⬜ | |
-| 11.7 | Verify: notification fires after app killed | ⬜ | |
+| 11.1 | Configure `expo-background-fetch` for tracking | ⬜ | Not configured |
+| 11.2 | Register background task for notification check | ⬜ | Not registered |
+| 11.3 | Implement background polling logic | ⬜ | Not implemented |
+| 11.4 | Add battery optimization handling (Android) | ⬜ | Not implemented |
+| 11.5 | Persist tracking state to MMKV for restore | 🔄 | Store persists via Zustand persist, but full survival-to-kill not tested |
+| 11.6 | Test background execution on both platforms | ⬜ | Not tested |
+| 11.7 | Verify: notification fires after app killed | ⬜ | Not verified |
 
 **Depends on:** 10  
 **Blocks:** 12
@@ -332,5 +332,5 @@ graph TD
 ---
 
 *Last updated: 2026-11-14*
-*Next task: Phase 7 — Favorites: Buses*
-**Blocks:** 5, 6, 7, 8
+*Next task: Phase 10 — Bus Tracking & Notifications*
+**Blocks:** 11, 12
