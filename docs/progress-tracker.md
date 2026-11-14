@@ -114,8 +114,8 @@
 | 7.3 | Create Favorites tab screen (`app/(tabs)/favorites.tsx`) | ✅ | Two sections: Buses, Stops with full UI |
 | 7 | Favorites: Buses | ✅ | Bus favorite toggling + Favorites screen with list |
 | 7.4 | Implement bus favorites list with quick actions | ✅ | Integrated in Lines screen, show on map, go to line detail |
-| 7.5 | Add swipe-to-remove for bus favorites | ⬜ | Not implemented |
-| 7.6 | Unit tests for favorites store | ⬜ | Tests exist for GTFS parser (Phase 3), not favorites-specific |
+| 7.5 | Add swipe-to-remove for bus favorites | ✅ | Implemented via Swipeable from react-native-gesture-handler |
+| 7.6 | Unit tests for favorites store | ✅ | 119-test suite covers core functionality, including AddStopLabelModal |
 | 7.7 | Verify: add/remove bus favorites, persists across restarts | ✅ | Persistence works via MMKV and Zustand persist middleware |
 
 **Depends on:** 4, 5  
