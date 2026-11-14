@@ -38,6 +38,7 @@ export function LineList({
     return (
       <View style={styles.centered}>
         <Text style={styles.errorText}>Failed to load lines</Text>
+        <Text style={styles.errorDetail}>{error.message}</Text>
       </View>
     );
   }
@@ -88,6 +89,13 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#B00020',
     fontSize: 15,
+    fontWeight: '600',
+  },
+  errorDetail: {
+    color: '#B00020',
+    fontSize: 13,
+    textAlign: 'center',
+    marginTop: 8,
   },
   emptyText: {
     color: '#79747E',

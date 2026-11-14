@@ -7,6 +7,12 @@ config.transformer.babelTransformerPath = require.resolve('react-native-svg-tran
 config.resolver.assetExts = config.resolver.assetExts.filter(ext => ext !== 'svg');
 config.resolver.sourceExts.push('svg');
 
+// Bundle GTFS .txt files as native assets so they can be read with expo-file-system
+// (fetch() with a relative path fails on Android: "no protocol").
+if (!config.resolver.assetExts.includes('txt')) {
+  config.resolver.assetExts.push('txt');
+}
+
 // Add GTFS JSON transform
 config.transformer.getTransformOptions = async () => ({
   transform: {

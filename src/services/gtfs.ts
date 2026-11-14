@@ -1,8 +1,21 @@
 import * as Papa from 'papaparse';
 import { createMMKV } from 'react-native-mmkv';
 import { Platform } from 'react-native';
+import * as FileSystem from 'expo-file-system/legacy';
+import { Asset } from 'expo-asset';
 import { orderStopsBySequence } from '@/utils/gtfs';
 import type { Route, Stop, Trip, StopTime, Shape } from '@/types/gtfs';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const routesTxtModule = require('../../resources/gtfs/routes.txt');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const stopsTxtModule = require('../../resources/gtfs/stops.txt');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const tripsTxtModule = require('../../resources/gtfs/trips.txt');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const stopTimesTxtModule = require('../../resources/gtfs/stop_times.txt');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const shapesTxtModule = require('../../resources/gtfs/shapes.txt');
 
 const mmkv = createMMKV({ id: 'gtfs-cache' });
 const CACHE_VERSION = '1.0.0';
@@ -50,13 +63,29 @@ class GTFSService {
     const cached = this.loadFromCache();
     if (cached) return cached;
 
-    const [routes, stops, trips, stopTimes, shapes] = await Promise.all([
-      this.parseFile<Route>('routes.txt'),
-      this.parseFile<Stop>('stops.txt'),
-      this.parseFile<Trip>('trips.txt'),
-      this.parseFile<StopTime>('stop_times.txt'),
-      this.parseFile<Shape>('shapes.txt'),
-    ]);
+    let routes: Route[], stops: Stop[], trips: Trip[], stopTimes: StopTime[], shapes: Shape[];
+
+    if (Platform.OS === 'web') {
+      // On web, GTFS files are served statically from `public/gtfs/`.
+      [routes, stops, trips, stopTimes, shapes] = await Promise.all([
+        this.parseFile<Route>('routes.txt'),
+        this.parseFile<Stop>('stops.txt'),
+        this.parseFile<Trip>('trips.txt'),
+        this.parseFile<StopTime>('stop_times.txt'),
+        this.parseFile<Shape>('shapes.txt'),
+      ]);
+    } else {
+      // On native, GTFS files are bundled as assets and read via expo-file-system.
+      // fetch() with a relative path fails on Android ("no protocol"), so we load
+      // them from the app bundle instead.
+      [routes, stops, trips, stopTimes, shapes] = await Promise.all([
+        this.parseAssetFile<Route>(routesTxtModule, 'routes.txt'),
+        this.parseAssetFile<Stop>(stopsTxtModule, 'stops.txt'),
+        this.parseAssetFile<Trip>(tripsTxtModule, 'trips.txt'),
+        this.parseAssetFile<StopTime>(stopTimesTxtModule, 'stop_times.txt'),
+        this.parseAssetFile<Shape>(shapesTxtModule, 'shapes.txt'),
+      ]);
+    }
 
     const data = this.buildIndexes(routes, stops, trips, stopTimes, shapes);
     this.saveToCache(data);
@@ -65,8 +94,7 @@ class GTFSService {
 
   private parseFile<T>(filename: string): Promise<T[]> {
     // On web, GTFS files are served statically from `public/gtfs/`.
-    // On native, Metro serves them from `../resources/gtfs/`.
-    const path = Platform.OS === 'web' ? `/gtfs/${filename}` : `../resources/gtfs/${filename}`;
+    const path = `/gtfs/${filename}`;
     return fetch(path)
       .then((response) => {
         if (!response.ok) {
@@ -74,25 +102,53 @@ class GTFSService {
         }
         return response.text();
       })
-      .then((text) => {
-        if (text.trimStart().startsWith('<')) {
-          throw new Error(`Unexpected HTML response when fetching ${filename}`);
+      .then((text) => this.parseCsvText<T>(text, filename));
+  }
+
+  private async parseAssetFile<T>(assetModule: number | string, filename: string): Promise<T[]> {
+    try {
+      const asset = Asset.fromModule(assetModule);
+      await asset.downloadAsync();
+      const uri = asset.localUri;
+      if (!uri) {
+        throw new Error('asset download did not produce a local URI');
+      }
+
+      let text: string;
+      if (uri.startsWith('file://')) {
+        text = await FileSystem.readAsStringAsync(uri);
+      } else {
+        const response = await fetch(uri);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ${filename}: ${response.status}`);
         }
-        return new Promise<T[]>((resolve, reject) => {
-          Papa.parse<T>(text, {
-            header: true,
-            skipEmptyLines: true,
-            dynamicTyping: true,
-            complete: (results) => {
-              if (results.errors.length > 0) {
-                console.warn(`GTFS parse warnings for ${filename}:`, results.errors);
-              }
-              resolve(results.data as T[]);
-            },
-            error: (error: Error) => reject(error),
-          });
-        });
+        text = await response.text();
+      }
+
+      return this.parseCsvText<T>(text, filename);
+    } catch (error) {
+      throw new Error(`Failed to load ${filename}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  private parseCsvText<T>(text: string, source: string): Promise<T[]> {
+    if (text.trimStart().startsWith('<')) {
+      throw new Error(`Unexpected HTML response when fetching ${source}`);
+    }
+    return new Promise<T[]>((resolve, reject) => {
+      Papa.parse<T>(text, {
+        header: true,
+        skipEmptyLines: true,
+        dynamicTyping: true,
+        complete: (results) => {
+          if (results.errors.length > 0) {
+            console.warn(`GTFS parse warnings for ${source}:`, results.errors);
+          }
+          resolve(results.data as T[]);
+        },
+        error: (error: Error) => reject(error),
       });
+    });
   }
 
   private buildIndexes(
