@@ -5,6 +5,7 @@ import { useFavorites } from '@/hooks/useFavorites';
 
 import { COLORS } from '@/constants/colors';
 import { IconButton } from 'react-native-paper';
+import { Swipeable } from 'react-native-gesture-handler';
 
 export default function FavoritesScreen() {
   const insets = useSafeAreaInsets();
@@ -21,13 +22,39 @@ export default function FavoritesScreen() {
             data={favoriteBuses}
             keyExtractor={(bus) => bus.routeId}
             renderItem={({ item }) => (
-              <Pressable style={styles.busItem} onPress={() => toggleFavoriteBus({
-                routeId: item.routeId,
-                routeShortName: item.routeShortName,
-                routeLongName: item.routeLongName,
-                routeColor: item.routeColor,
-                routeTextColor: item.routeTextColor,
-              })}> 
+              <Swipeable
+                onSwipeLeft={() => toggleFavoriteBus({
+                  routeId: item.routeId,
+                  routeShortName: item.routeShortName,
+                  routeLongName: item.routeLongName,
+                  routeColor: item.routeColor,
+                  routeTextColor: item.routeTextColor,
+                })}
+                right={(
+                  <View style={styles.swipeRight}>
+                    <View style={styles.swipeRightIcon}>
+                      <IconButton
+                        icon='trash'
+                        onPress={() => toggleFavoriteBus({
+                          routeId: item.routeId,
+                          routeShortName: item.routeShortName,
+                          routeLongName: item.routeLongName,
+                          routeColor: item.routeColor,
+                          routeTextColor: item.routeTextColor,
+                        })}
+                        accessibilityLabel='Remove from favorites'
+                      />
+                    </View>
+                  </View>
+                )}
+              >
+                <Pressable style={styles.busItem} onPress={() => toggleFavoriteBus({
+                  routeId: item.routeId,
+                  routeShortName: item.routeShortName,
+                  routeLongName: item.routeLongName,
+                  routeColor: item.routeColor,
+                  routeTextColor: item.routeTextColor,
+                })}> 
                 <View style={styles.badgeBackground}>
                   <Text style={styles.badgeText}>{item.routeShortName}</Text>
                 </View>
@@ -162,5 +189,13 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingVertical: 8,
+  },
+  swipeRight: {
+    backgroundColor: COLORS.error,
+    padding: 12,
+    alignItems: 'center',
+  },
+  swipeRightIcon: {
+    marginRight: 8,
   },
 });

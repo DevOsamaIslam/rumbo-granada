@@ -186,21 +186,56 @@ vi.mock("@tanstack/react-query", () => ({
   }),
 }));
 
-vi.mock("zustand", () => ({
-  create: (fn: any) => {
-    const state = fn((newState: any) => newState);
-    return {
-      getState: () => state,
-      setState: vi.fn((partial: any) =>
-        Object.assign(
-          state,
-          typeof partial === "function" ? partial(state) : partial,
-        ),
-      ),
-      subscribe: vi.fn(),
-      destroy: vi.fn(),
-    };
-  },
-}));
+vi.mock("zustand", () => {
+  // Store for created stores, keyed by a unique id
+  const stores = new Map<string, AnyObject>();
+
+  // Generate a unique key for each store creation
+  const generateKey = (fn: any) => {
+    // Use a combination of approach: try toString, then random
+    try {
+      return (fn?.toString?.() || 'zustand-store') + Math.random().toString(36).slice(2);
+    } catch {
+      return 'zustand-store-' + Math.random().toString(36).slice(2);
+    }
+  };
+
+  return {
+    create: (fn: any) => {
+      const key = generateKey(fn);
+      // If store already exists, return it
+      if (stores.has(key)) {
+        return stores.get(key);
+      }
+      let state: AnyObject = {};
+      // Call the factory function to create initial state
+      try {
+        if (fn) {
+          state = fn((newState: AnyObject) => {
+            state = { ...state, ...newState } as AnyObject;
+          });
+        }
+      } catch (e) {
+        // Fallback: create minimal state
+        state = {};
+      }
+      const store = {
+        getState: () => state,
+        setState: vi.fn((partial: AnyObject) => {
+          if (typeof partial === 'function') {
+            const newState = partial(state as any);
+            state = { ...state, ...(newState || {}) } as AnyObject;
+          } else {
+            state = { ...state, ...partial } as AnyObject;
+          }
+        }),
+        subscribe: vi.fn(),
+        destroy: vi.fn(),
+      };
+      stores.set(key, store);
+      return store;
+    },
+  };
+});
 
 global.__TEST__ = true;
