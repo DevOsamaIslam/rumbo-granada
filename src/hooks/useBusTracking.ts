@@ -1,22 +1,26 @@
 // Bus Tracking Hook
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useTrackingStore } from '@/store/tracking';
-import { BusPosition, ArrivalPrediction } from '@/types/tracking';
+import { BusPosition, ArrivalPrediction, TrackedPair } from '@/types/tracking';
+import * as Notifications from 'expo-notifications';
 
 export function useBusTracking() {
-  const { trackedPairs } = useTrackingStore();
+  const { trackedPairs, toggleTracking: storeToggleTracking, addTrackedPair: storeAddTrackedPair, removeTrackedPair: storeRemoveTrackedPair, loadFromStorage } = useTrackingStore();
   const [busPositions, setBusPositions] = useState<Map<string, BusPosition>>(new Map());
   const [arrivals, setArrivals] = useState<Map<string, ArrivalPrediction[]>>(new Map());
   const [isTracking, setIsTracking] = useState(false);
+  const [arrivalThreshold, setArrivalThreshold] = useState(5); // minutes
+
+  useEffect(() => {
+    loadFromStorage();
+  }, [loadFromStorage]);
 
   const startTracking = useCallback(() => {
     setIsTracking(true);
-    // TODO: Start background fetch and real-time updates
   }, []);
 
   const stopTracking = useCallback(() => {
     setIsTracking(false);
-    // TODO: Stop background fetch
   }, []);
 
   const updateBusPosition = useCallback((position: BusPosition) => {
@@ -35,14 +39,57 @@ export function useBusTracking() {
     });
   }, []);
 
+  const toggleTracking = useCallback((id: string) => {
+    storeToggleTracking(id);
+    setIsTracking(prev => !prev);
+  }, [storeToggleTracking]);
+
+  const addTrackedPair = useCallback((pair: Omit<TrackedPair, 'id' | 'createdAt'>) => {
+    storeAddTrackedPair(pair);
+  }, []);
+
+  const removeTrackedPair = useCallback((id: string) => {
+    storeRemoveTrackedPair(id);
+  }, []);
+
+  const checkArrival = useCallback((stopId: string, vehicleId: string) => {
+    const pair = trackedPairs.find(p => p.stopId === stopId && p.enabled);
+    if (!pair) return;
+
+    const predictions = arrivals.get(stopId) || [];
+    const now = Date.now();
+    const arrivalTime = predictions.find(p => p.vehicleId === vehicleId)?.arrivalTime || Infinity;
+    const minutesUntilArrival = (arrivalTime - now) / 60000;
+
+    if (minutesUntilArrival <= arrivalThreshold && minutesUntilArrival > 0) {
+      // Check if we already notified recently
+      const lastNotified = arrivals.get(stopId)?.find(p => p.vehicleId === vehicleId && p.realtime);
+      if (!lastNotified) {
+        Notifications.scheduleNotificationAsync({
+          content: {
+            title: 'Bus Arrival',
+            body: `Bus arriving at ${stopId} in ${Math.round(minutesUntilArrival)} minutes`,
+          },
+          trigger: null,
+        });
+      }
+    }
+  }, [trackedPairs, arrivals, arrivalThreshold]);
+
   return {
     trackedPairs,
     busPositions,
     arrivals,
     isTracking,
+    arrivalThreshold,
+    setArrivalThreshold,
     startTracking,
     stopTracking,
     updateBusPosition,
     updateArrivals,
+    toggleTracking,
+    addTrackedPair,
+    removeTrackedPair,
+    checkArrival,
   };
 }

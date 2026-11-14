@@ -8,7 +8,7 @@ import { IconButton } from 'react-native-paper';
 
 export default function FavoritesScreen() {
   const insets = useSafeAreaInsets();
-  const { favoriteBuses, isBusFavorite, toggleFavoriteBus } = useFavorites();
+  const { favoriteBuses, favoriteStops, isBusFavorite, isStopFavorite, toggleFavoriteBus, toggleFavoriteStop } = useFavorites();
 
   return (
     <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
@@ -50,6 +50,41 @@ export default function FavoritesScreen() {
             )}
             horizontal={true}
             showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}
+          />
+        )}
+        <Divider style={styles.divider} />
+        <Title style={styles.title}>Favorite Stops</Title>
+        {favoriteStops.length === 0 ? (
+          <Text style={styles.emptyMessage}>No favorite stops yet</Text>
+        ) : (
+          <FlatList
+            data={favoriteStops}
+            keyExtractor={(stop) => stop.stopId}
+            renderItem={({ item }) => (
+              <View style={styles.stopItem}>
+                <View style={styles.stopBadge}>
+                  <Text style={styles.stopBadgeText}>&#9733;</Text>
+                </View>
+                <View style={styles.stopInfo}>
+                  <Text style={styles.stopName}>{item.stopName}</Text>
+                  {item.label && (
+                    <Text style={styles.stopLabel}>Label: {item.label}</Text>
+                  )}
+                </View>
+                <IconButton
+                  icon={isStopFavorite(item.stopId) ? 'star' : 'star-outline'}
+                  onPress={() => toggleFavoriteStop({
+                    stopId: item.stopId,
+                    stopName: item.stopName,
+                    label: item.label,
+                    lat: item.lat,
+                    lon: item.lon,
+                  })}
+                  accessibilityLabel={isStopFavorite(item.stopId) ? 'Remove from favorites' : 'Add to favorites'}
+                />
+              </View>
+            )}
             contentContainerStyle={styles.listContent}
           />
         )}
