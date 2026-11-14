@@ -1,11 +1,10 @@
 import { View, Text, StyleSheet, SafeAreaView, FlatList, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Title, Divider } from 'react-native-paper';
+import { Title, Divider, IconButton } from 'react-native-paper';
 import { useFavorites } from '@/hooks/useFavorites';
 
 import { COLORS } from '@/constants/colors';
-import { IconButton } from 'react-native-paper';
-import { Swipeable } from 'react-native-gesture-handler';
+import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 
 export default function FavoritesScreen() {
   const insets = useSafeAreaInsets();
@@ -22,15 +21,19 @@ export default function FavoritesScreen() {
             data={favoriteBuses}
             keyExtractor={(bus) => bus.routeId}
             renderItem={({ item }) => (
-              <Swipeable
-                onSwipeLeft={() => toggleFavoriteBus({
-                  routeId: item.routeId,
-                  routeShortName: item.routeShortName,
-                  routeLongName: item.routeLongName,
-                  routeColor: item.routeColor,
-                  routeTextColor: item.routeTextColor,
-                })}
-                right={(
+              <ReanimatedSwipeable
+                onSwipeableOpen={(direction) => {
+                  if (direction === 'left') {
+                    toggleFavoriteBus({
+                      routeId: item.routeId,
+                      routeShortName: item.routeShortName,
+                      routeLongName: item.routeLongName,
+                      routeColor: item.routeColor,
+                      routeTextColor: item.routeTextColor,
+                    });
+                  }
+                }}
+                renderRightActions={() => (
                   <View style={styles.swipeRight}>
                     <View style={styles.swipeRightIcon}>
                       <IconButton
@@ -54,7 +57,7 @@ export default function FavoritesScreen() {
                   routeLongName: item.routeLongName,
                   routeColor: item.routeColor,
                   routeTextColor: item.routeTextColor,
-                })}> 
+                })}>
                 <View style={styles.badgeBackground}>
                   <Text style={styles.badgeText}>{item.routeShortName}</Text>
                 </View>
@@ -73,7 +76,8 @@ export default function FavoritesScreen() {
                   })}
                   accessibilityLabel={isBusFavorite(item.routeId) ? 'Remove from favorites' : 'Add to favorites'}
                 />
-              </Pressable>
+                </Pressable>
+              </ReanimatedSwipeable>
             )}
             horizontal={true}
             showsHorizontalScrollIndicator={false}
@@ -197,5 +201,45 @@ const styles = StyleSheet.create({
   },
   swipeRightIcon: {
     marginRight: 8,
+  },
+  stopItem: {
+    backgroundColor: '#FFF',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  stopBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    backgroundColor: COLORS.primary,
+  },
+  stopBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  stopInfo: {
+    flex: 1,
+  },
+  stopName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.onSurface,
+  },
+  stopLabel: {
+    fontSize: 12,
+    color: COLORS.outline,
+    marginTop: 2,
   },
 });

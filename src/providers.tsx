@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PaperProvider, MD3Theme, DefaultTheme } from 'react-native-paper';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { createSafeMMKV } from '@/services/mmkv';
 import { Storage } from '@/services/storage';
 import { COLORS } from '@/constants/colors';
@@ -76,10 +77,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <PaperProvider theme={theme}>
-        {children}
-      </PaperProvider>
-    </QueryClientProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <PaperProvider theme={theme}>
+          {children}
+        </PaperProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
