@@ -172,15 +172,15 @@
 **Blocks:** 11
 ---
 
-### Phase 11: Background Fetch & Persistence
+### Phase 11: Background Fetch & Persistence | 🔄 | Dependencies: 10 |
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 11.1 | Configure `expo-background-fetch` for tracking | ⬜ | Not configured |
-| 11.2 | Register background task for notification check | ⬜ | Not registered |
-| 11.3 | Implement background polling logic | ⬜ | Not implemented |
+| 11.1 | Configure `expo-background-fetch` for tracking | ⬜ | Hook structure ready with `handleBackgroundFetch` callback; requires native config |
+| 11.2 | Register background task for notification check | ⬜ | `handleBackgroundFetch` function implemented in `useBusTracking.ts`; ready to link to background fetch |
+| 11.3 | Implement background polling logic | 🔄 | `checkArrival` function checks arrival threshold and schedules notifications; polling logic ready |
 | 11.4 | Add battery optimization handling (Android) | ⬜ | Not implemented |
-| 11.5 | Persist tracking state to MMKV for restore | 🔄 | Store persists via Zustand persist, but full survival-to-kill not tested |
-| 11.6 | Test background execution on both platforms | ⬜ | Not tested |
+| 11.5 | Persist tracking state to MMKV for restore | ✅ | Store persists via Zustand persist middleware with MMKV storage; survival across app restart verified |
+| 11.6 | Test background execution on both platforms | ⬜ | Not tested; requires native build and battery/OS configuration |
 | 11.7 | Verify: notification fires after app killed | ⬜ | Not verified |
 
 **Depends on:** 10  
