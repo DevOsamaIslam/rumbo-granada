@@ -73,7 +73,7 @@ src/components/StopMarker.tsx → Custom stop markers
 | 4 | Map View with OSM | ✅ | 2, 3 |
 | 5 | Bus Lines List & Detail | ✅ | 3, 4 |
 | 6 | Stop Detail & Arrivals | ✅ | 3, 4, 5 |
-| 7 | Favorites: Buses | ⬜ | 4, 5 |
+| 7 | Favorites: Buses | ✅ | 4, 5 |
 | 8 | Favorites: Stops with Labels | ⬜ | 4, 6 |
 | 9 | Live API Integration | ⬜ | 3 |
 | 10 | Bus Tracking & Notifications | ⬜ | 9 |

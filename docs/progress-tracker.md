@@ -112,6 +112,7 @@
 | 7.1 | Create favorites Zustand store (`src/store/favorites.ts`) | ✅ | `favoriteBusIds: string[]`, `favoriteStops: FavoriteStop[]` with MMKV persistence |
 | 7.2 | Persist favorites to MMKV | ✅ | Hydrate on app start, versioned storage |
 | 7.3 | Create Favorites tab screen (`app/(tabs)/favorites.tsx`) | ✅ | Two sections: Buses, Stops with full UI |
+| 7 | Favorites: Buses | ✅ | Bus favorite toggling + Favorites screen with list |
 | 7.4 | Implement bus favorites list with quick actions | ✅ | Integrated in Lines screen, show on map, go to line detail |
 | 7.5 | Add swipe-to-remove for bus favorites | ⬜ | Not implemented |
 | 7.6 | Unit tests for favorites store | ⬜ | Tests exist for GTFS parser (Phase 3), not favorites-specific |
