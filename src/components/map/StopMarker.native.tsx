@@ -1,14 +1,32 @@
 import React from "react";
 import { Marker } from "@maplibre/maplibre-react-native";
-import { Stop } from "@/types/gtfs";
-import { StyleSheet, View, Image } from "react-native";
+import { Route, Stop } from "@/types/gtfs";
+import { StyleSheet, View, Image, Text } from "react-native";
 
-// App logo used as the stop marker icon.
+// App logo used as the stop marker icon when zoomed out.
 const STOP_ICON = require("../../../assets/logo.png");
+
+// Zoom at or above which the stop logo is replaced by colored line circles.
+const STOP_CIRCLE_ZOOM = 16;
+
+/** Pixels to offset each line circle so multiple lines at one stop stay visible. */
+const CIRCLE_OFFSETS = [
+  { x: 0, y: 0 },
+  { x: -16, y: -16 },
+  { x: 16, y: -16 },
+  { x: -16, y: 16 },
+  { x: 16, y: 16 },
+  { x: 0, y: -28 },
+  { x: 0, y: 28 },
+  { x: -28, y: 0 },
+  { x: 28, y: 0 },
+];
 
 interface StopMarkerProps {
   lngLat: [number, number];
   stop: Stop;
+  /** Lines (GTFS routes) serving this stop, used for the close-up circles. */
+  routes?: Route[];
   /** Current map zoom level, used to size the marker dynamically. */
   zoomLevel?: number;
   onPress?: (stop: Stop) => void;
@@ -17,9 +35,13 @@ interface StopMarkerProps {
 export function StopMarker({
   lngLat,
   stop,
+  routes = [],
   zoomLevel = 14,
   onPress,
 }: StopMarkerProps) {
+  const isCloseUp = zoomLevel >= STOP_CIRCLE_ZOOM;
+  const lineRoutes = routes.filter((r) => r.route_color);
+
   // Marker grows slightly as the user zooms in.
   const iconSize = zoomLevel >= 16 ? 36 : zoomLevel >= 14 ? 28 : 20;
 
@@ -30,7 +52,38 @@ export function StopMarker({
       onPress={() => onPress?.(stop)}
     >
       <View style={[styles.annotation, { width: iconSize, height: iconSize }]}>
-        <Image source={STOP_ICON} style={[styles.markerIcon, { width: iconSize, height: iconSize }]} />
+        {/* Close-up: show one colored circle per line serving the stop. */}
+        {isCloseUp && lineRoutes.length > 0 ? (
+          lineRoutes.map((route, index) => {
+            const offset = CIRCLE_OFFSETS[index % CIRCLE_OFFSETS.length];
+            return (
+              <View
+                key={route.route_id}
+                style={[
+                  styles.lineCircle,
+                  {
+                    width: 24,
+                    height: 24,
+                    borderRadius: 12,
+                    backgroundColor: `#${route.route_color}`,
+                    position: "absolute",
+                    left: offset.x,
+                    top: offset.y,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  },
+                ]}
+              >
+                <Text style={[styles.lineCircleText]}>
+                  {route.route_short_name}
+                </Text>
+              </View>
+            );
+          })
+        ) : (
+          // Zoomed out: show the app logo icon.
+          <Image source={STOP_ICON} style={[styles.markerIcon, { width: iconSize, height: iconSize }]} />
+        )}
       </View>
     </Marker>
   );
@@ -44,6 +97,15 @@ const styles = StyleSheet.create({
     position: "relative",
     alignItems: "center",
     justifyContent: "center",
+  },
+  lineCircle: {
+    borderWidth: 2,
+    borderColor: "white",
+  },
+  lineCircleText: {
+    fontSize: 11,
+    fontWeight: "bold",
+    color: "white",
   },
 });
 

@@ -252,6 +252,7 @@ export function MapViewComponent({
             key={stop.stop_id}
             lngLat={[stop.stop_lon, stop.stop_lat]}
             stop={stop}
+            routes={gtfsService.getRoutesForStop(stop.stop_id)}
             zoomLevel={region.zoomLevel}
             onPress={onStopPress}
           />
