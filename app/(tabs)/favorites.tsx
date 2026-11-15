@@ -1,10 +1,10 @@
 import { useState, type ReactNode } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, useWindowDimensions } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Title, Divider, IconButton } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { useFavorites } from '@/hooks/useFavorites';
 import { AddStopLabelModal } from '@/components/favorites';
+import { TrackingList } from '@/components/tracking';
 
 import { COLORS } from '@/constants/colors';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
@@ -89,7 +89,6 @@ function SwipeToRemove({ onRemove, children }: { onRemove: () => void; children:
 }
 
 export default function FavoritesScreen() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { favoriteBuses, favoriteStops, isBusFavorite, isStopFavorite, toggleFavoriteBus, toggleFavoriteStop, removeFavoriteBus, removeFavoriteStop, updateBusLabel, updateStopLabel } = useFavorites();
 
@@ -140,7 +139,7 @@ export default function FavoritesScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container]}>
       <View style={styles.content}>
         <Title style={styles.title}>Favorite Bus Lines</Title>
         {favoriteBuses.length === 0 ? (
@@ -233,6 +232,7 @@ export default function FavoritesScreen() {
         )}
         <Divider style={styles.divider} />
         <Text style={styles.subtitle}>Favorite bus lines and labeled stops</Text>
+        <TrackingList />
       </View>
 
       <AddStopLabelModal

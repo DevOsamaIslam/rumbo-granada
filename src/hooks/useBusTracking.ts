@@ -1,62 +1,356 @@
 // Bus Tracking Hook
-import { useCallback, useState, useEffect } from 'react';
+//
+// Polls the live API for the arrivals of every enabled tracked pair and
+// schedules a local notification when a bus is about to arrive. Polling is
+// suspended while the app is in the background so the live endpoint and the
+// device radio are not hammered when no one can see the screen.
+import { useCallback, useState, useEffect, useRef } from 'react';
+import { AppState, type AppStateStatus } from 'react-native';
 import { useTrackingStore } from '@/store/tracking';
+import { useSettingsStore } from '@/store/settings';
 import { BusPosition, ArrivalPrediction, TrackedPair } from '@/types/tracking';
-import * as Notifications from 'expo-notifications';
+import { Arrival } from '@/types/api';
+import { scheduleArrivalNotification, updateTrackingNotification, clearTrackingNotification, requestNotificationPermissions, registerTrackingResponseHandler, TRACKING_CANCEL_ACTION, TRACKING_OPEN_ACTION } from '@/services/notifications';
+import { router } from 'expo-router';
 import { liveApiClient } from '@/services/liveApi';
+import { CONFIG } from '@/constants/config';
+
+/** Default polling interval for arrival checks while tracking is active. */
+const POLL_INTERVAL_MS = CONFIG.TRACKING_UPDATE_INTERVAL_MS;
+
+/** Minimum gap between two notifications for the same tracked pair + vehicle. */
+const NOTIFICATION_COOLDOWN_MS = 10 * 60 * 1000;
+
+/**
+ * Normalises a live-API arrival row into a typed prediction with an absolute
+ * arrival time. The site reports `minutes` until arrival, so we convert it to
+ * an absolute timestamp the threshold check can compare against `now`.
+ */
+function toArrivalPrediction(stopId: string, arrival: Arrival): ArrivalPrediction {
+  const now = Date.now();
+  const arrivalTime = now + Math.max(arrival.minutes, 0) * 60_000;
+  return {
+    stopId,
+    routeId: '',
+    tripId: String(arrival.lineCode),
+    arrivalTime,
+    departureTime: arrivalTime,
+    vehicleId: undefined,
+    realtime: arrival.isRealTime,
+  };
+}
+
+/**
+ * Minutes until the tracked line's arrivals at the stop, sorted ascending and
+ * de-duplicated (0 means a bus is arriving right now). Empty when that line
+ * has no upcoming arrivals for the stop. Pure so the logic is unit-testable
+ * without React.
+ */
+export function computeTrackingMinutes(
+  rows: Arrival[],
+  routeShortName: string,
+): number[] {
+  const lineMinutes = rows
+    .filter((row) => row.lineCode === routeShortName && row.minutes >= 0)
+    .map((row) => row.minutes);
+  return [...new Set(lineMinutes)].sort((a, b) => a - b);
+}
+
+/**
+ * Whether removing/disabling the pair with `changedId` should dismiss the
+ * persistent tracking notification: true when no other enabled pair remains.
+ * Pure so the decision logic is unit-testable without React.
+ */
+export function shouldClearTrackingNotification(
+  pairs: Array<Pick<TrackedPair, 'id' | 'enabled'>>,
+  changedId: string,
+): boolean {
+  return !pairs.some((p) => p.id !== changedId && p.enabled);
+}
+
+/** Minimum gap between two in-place updates of the persistent notification. */
+const TRACKING_NOTIFICATION_INTERVAL_MS = CONFIG.TRACKING_NOTIFICATION_INTERVAL_MS;
+
+/**
+ * Whether the persistent tracking notification is due for its periodic
+ * refresh (at most once per minute). Pure so it is unit-testable.
+ */
+export function isTrackingUpdateDue(
+  lastUpdatedAt: number,
+  now: number,
+  intervalMs: number = TRACKING_NOTIFICATION_INTERVAL_MS,
+): boolean {
+  return now - lastUpdatedAt >= intervalMs;
+}
+
+/**
+ * Whether the pressed notification action cancels tracking. Pure so the
+ * decision logic is unit-testable without React.
+ */
+export function isCancelTrackingAction(actionIdentifier: string): boolean {
+  return actionIdentifier === TRACKING_CANCEL_ACTION;
+}
+
+/**
+ * Handles a pressed notification action: "Cancelar" removes every tracked
+ * pair and dismisses the persistent notification. Pure (store-driven) so it
+ * is unit-testable without React.
+ */
+export function handleTrackingNotificationAction(
+  actionIdentifier: string,
+): void {
+  const { trackedPairs: pairs, removeTrackedPair } =
+    useTrackingStore.getState();
+
+  if (isCancelTrackingAction(actionIdentifier)) {
+    for (const pair of pairs) removeTrackedPair(pair.id);
+    void clearTrackingNotification();
+    return;
+  }
+
+  if (actionIdentifier === TRACKING_OPEN_ACTION) {
+    // Tapping the notification opens the tracked stop's page.
+    const pair = pairs[0];
+    if (pair) router.navigate(`/stop/${pair.stopId}`);
+  }
+}
+
+/** Registers the notification "Cancelar" action handler once per app session. */
+let trackingCancelHandlerRegistered = false;
+function ensureTrackingCancelHandler(): void {
+  if (trackingCancelHandlerRegistered) return;
+  trackingCancelHandlerRegistered = true;
+  registerTrackingResponseHandler(handleTrackingNotificationAction);
+}
 
 export function useBusTracking() {
-  const { trackedPairs, toggleTracking: storeToggleTracking, addTrackedPair: storeAddTrackedPair, removeTrackedPair: storeRemoveTrackedPair, loadFromStorage } = useTrackingStore();
-  const [busPositions, setBusPositions] = useState<Map<string, BusPosition>>(new Map());
-  const [arrivals, setArrivals] = useState<Map<string, ArrivalPrediction[]>>(new Map());
+  // One app-wide listener for the notification's "Cancelar" action button.
+  useEffect(() => {
+    ensureTrackingCancelHandler();
+  }, []);
+
+  const {
+    trackedPairs,
+    toggleTracking: storeToggleTracking,
+    addTrackedPair: storeAddTrackedPair,
+    removeTrackedPair: storeRemoveTrackedPair,
+    loadFromStorage,
+  } = useTrackingStore();
+  const notificationThresholdMinutes = useSettingsStore(
+    (state) => state.notificationThresholdMinutes,
+  );
+
+  const [arrivalThreshold, setArrivalThreshold] = useState(
+    notificationThresholdMinutes,
+  );
+
+  // Keep the UI threshold in sync with the settings store.
+  useEffect(() => {
+    setArrivalThreshold(notificationThresholdMinutes);
+  }, [notificationThresholdMinutes]);
+
+  const [busPositions, setBusPositions] = useState<Map<string, BusPosition>>(
+    new Map(),
+  );
+  const [arrivals, setArrivals] = useState<Map<string, ArrivalPrediction[]>>(
+    new Map(),
+  );
   const [isTracking, setIsTracking] = useState(false);
-  const [arrivalThreshold, setArrivalThreshold] = useState(5); // minutes
+
+  const appStateRef = useRef(AppState.currentState);
+  const isTrackingRef = useRef(isTracking);
+  const notifiedRef = useRef<Map<string, number>>(new Map());
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Timestamp of the last in-place refresh of the persistent notification.
+  const lastTrackingUpdateRef = useRef(0);
+
+  // Keep the ref in sync with state; polling checks the ref so stale closures
+  // (interval callbacks, AppState handlers) always see the latest value.
+  useEffect(() => {
+    isTrackingRef.current = isTracking;
+  }, [isTracking]);
+
+  const checkArrival = useCallback(
+    (pair: TrackedPair, prediction: ArrivalPrediction) => {
+      const threshold = pair.thresholdMinutes ?? arrivalThreshold;
+      const now = Date.now();
+      const minutesUntilArrival = (prediction.arrivalTime - now) / 60000;
+
+      // Not imminent yet, or already arrived.
+      if (minutesUntilArrival <= 0 || minutesUntilArrival > threshold) return;
+
+      // Avoid re-notifying for the same vehicle within the cooldown window.
+      const vehicleId = prediction.vehicleId ?? prediction.tripId;
+      const key = `${pair.id}-${vehicleId}`;
+      const lastNotified = notifiedRef.current.get(key) ?? 0;
+      if (now - lastNotified < NOTIFICATION_COOLDOWN_MS) return;
+
+      void scheduleArrivalNotification({
+        stopName: pair.stopName,
+        routeShortName: pair.routeShortName,
+        minutes: Math.round(minutesUntilArrival),
+      }).then((notificationId) => {
+        if (notificationId) {
+          notifiedRef.current.set(key, now);
+        }
+      });
+    },
+    [arrivalThreshold],
+  );
+
+  const pollArrivals = useCallback(async () => {
+    if (!isTrackingRef.current || appStateRef.current !== 'active') return;
+
+    // Read the pairs from the store, not the closure: the polling interval
+    // outlives renders, and a captured trackedPairs snapshot goes stale (the
+    // list was still empty when the interval was created), which froze the
+    // notification on its first value.
+    const enabled = useTrackingStore
+      .getState()
+      .trackedPairs.filter((p) => p.enabled);
+    if (enabled.length === 0) return;
+
+    const results = await Promise.all(
+      enabled.map((pair) =>
+        liveApiClient
+          .getStopArrivals(pair.stopCode || pair.stopId)
+          .then((rows) => ({ pair, rows }))
+          .catch(() => ({ pair, rows: [] as Arrival[] })),
+      ),
+    );
+
+    results.forEach(({ pair, rows }) => {
+      const predictions = rows.map((row) => toArrivalPrediction(pair.stopId, row));
+      setArrivals((prev) => {
+        const next = new Map(prev);
+        next.set(pair.stopId, predictions);
+        return next;
+      });
+
+      // Refresh the persistent notification at most once per minute; the
+      // same-id re-post updates it silently in the tray.
+      const now = Date.now();
+      if (isTrackingUpdateDue(lastTrackingUpdateRef.current, now)) {
+        lastTrackingUpdateRef.current = now;
+        void updateTrackingNotification({
+          routeShortName: pair.routeShortName,
+          stopName: pair.stopName,
+          minutes: computeTrackingMinutes(rows, pair.routeShortName),
+        });
+      }
+
+      predictions.forEach((prediction) => checkArrival(pair, prediction));
+    });
+  }, [trackedPairs, checkArrival]);
+
+  const ensureInterval = useCallback(() => {
+    if (!isTrackingRef.current || intervalRef.current !== null) return;
+    // Invoke the poll through the ref so the long-lived interval always runs
+    // the latest closure instead of the snapshot from when it was created.
+    intervalRef.current = setInterval(() => {
+      void pollArrivalsRef.current();
+    }, POLL_INTERVAL_MS);
+  }, []);
+
+  const pollArrivalsRef = useRef(pollArrivals);
+  const ensureIntervalRef = useRef(ensureInterval);
+
+  useEffect(() => {
+    pollArrivalsRef.current = pollArrivals;
+  }, [pollArrivals]);
+
+  useEffect(() => {
+    ensureIntervalRef.current = ensureInterval;
+  }, [ensureInterval]);
 
   useEffect(() => {
     loadFromStorage();
   }, [loadFromStorage]);
 
+  // Suspend polling while the app is in the background; resume it in the
+  // foreground if tracking is still enabled.
   useEffect(() => {
-    let cancelled = false;
-
-    const pollArrivals = async () => {
-      if (!isTracking) return;
-
-      // Poll arrivals for each tracked pair
-      const promises = trackedPairs
-        .filter((p) => p.enabled)
-        .map((pair) => liveApiClient.getStopArrivals(pair.stopId));
-
-      const results = await Promise.allSettled(promises);
-
-      results.forEach((result, index) => {
-        if (result.status === 'fulfilled') {
-          const arrivals = result.value;
-          const pair = trackedPairs[index];
-          if (pair && !cancelled) {
-            updateArrivals(pair.stopId, arrivals);
-          }
+    const handleChange = (nextState: AppStateStatus) => {
+      const wasForeground = appStateRef.current === 'active';
+      appStateRef.current = nextState;
+      if (wasForeground && nextState !== 'active') {
+        // App went to background: stop polling, tracking intent is preserved.
+        if (intervalRef.current !== null) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
         }
-      });
+      } else if (
+        !wasForeground &&
+        nextState === 'active' &&
+        isTrackingRef.current
+      ) {
+        // App came back to foreground: resume polling.
+        ensureIntervalRef.current();
+      }
     };
-
-    // Initial poll and then every 15 seconds
-    const intervalId = setInterval(pollArrivals, 15_000);
-    pollArrivals(); // Run immediately
-
-    return () => {
-      cancelled = true;
-      clearInterval(intervalId);
-    };
-  }, [isTracking, trackedPairs, updateArrivals]);
-
-  const startTracking = useCallback(() => {
-    setIsTracking(true);
+    const subscription = AppState.addEventListener('change', handleChange);
+    return () => subscription.remove();
   }, []);
+
+  useEffect(() => {
+    if (isTracking && appStateRef.current === 'active') {
+      void pollArrivalsRef.current();
+      ensureIntervalRef.current();
+    }
+    return () => {
+      if (intervalRef.current !== null) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [isTracking, pollArrivalsRef, ensureIntervalRef]);
+
+  const startTracking = useCallback(() => setIsTracking(true), []);
 
   const stopTracking = useCallback(() => {
     setIsTracking(false);
+    if (intervalRef.current !== null) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
   }, []);
+
+  const toggleTracking = useCallback(
+    (id: string) => {
+      storeToggleTracking(id);
+      const pair = trackedPairs.find((p) => p.id === id);
+      if (pair?.enabled && shouldClearTrackingNotification(trackedPairs, id)) {
+        // Being disabled and no other enabled pair remains.
+        void clearTrackingNotification();
+      }
+      setIsTracking((prev) => !prev);
+    },
+    [storeToggleTracking, trackedPairs],
+  );
+
+  const addTrackedPair = useCallback(
+    (pair: Omit<TrackedPair, 'id' | 'createdAt'>) => {
+      // Ask for notification permission up front so the OS prompt appears on
+      // the first track instead of only when the first alert fires.
+      void requestNotificationPermissions();
+      storeAddTrackedPair(pair);
+      // New tracking: refresh the persistent notification immediately.
+      lastTrackingUpdateRef.current = 0;
+      setIsTracking(true);
+      ensureIntervalRef.current();
+    },
+    [storeAddTrackedPair, ensureIntervalRef],
+  );
+
+  const removeTrackedPair = useCallback(
+    (id: string) => {
+      storeRemoveTrackedPair(id);
+      if (shouldClearTrackingNotification(trackedPairs, id)) {
+        void clearTrackingNotification();
+      }
+    },
+    [storeRemoveTrackedPair, trackedPairs],
+  );
 
   const updateBusPosition = useCallback((position: BusPosition) => {
     setBusPositions((prev) => {
@@ -66,50 +360,16 @@ export function useBusTracking() {
     });
   }, []);
 
-  const updateArrivals = useCallback((stopId: string, predictions: ArrivalPrediction[]) => {
-    setArrivals((prev) => {
-      const next = new Map(prev);
-      next.set(stopId, predictions);
-      return next;
-    });
-  }, []);
-
-  const toggleTracking = useCallback((id: string) => {
-    storeToggleTracking(id);
-    setIsTracking(prev => !prev);
-  }, [storeToggleTracking]);
-
-  const addTrackedPair = useCallback((pair: Omit<TrackedPair, 'id' | 'createdAt'>) => {
-    storeAddTrackedPair(pair);
-  }, []);
-
-  const removeTrackedPair = useCallback((id: string) => {
-    storeRemoveTrackedPair(id);
-  }, []);
-
-  const checkArrival = useCallback((stopId: string, vehicleId: string) => {
-    const pair = trackedPairs.find(p => p.stopId === stopId && p.enabled);
-    if (!pair) return;
-
-    const predictions = arrivals.get(stopId) || [];
-    const now = Date.now();
-    const arrivalTime = predictions.find(p => p.vehicleId === vehicleId)?.arrivalTime || Infinity;
-    const minutesUntilArrival = (arrivalTime - now) / 60000;
-
-    if (minutesUntilArrival <= arrivalThreshold && minutesUntilArrival > 0) {
-      // Check if we already notified recently
-      const lastNotified = arrivals.get(stopId)?.find(p => p.vehicleId === vehicleId && p.realtime);
-      if (!lastNotified) {
-        Notifications.scheduleNotificationAsync({
-          content: {
-            title: 'Bus Arrival',
-            body: `Bus arriving at ${stopId} in ${Math.round(minutesUntilArrival)} minutes`,
-          },
-          trigger: null,
-        });
-      }
-    }
-  }, [trackedPairs, arrivals, arrivalThreshold]);
+  const updateArrivals = useCallback(
+    (stopId: string, predictions: ArrivalPrediction[]) => {
+      setArrivals((prev) => {
+        const next = new Map(prev);
+        next.set(stopId, predictions);
+        return next;
+      });
+    },
+    [],
+  );
 
   return {
     trackedPairs,

@@ -4,6 +4,12 @@ export interface TrackedPair {
   routeId: string;
   routeShortName: string;
   stopId: string;
+  /**
+   * The GTFS `stop_code` (the number on the bus stop sign) the live API expects.
+   * Optional so pairs persisted before this field existed still load; polling
+   * falls back to `stopId` when absent.
+   */
+  stopCode?: string;
   stopName: string;
   label: string;
   thresholdMinutes: number;

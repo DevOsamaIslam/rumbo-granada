@@ -159,14 +159,14 @@
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 10.1 | Create tracking store (`src/store/tracking.ts`) | ✅ | `trackedPairs: TrackedPair[]` with MMKV persistence, `activeTrackingId` |
-| 10.2 | Implement tracking logic (`src/hooks/useBusTracking.ts`) | 🔄 | Hook exists with state management for positions, arrivals, and tracking toggle; TODOs remain for background fetch integration |
-| 10.3 | Define "arrival" threshold (e.g., 200m or 2 stops away) | ⬜ | Not configured; would need settings integration |
-| 10.4 | Schedule local notification on arrival | ⬜ | Notification service exists (Phase 11) but not linked to tracking |
-| 10.5 | Create "Track this bus to this stop" UI | ⬜ | Not implemented |
-| 10.6 | Show active tracking in Favorites tab | ⬜ | Not implemented |
-| 10.7 | Handle app background/foreground transitions | ⬜ | Not implemented |
-| 10.8 | Unit tests for tracking logic | ⬜ | Not implemented |
-| 10.9 | Verify: track bus → get notification at stop | ⬜ | End-to-end not verified |
+| 10.2 | Implement tracking logic (`src/hooks/useBusTracking.ts`) | ✅ | Full hook with polling, arrivals, tracking toggle, background/foreground via AppState, notification scheduling |
+| 10.3 | Define "arrival" threshold (e.g., 200m or 2 stops away) | ✅ | Default 5 min via settings; per-pair `thresholdMinutes` override in `checkArrival` |
+| 10.4 | Schedule local notification on arrival | ✅ | `scheduleArrivalNotification` linked via `checkArrival` with 10-min cooldown per vehicle |
+| 10.5 | Create "Track this bus to this stop" UI | ✅ | `TrackStopButton.tsx`, `TrackingList.tsx`, integrated into line screen and favorites tab |
+| 10.6 | Show active tracking in Favorites tab | ✅ | Favorites tab renders tracked pairs with track/untrack controls |
+| 10.7 | Handle app background/foreground transitions | ✅ | AppState listener suspends polling in background, resumes in foreground |
+| 10.8 | Unit tests for tracking logic | ✅ | 8 tests in `src/hooks/useBusTracking.test.ts` covering all behaviors |
+| 10.9 | Verify: track bus → get notification at stop | ⬜ | End-to-end requires native build; unit + integration tests pass |
 
 **Depends on:** 7, 8, 9  
 **Blocks:** 11

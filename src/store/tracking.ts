@@ -7,6 +7,7 @@ interface TrackedPair {
   routeId: string;
   routeShortName: string;
   stopId: string;
+  stopCode?: string;
   stopName: string;
   label: string;
   thresholdMinutes: number;
@@ -42,10 +43,10 @@ export const useTrackingStore = create<TrackingState>()(
   persist(
     (set) => ({
       trackedPairs: [],
+      // One tracking at a time: adding a new pair replaces any existing one.
       addTrackedPair: (pair) =>
-        set((state) => ({
+        set(() => ({
           trackedPairs: [
-            ...state.trackedPairs,
             { ...pair, id: `${pair.routeId}-${pair.stopId}-${Date.now()}`, createdAt: Date.now() },
           ],
         })),

@@ -17,6 +17,8 @@ export const CONFIG = {
 
   // Tracking
   TRACKING_UPDATE_INTERVAL_MS: 10000, // 10 seconds
+  /** Minimum gap between in-place refreshes of the persistent notification. */
+  TRACKING_NOTIFICATION_INTERVAL_MS: 60000, // 1 minute
   TRACKING_MAX_DISTANCE_METERS: 5000, // 5km
 
   // Cache

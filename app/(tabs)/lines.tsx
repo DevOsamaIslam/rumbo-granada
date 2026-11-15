@@ -1,5 +1,4 @@
-import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { SearchBar } from '@/components/common';
@@ -10,7 +9,6 @@ import { filterLines } from '@/utils/gtfs';
 import { Route } from '@/types/gtfs';
 
 export default function LinesScreen() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
@@ -40,7 +38,7 @@ export default function LinesScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container]}>
       <View style={styles.header}>
         <View style={styles.titleContainer}>
           <Text style={styles.title}>Bus Lines</Text>
@@ -63,7 +61,7 @@ export default function LinesScreen() {
         refreshing={refreshing}
         emptyMessage={query ? 'No lines match your search' : 'No lines found'}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 

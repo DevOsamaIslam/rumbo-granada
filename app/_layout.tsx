@@ -1,5 +1,7 @@
 import { Stack } from 'expo-router';
+import { View } from 'react-native';
 import { Providers } from '@/providers';
+import { AppHeader } from '@/components/common';
 import { Storage } from '@/services/storage';
 import { createSafeMMKV } from '@/services/mmkv';
 import { useFavoritesStore } from '@/store/favorites';
@@ -21,16 +23,19 @@ export default function RootLayout() {
 
   return (
     <Providers>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
-        <Stack.Screen name="(tabs)" options={{ presentation: 'card' }} />
-        <Stack.Screen name="line/[id]" />
-        <Stack.Screen name="stop/[id]" />
-        <Stack.Screen name="+not-found" />
-      </Stack>
+      <View style={{ flex: 1 }}>
+        <AppHeader />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+          }}
+        >
+          <Stack.Screen name="(tabs)" options={{ presentation: "card" }} />
+          <Stack.Screen name="line/[id]" />
+          <Stack.Screen name="stop/[id]" />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+      </View>
     </Providers>
   );
 }

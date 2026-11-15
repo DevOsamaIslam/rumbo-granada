@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { SafeAreaView, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MapView } from '@/components/map';
 import { StopCard } from '@/components/map/StopCard.native';
@@ -10,7 +9,6 @@ import { gtfsService } from '@/services/gtfs';
 import type { Route } from '@/types/gtfs';
 
 export default function MapScreen() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { loadLines } = useLines();
   const params = useLocalSearchParams<{
@@ -69,7 +67,7 @@ export default function MapScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container]}>
       <MapView
         initialRegion={{ latitude: 37.1773, longitude: -3.5986, zoomLevel: 13 }}
         selectedLineId={lineId}
@@ -88,7 +86,7 @@ export default function MapScreen() {
           />
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 

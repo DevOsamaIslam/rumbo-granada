@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ActivityIndicator } from 'react-native-paper';
 import { ArrivalsList, StopInfoHeader } from '@/components/stops';
@@ -17,7 +16,6 @@ const NO_STOP_CODE_MESSAGE =
   'Esta parada no tiene código para consultar llegadas en tiempo real.';
 
 export default function StopDetailScreen() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const stopId = typeof id === 'string' ? id : '';
@@ -158,7 +156,7 @@ export default function StopDetailScreen() {
   if (isLoadingStop) {
     return (
       <View
-        style={[styles.container, styles.centered, { paddingTop: insets.top }]}
+        style={[styles.container, styles.centered]}
       >
         <ActivityIndicator
           animating
@@ -172,7 +170,7 @@ export default function StopDetailScreen() {
   if (!stop) {
     return (
       <View
-        style={[styles.container, styles.centered, { paddingTop: insets.top }]}
+        style={[styles.container, styles.centered]}
       >
         <Text style={styles.errorText}>Parada no encontrada</Text>
       </View>
@@ -180,7 +178,7 @@ export default function StopDetailScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container]}>
       <StopInfoHeader
         stop={stop}
         routes={routes}
@@ -219,6 +217,7 @@ export default function StopDetailScreen() {
       ) : (
         <StopLinesTab
           routes={routes}
+          stop={stop}
           onPress={(route) => router.push(`/line/${route.route_id}`)}
         />
       )}

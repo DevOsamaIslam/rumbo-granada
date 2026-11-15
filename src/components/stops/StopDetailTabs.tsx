@@ -1,7 +1,8 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { IconButton } from 'react-native-paper';
+import { TrackStopButton } from '@/components/tracking';
 import { COLORS } from '@/constants/colors';
-import type { Route } from '@/types/gtfs';
+import type { Route, Stop } from '@/types/gtfs';
 
 export type StopTab = 'arrivals' | 'lines';
 
@@ -78,11 +79,12 @@ function TabButton({
 
 export interface StopLinesTabProps {
   routes: Route[];
+  stop: Stop;
   onPress: (route: Route) => void;
 }
 
 /** The lines serving the stop, each opening its line detail screen. */
-export function StopLinesTab({ routes, onPress }: StopLinesTabProps) {
+export function StopLinesTab({ routes, stop, onPress }: StopLinesTabProps) {
   return (
     <ScrollView contentContainerStyle={styles.infoContent}>
       {routes.length === 0 ? (
@@ -113,6 +115,13 @@ export function StopLinesTab({ routes, onPress }: StopLinesTabProps) {
             <Text style={styles.routeLongName} numberOfLines={2}>
               {route.route_long_name}
             </Text>
+            <TrackStopButton
+              routeId={route.route_id}
+              routeShortName={route.route_short_name}
+              stopId={stop.stop_id}
+              stopCode={stop.stop_code}
+              stopName={stop.stop_name}
+            />
           </Pressable>
         ))
       )}

@@ -1,14 +1,13 @@
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, IconButton } from 'react-native-paper';
 import { gtfsService } from '@/services/gtfs';
 import { useFavorites } from '@/hooks/useFavorites';
+import { TrackStopButton } from '@/components/tracking';
 import { Route, Stop } from '@/types/gtfs';
 
 export default function LineDetailScreen() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [route, setRoute] = useState<Route | null>(null);
@@ -65,7 +64,7 @@ export default function LineDetailScreen() {
 
   if (isLoading) {
     return (
-      <View style={[styles.container, styles.centered, { paddingTop: insets.top }]}>
+      <View style={[styles.container, styles.centered]}>
         <ActivityIndicator animating size="large" />
       </View>
     );
@@ -73,7 +72,7 @@ export default function LineDetailScreen() {
 
   if (!route) {
     return (
-      <View style={[styles.container, styles.centered, { paddingTop: insets.top }]}>
+      <View style={[styles.container, styles.centered]}>
         <Text style={styles.errorText}>Line not found</Text>
       </View>
     );
@@ -83,7 +82,7 @@ export default function LineDetailScreen() {
 
   return (
     <ScrollView
-      style={[styles.container, { paddingTop: insets.top }]}
+      style={[styles.container]}
       contentContainerStyle={styles.content}
     >
       <View style={styles.header}>
@@ -121,6 +120,13 @@ export default function LineDetailScreen() {
         >
           <Text style={styles.stopNumber}>{index + 1}</Text>
           <Text style={styles.stopName}>{stop.stop_name}</Text>
+          <TrackStopButton
+            routeId={id}
+            routeShortName={route?.route_short_name ?? ''}
+            stopId={stop.stop_id}
+            stopCode={stop.stop_code}
+            stopName={stop.stop_name}
+          />
         </Pressable>
       ))}
     </ScrollView>

@@ -64,6 +64,7 @@ vi.mock("react-native-paper", () => {
     IconButton: host("IconButton"),
     Searchbar: host("Searchbar"),
     Snackbar: host("Snackbar"),
+    Switch: host("Switch"),
     TextInput: host("TextInput"),
     Title: host("Title"),
     Text: host("Text"),
@@ -97,6 +98,7 @@ vi.mock("react-native-mmkv", () => {
 // Mock Expo modules
 vi.mock("expo-router", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }),
+  router: { navigate: vi.fn(), push: vi.fn(), back: vi.fn() },
   useLocalSearchParams: () => ({}),
   Link: ({ children, ...props }: any) =>
     React.createElement(View, props, children),
@@ -168,6 +170,26 @@ vi.mock("@maplibre/maplibre-react-native", () => {
       React.createElement(View, props, children),
   };
 });
+
+// Mock Expo notifications (native module, not available in the Node test env).
+vi.mock("expo-notifications", () => ({
+  __esModule: true,
+  requestPermissionsAsync: vi.fn().mockResolvedValue({ status: 'granted' }),
+  getPermissionsAsync: vi.fn().mockResolvedValue({ status: 'granted' }),
+  scheduleNotificationAsync: vi.fn().mockResolvedValue('notification-id'),
+  cancelScheduledNotificationAsync: vi.fn().mockResolvedValue(undefined),
+  cancelAllScheduledNotificationsAsync: vi.fn().mockResolvedValue(undefined),
+  dismissNotificationAsync: vi.fn().mockResolvedValue(undefined),
+  setNotificationCategoryAsync: vi.fn().mockResolvedValue(undefined),
+  getNotificationCategoriesAsync: vi.fn().mockResolvedValue([]),
+  setNotificationChannelAsync: vi.fn().mockResolvedValue(undefined),
+  DEFAULT_ACTION_IDENTIFIER: 'expo.modules.notifications.actions.DEFAULT',
+  addNotificationResponseReceivedListener: vi
+    .fn()
+    .mockReturnValue({ remove: vi.fn() }),
+  NotificationPermission: { GRANTED: 'granted' },
+  AndroidImportance: { HIGH: 'high', DEFAULT: 'default' },
+}));
 
 vi.mock("@tanstack/react-query", () => ({
   QueryClient: vi.fn().mockImplementation(() => ({

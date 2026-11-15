@@ -20,6 +20,11 @@ require.extensions[".txt"] = (module) => {
   module.exports = 1;
 };
 
+// Same for bundled images (e.g. the header logo): Metro returns an asset ID.
+require.extensions[".png"] = (module) => {
+  module.exports = 1;
+};
+
 Module._load = function patchedLoad(request, parent, isMain) {
   if (request === "react-native") {
     return originalLoad.call(this, STUB, parent, isMain);

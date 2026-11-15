@@ -131,4 +131,18 @@ describe('StopInfoHeader', () => {
       expect.objectContaining({ route_id: 'r1' }),
     );
   });
+
+  it('shows no tracking bell in the line badges', async () => {
+    await render(
+      <StopInfoHeader
+        stop={makeStop()}
+        routes={[makeRoute()]}
+        isFavorite={false}
+        onToggleFavorite={() => {}}
+        onPressRoute={() => {}}
+      />,
+    );
+
+    expect(screen.queryByLabelText('Rastrear autobús hasta parada')).toBeNull();
+  });
 });

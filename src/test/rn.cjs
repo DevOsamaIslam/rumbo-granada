@@ -144,7 +144,16 @@ module.exports = {
   Animated: {
     View: host("Animated.View"),
     Text: host("Animated.Text"),
-    timing: () => ({ start: (cb) => cb && cb() }),
-    loop: () => ({ start: () => {} }),
+    Value: class Value {
+      setValue() {}
+      addListener() {
+        return { remove: () => {} };
+      }
+      removeListener() {}
+      stopAnimation() {}
+    },
+    timing: () => ({ start: (cb) => cb && cb(), stop: () => {} }),
+    sequence: (animations) => ({ start: () => {}, stop: () => {} }),
+    loop: () => ({ start: () => {}, stop: () => {} }),
   },
 };
