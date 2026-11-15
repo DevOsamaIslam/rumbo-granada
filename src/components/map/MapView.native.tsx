@@ -32,19 +32,49 @@ interface MapRegion {
   zoomLevel: number;
 }
 
+interface MapBounds {
+  minLat: number;
+  maxLat: number;
+  minLng: number;
+  maxLng: number;
+}
+
+// Granada bounding box — keeps the map pannable only within the city area.
+const GRANADA_BOUNDS: MapBounds = {
+  minLat: 37.115,
+  maxLat: 37.225,
+  minLng: -3.670,
+  maxLng: -3.540,
+};
+
 const DEFAULT_REGION: MapRegion = {
   latitude: CONFIG.MAP_DEFAULT_LAT,
   longitude: CONFIG.MAP_DEFAULT_LNG,
   zoomLevel: CONFIG.MAP_DEFAULT_ZOOM,
 };
 
+/** Clamp a region so it never pans outside Granada. */
+function clampRegion(region: MapRegion): MapRegion {
+  return {
+    ...region,
+    latitude: Math.min(
+      Math.max(region.latitude, GRANADA_BOUNDS.minLat),
+      GRANADA_BOUNDS.maxLat
+    ),
+    longitude: Math.min(
+      Math.max(region.longitude, GRANADA_BOUNDS.minLng),
+      GRANADA_BOUNDS.maxLng
+    ),
+  };
+}
+
 /** Zoom used when the map is asked to focus a single stop. */
 const MAP_FOCUS_ZOOM = 16;
 
 // OpenFreeMap Liberty vector tiles — minimalist style.
-// Keeps only road names, place (neighbourhood / town / city) names and
-// establishment (POI) labels. Buildings, land use, water, boundaries
-// and other map details are hidden. No API key required.
+// Keeps only road names, place (neighbourhood / town / city) names,
+// establishment (POI) labels and multicolor building footprints.
+// No API key required.
 // Tiles max out at zoom 14; markers and route polylines render above that.
 const OSM_STANDARD_STYLE: StyleSpecification = {
   version: 8,
@@ -98,6 +128,30 @@ const OSM_STANDARD_STYLE: StyleSpecification = {
           14,
           2,
         ],
+      },
+    },
+    // Building footprints — multicolor fills with thin outlines (zoom 13+).
+    // Drawn before labels so road/place/POI names stay visible on top.
+    {
+      id: "building-fill",
+      type: "fill",
+      source: "openmaptiles",
+      "source-layer": "building",
+      minzoom: 13,
+      paint: {
+        "fill-color": ["case", ["has", "colour"], ["get", "colour"], "#e8e4dc"],
+        "fill-opacity": 0.85,
+      },
+    },
+    {
+      id: "building-outline",
+      type: "line",
+      source: "openmaptiles",
+      "source-layer": "building",
+      minzoom: 13,
+      paint: {
+        "line-color": "#7f7f7f",
+        "line-width": 0.5,
       },
     },
     // Road names.
@@ -283,11 +337,11 @@ export function MapViewComponent({
     (event: NativeSyntheticEvent<ViewStateChangeEvent>) => {
       const { center, zoom } = event.nativeEvent;
       // MapLibre LngLat is [longitude, latitude]
-      const nextRegion: MapRegion = {
+      const nextRegion: MapRegion = clampRegion({
         longitude: center[0],
         latitude: center[1],
         zoomLevel: zoom,
-      };
+      });
       setRegion(nextRegion);
       Storage.setItem(STORAGE_KEY_MAP_REGION, JSON.stringify(nextRegion));
       onRegionChange?.(nextRegion);

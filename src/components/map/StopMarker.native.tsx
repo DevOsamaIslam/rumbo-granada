@@ -42,8 +42,9 @@ export function StopMarker({
   const isCloseUp = zoomLevel >= STOP_CIRCLE_ZOOM;
   const lineRoutes = routes.filter((r) => r.route_color);
 
-  // Marker grows slightly as the user zooms in.
-  const iconSize = zoomLevel >= 16 ? 36 : zoomLevel >= 14 ? 28 : 20;
+  // Marker grows slightly as the user zooms in — tiny when zoomed out.
+  const iconSize =
+    zoomLevel >= 16 ? 36 : zoomLevel >= 14 ? 24 : zoomLevel >= 12 ? 14 : 10;
 
   return (
     <Marker
