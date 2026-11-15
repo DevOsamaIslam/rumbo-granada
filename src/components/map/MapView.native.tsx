@@ -41,22 +41,131 @@ const DEFAULT_REGION: MapRegion = {
 /** Zoom used when the map is asked to focus a single stop. */
 const MAP_FOCUS_ZOOM = 16;
 
-// OpenStreetMap raster tiles — no Google Maps engine or Google tiles.
+// OpenFreeMap Liberty vector tiles — minimalist style.
+// Keeps only road names, place (neighbourhood / town / city) names and
+// establishment (POI) labels. Buildings, land use, water, boundaries
+// and other map details are hidden. No API key required.
+// Tiles max out at zoom 14; markers and route polylines render above that.
 const OSM_STANDARD_STYLE: StyleSpecification = {
   version: 8,
+  glyphs: "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
   sources: {
-    osm: {
-      type: "raster",
-      tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-      tileSize: 256,
-      attribution: "© OpenStreetMap contributors",
+    openmaptiles: {
+      type: "vector",
+      url: "https://tiles.openfreemap.org/planet",
+      attribution:
+        '© OpenMapTiles | Data © OpenStreetMap contributors | https://openfreemap.org',
     },
   },
   layers: [
     {
-      id: "osm",
-      type: "raster",
-      source: "osm",
+      id: "background",
+      type: "background",
+      paint: {
+        "background-color": "#f8f4f0",
+      },
+    },
+    // Road geometry — light lines so roads are visible but not dominant.
+    {
+      id: "road-geometry",
+      type: "line",
+      source: "openmaptiles",
+      "source-layer": "transportation",
+      filter: [
+        "in",
+        "class",
+        "motorway",
+        "trunk",
+        "primary",
+        "secondary",
+        "tertiary",
+        "residential",
+        "service",
+      ],
+      minzoom: 9,
+      layout: {
+        "line-join": "round",
+        "line-cap": "round",
+      },
+      paint: {
+        "line-color": "#e8e4dc",
+        "line-width": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          9,
+          0.5,
+          14,
+          2,
+        ],
+      },
+    },
+    // Road names.
+    {
+      id: "road-name",
+      type: "symbol",
+      source: "openmaptiles",
+      "source-layer": "transportation_name",
+      filter: [
+        "in",
+        "class",
+        "motorway",
+        "trunk",
+        "primary",
+        "secondary",
+        "tertiary",
+        "residential",
+      ],
+      minzoom: 12,
+      layout: {
+        "text-field": ["get", "name"],
+        "text-font": ["Noto Sans Regular"],
+        "text-size": 11,
+        "text-max-angle": 40,
+      },
+      paint: {
+        "text-color": "#5d5d5d",
+        "text-halo-color": "#ffffff",
+        "text-halo-width": 2,
+      },
+    },
+    // Place (neighbourhood / town / city) names.
+    {
+      id: "place-label",
+      type: "symbol",
+      source: "openmaptiles",
+      "source-layer": "place",
+      filter: ["in", "class", "city", "town", "village"],
+      minzoom: 12,
+      layout: {
+        "text-field": ["get", "name"],
+        "text-font": ["Noto Sans Regular"],
+        "text-size": 12,
+      },
+      paint: {
+        "text-color": "#7d6d6d",
+        "text-halo-color": "#ffffff",
+        "text-halo-width": 2,
+      },
+    },
+    // Establishment (POI) labels — shops, restaurants, hospitals, etc.
+    {
+      id: "poi-label",
+      type: "symbol",
+      source: "openmaptiles",
+      "source-layer": "poi",
+      filter: ["has", "name"],
+      minzoom: 14,
+      layout: {
+        "text-field": ["get", "name"],
+        "text-font": ["Noto Sans Regular"],
+        "text-size": 10,
+      },
+      paint: {
+        "text-color": "#6b7280",
+        "text-halo-color": "#ffffff",
+        "text-halo-width": 2,
+      },
     },
   ],
 };
