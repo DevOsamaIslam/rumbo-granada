@@ -1,7 +1,7 @@
 // Native map view built on MapLibre (OpenStreetMap tiles) — no Google Maps.
 // On web, `./MapView.tsx` resolves instead of this file.
 import React, { useRef, useEffect, useCallback, useMemo, useState } from "react";
-import { NativeSyntheticEvent, StyleSheet, View } from "react-native";
+import { NativeSyntheticEvent, StyleSheet, View, Alert } from "react-native";
 import {
   Map,
   Camera,
@@ -12,6 +12,7 @@ import {
 import type { StyleSpecification } from "@maplibre/maplibre-gl-style-spec";
 import { useLines } from "@/hooks/useLines";
 import { useStops } from "@/hooks/useStops";
+import { useLocation } from "@/hooks/useLocation";
 import { gtfsService } from "@/services/gtfs";
 import { Storage } from "@/services/storage";
 import { CONFIG } from "@/constants/config";
@@ -319,6 +320,9 @@ export function MapViewComponent({
   });
   const [followMode, setFollowMode] = useState(followUserLocation);
 
+  const { location: userLocation, permission, requestPermission, getCurrentLocation } =
+    useLocation();
+
   useEffect(() => {
     Storage.setItem(STORAGE_KEY_MAP_STYLE, mapStyle);
   }, [mapStyle]);
@@ -349,13 +353,37 @@ export function MapViewComponent({
     [onRegionChange],
   );
 
-  const handleRecenter = useCallback(() => {
-    cameraRef.current?.easeTo({
-      center: [DEFAULT_REGION.longitude, DEFAULT_REGION.latitude],
-      zoom: DEFAULT_REGION.zoomLevel,
-      duration: 500,
-    });
-  }, []);
+  const handleRecenter = useCallback(async () => {
+    // Already have permission and a known position: centre on the user.
+    if (permission === 'granted' && userLocation) {
+      cameraRef.current?.easeTo({
+        center: [userLocation.longitude, userLocation.latitude],
+        zoom: MAP_FOCUS_ZOOM,
+        duration: 500,
+      });
+      return;
+    }
+
+    // Otherwise request permission before touching location APIs — never
+    // crash when the user hasn't granted location permission.
+    const granted = await requestPermission();
+    if (!granted) {
+      Alert.alert(
+        'Permiso de ubicación denegado',
+        'Permite el acceso a la ubicación para centrar el mapa en tu posición.'
+      );
+      return;
+    }
+
+    const loc = await getCurrentLocation();
+    if (loc) {
+      cameraRef.current?.easeTo({
+        center: [loc.longitude, loc.latitude],
+        zoom: MAP_FOCUS_ZOOM,
+        duration: 500,
+      });
+    }
+  }, [permission, userLocation, requestPermission, getCurrentLocation]);
 
   const handleZoomIn = useCallback(() => {
     cameraRef.current?.zoomTo(region.zoomLevel + 1, { duration: 300 });
@@ -402,9 +430,11 @@ export function MapViewComponent({
           }}
           minZoom={3}
           maxZoom={19}
-          trackUserLocation={followMode ? "default" : undefined}
+          trackUserLocation={
+            followMode && permission === 'granted' ? 'default' : undefined
+          }
         />
-        {showUserLocation && <UserLocation />}
+        {showUserLocation && permission === 'granted' && <UserLocation />}
         {/* When a specific line is selected, show only its shape. */}
         {!focusStopId && selectedLineId && (
           <RoutePolyline lineId={selectedLineId} routes={routes} zoomLevel={region.zoomLevel} />
