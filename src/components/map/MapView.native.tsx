@@ -190,7 +190,7 @@ const OSM_STANDARD_STYLE: StyleSpecification = {
       source: "openmaptiles",
       "source-layer": "place",
       filter: ["in", "class", "city", "town", "village"],
-      minzoom: 11,
+      minzoom: 4,
       layout: {
         "text-field": ["get", "name"],
         "text-font": ["Noto Sans Regular"],
@@ -209,7 +209,7 @@ const OSM_STANDARD_STYLE: StyleSpecification = {
       source: "openmaptiles",
       "source-layer": "poi",
       filter: ["has", "name"],
-      minzoom: 16,
+      minzoom: 18,
       layout: {
         "text-field": ["get", "name"],
         "text-font": ["Noto Sans Regular"],
@@ -271,10 +271,10 @@ export function MapViewComponent({
 
   // Load every GTFS stop so all stop markers render on the map (when no line is selected and no single stop is focused).
   useEffect(() => {
-    if (!focusStopId && !selectedLineId && routes.length > 0) {
+    if (!focusStopId && !selectedLineId) {
       void loadAllStops();
     }
-  }, [routes.length, loadAllStops, selectedLineId, focusStopId]);
+  }, [loadAllStops, selectedLineId, focusStopId]);
 
   // Load the stops for the selected line (when a line is chosen and no single stop is focused).
   useEffect(() => {
@@ -419,16 +419,20 @@ export function MapViewComponent({
               zoomLevel={region.zoomLevel}
             />
           ))}
-        {stopsToShow.map((stop) => (
-          <StopMarker
-            key={stop.stop_id}
-            lngLat={[stop.stop_lon, stop.stop_lat]}
-            stop={stop}
-            routes={gtfsService.getRoutesForStop(stop.stop_id)}
-            zoomLevel={region.zoomLevel}
-            onPress={onStopPress}
-          />
-        ))}
+        {stopsToShow.map((stop) => {
+          const routesForStop = gtfsService.getRoutesForStop(stop.stop_id);
+          if (routesForStop.length === 0) return null;
+          return (
+            <StopMarker
+              key={stop.stop_id}
+              lngLat={[stop.stop_lon, stop.stop_lat]}
+              stop={stop}
+              routes={routesForStop}
+              zoomLevel={region.zoomLevel}
+              onPress={onStopPress}
+            />
+          );
+        })}
         {trackedBuses.map((bus) => (
           <BusMarker
             key={bus.id}

@@ -12,7 +12,7 @@ import type { Route } from '@/types/gtfs';
 export default function MapScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { routes, loadLines } = useLines();
+  const { loadLines } = useLines();
   const params = useLocalSearchParams<{
     lineId?: string;
     stopId?: string;
@@ -20,13 +20,14 @@ export default function MapScreen() {
     lon?: string;
   }>();
 
-  // When arriving from a stop page, don't select any line - just focus that stop.
+  // Don't auto-select a route on initial load — show all bus stops by default.
+  // A route can be selected from the lines list or via URL params.
   const lineId =
     typeof params.stopId === 'string'
       ? undefined
       : typeof params.lineId === 'string'
       ? params.lineId
-      : routes[0]?.route_id;
+      : undefined;
 
   // Arriving from "Show on map" on the stop screen: centre on those coordinates.
   const focusStop = useMemo(() => {
