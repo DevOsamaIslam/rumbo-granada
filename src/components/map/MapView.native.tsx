@@ -1,6 +1,6 @@
 // Native map view built on MapLibre (OpenStreetMap tiles) — no Google Maps.
 // On web, `./MapView.tsx` resolves instead of this file.
-import React, { useRef, useEffect, useCallback, useState } from "react";
+import React, { useRef, useEffect, useCallback, useMemo, useState } from "react";
 import { NativeSyntheticEvent, StyleSheet, View } from "react-native";
 import {
   Map,
@@ -12,6 +12,7 @@ import {
 import type { StyleSpecification } from "@maplibre/maplibre-gl-style-spec";
 import { useLines } from "@/hooks/useLines";
 import { useStops } from "@/hooks/useStops";
+import { gtfsService } from "@/services/gtfs";
 import { Storage } from "@/services/storage";
 import { CONFIG } from "@/constants/config";
 import { StopMarker } from "./StopMarker.native";
@@ -93,8 +94,33 @@ export function MapViewComponent({
   followUserLocation = false,
 }: MapViewProps) {
   const { routes, loadLines } = useLines();
-  const { stops, loadStopsForRoute } = useStops();
+  const { stops, loadStopsForRoute, loadAllStops } = useStops();
   const cameraRef = useRef<CameraRef>(null);
+
+  // Load every GTFS stop so all stop markers render on the map (when no line is selected).
+  useEffect(() => {
+    if (!selectedLineId && routes.length > 0) {
+      void loadAllStops();
+    }
+  }, [routes.length, loadAllStops, selectedLineId]);
+
+  // Load the stops for the selected line (when a line is chosen).
+  useEffect(() => {
+    if (selectedLineId) {
+      void loadStopsForRoute(selectedLineId);
+    }
+  }, [selectedLineId, loadStopsForRoute]);
+
+  // Route lines that serve at least one of the displayed stops.
+  const routesServingStops = useMemo(() => {
+    const routeIds = new Set<string>();
+    for (const stop of stops) {
+      for (const route of gtfsService.getRoutesForStop(stop.stop_id)) {
+        routeIds.add(route.route_id);
+      }
+    }
+    return routes.filter((route) => routeIds.has(route.route_id));
+  }, [stops, routes]);
   const [region, setRegion] = useState<MapRegion>(() => {
     try {
       const savedRegion = Storage.getItem(STORAGE_KEY_MAP_REGION);
@@ -207,14 +233,26 @@ export function MapViewComponent({
           trackUserLocation={followMode ? "default" : undefined}
         />
         {showUserLocation && <UserLocation />}
+        {/* When a specific line is selected, show only its shape. */}
         {selectedLineId && (
-          <RoutePolyline lineId={selectedLineId} routes={routes} />
+          <RoutePolyline lineId={selectedLineId} routes={routes} zoomLevel={region.zoomLevel} />
         )}
+        {/* Otherwise, when no line is selected, draw lines serving each stop when zoomed in sufficiently. */}
+        {!selectedLineId &&
+          routesServingStops.map((route) => (
+            <RoutePolyline
+              key={route.route_id}
+              lineId={route.route_id}
+              routes={routes}
+              zoomLevel={region.zoomLevel}
+            />
+          ))}
         {stops.map((stop) => (
           <StopMarker
             key={stop.stop_id}
             lngLat={[stop.stop_lon, stop.stop_lat]}
             stop={stop}
+            zoomLevel={region.zoomLevel}
             onPress={onStopPress}
           />
         ))}

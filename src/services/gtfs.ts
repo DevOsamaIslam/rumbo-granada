@@ -334,6 +334,10 @@ class GTFSService {
     return this.data?.routes.get(routeId);
   }
 
+  getStops(): Stop[] {
+    return Array.from(this.data?.stops.values() ?? []);
+  }
+
   getStopsForRoute(routeId: string): Stop[] {
     const tripIds = this.data?.tripsByRoute.get(routeId) ?? [];
     const stopIds = new Set<string>();

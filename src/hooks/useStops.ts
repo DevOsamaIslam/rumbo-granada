@@ -51,6 +51,19 @@ export function useStops() {
     }
   }, []);
 
+  const loadAllStops = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await gtfsService.load();
+      setStops(gtfsService.getStops());
+    } catch {
+      setError(new Error('Failed to load stops'));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const searchStops = useCallback((query: string): Stop[] => {
     const lowerQuery = query.toLowerCase();
     return stops.filter(
@@ -68,6 +81,7 @@ export function useStops() {
     loadStopsForRoute,
     loadOrderedStopsForRoute,
     loadStopTimes,
+    loadAllStops,
     searchStops,
   };
 }
