@@ -1,13 +1,9 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
-import { MapStyle } from './types';
 
 interface MapControlsProps {
-  onRecenter: () => void;
   onToggleFollow: () => void;
   followMode: boolean;
-  onToggleStyle: () => void;
-  mapStyle: MapStyle;
   onZoomIn?: () => void;
   onZoomOut?: () => void;
 }
@@ -42,11 +38,8 @@ function ControlButton({
 }
 
 export function MapControls({
-  onRecenter,
   onToggleFollow,
   followMode,
-  onToggleStyle,
-  mapStyle,
   onZoomIn,
   onZoomOut,
 }: MapControlsProps) {
@@ -54,20 +47,10 @@ export function MapControls({
     <View style={styles.controlsContainer} pointerEvents="box-none">
       <View style={styles.controlGroup}>
         <ControlButton
-          icon={mapStyle === 'standard' ? '🗺' : '🛰'}
-          onPress={onToggleStyle}
-          accessibilityLabel={mapStyle === 'standard' ? 'Cambiar a vista satélite' : 'Cambiar a vista estándar'}
-        />
-        <ControlButton
           icon="📍"
           onPress={onToggleFollow}
           accessibilityLabel={followMode ? 'Desactivar seguimiento' : 'Activar seguimiento'}
           active={followMode}
-        />
-        <ControlButton
-          icon="🧭"
-          onPress={onRecenter}
-          accessibilityLabel="Centrar en mi ubicación"
         />
         <ControlButton
           icon="+"

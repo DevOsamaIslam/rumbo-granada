@@ -1,7 +1,7 @@
 // Native map view built on MapLibre (OpenStreetMap tiles) — no Google Maps.
 // On web, `./MapView.tsx` resolves instead of this file.
 import React, { useRef, useEffect, useCallback, useMemo, useState } from "react";
-import { NativeSyntheticEvent, StyleSheet, View, Alert } from "react-native";
+import { NativeSyntheticEvent, StyleSheet, View } from "react-native";
 import {
   Map,
   Camera,
@@ -20,12 +20,11 @@ import { StopMarker } from "./StopMarker.native";
 import { BusMarker } from "./BusMarker.native";
 import { RoutePolyline } from "./RoutePolyline.native";
 import { MapControls } from "./MapControls.native";
-import type { MapViewProps, MapStyle } from "./types";
+import type { MapViewProps } from "./types";
 
-export type { MapViewProps, MapStyle };
+export type { MapViewProps };
 
 const STORAGE_KEY_MAP_REGION = "rumbo-granada.map.region";
-const STORAGE_KEY_MAP_STYLE = "rumbo-granada.map.style";
 
 interface MapRegion {
   latitude: number;
@@ -225,26 +224,6 @@ const OSM_STANDARD_STYLE: StyleSpecification = {
   ],
 };
 
-const SATELLITE_STYLE: StyleSpecification = {
-  version: 8,
-  sources: {
-    satellite: {
-      type: "raster",
-      tiles: [
-        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      ],
-      tileSize: 256,
-      attribution: "© Esri World Imagery",
-    },
-  },
-  layers: [
-    {
-      id: "satellite",
-      type: "raster",
-      source: "satellite",
-    },
-  ],
-};
 
 export function MapViewComponent({
   initialRegion,
@@ -312,20 +291,9 @@ export function MapViewComponent({
     }
     return initialRegion ?? DEFAULT_REGION;
   });
-  const [mapStyle, setMapStyle] = useState<MapStyle>(() => {
-    const savedStyle = Storage.getItem(STORAGE_KEY_MAP_STYLE);
-    return savedStyle === "standard" || savedStyle === "satellite"
-      ? savedStyle
-      : "standard";
-  });
   const [followMode, setFollowMode] = useState(followUserLocation);
 
-  const { location: userLocation, permission, requestPermission, getCurrentLocation } =
-    useLocation();
-
-  useEffect(() => {
-    Storage.setItem(STORAGE_KEY_MAP_STYLE, mapStyle);
-  }, [mapStyle]);
+  const { permission } = useLocation();
 
   useEffect(() => {
     loadLines();
@@ -353,38 +321,6 @@ export function MapViewComponent({
     [onRegionChange],
   );
 
-  const handleRecenter = useCallback(async () => {
-    // Already have permission and a known position: centre on the user.
-    if (permission === 'granted' && userLocation) {
-      cameraRef.current?.easeTo({
-        center: [userLocation.longitude, userLocation.latitude],
-        zoom: MAP_FOCUS_ZOOM,
-        duration: 500,
-      });
-      return;
-    }
-
-    // Otherwise request permission before touching location APIs — never
-    // crash when the user hasn't granted location permission.
-    const granted = await requestPermission();
-    if (!granted) {
-      Alert.alert(
-        'Permiso de ubicación denegado',
-        'Permite el acceso a la ubicación para centrar el mapa en tu posición.'
-      );
-      return;
-    }
-
-    const loc = await getCurrentLocation();
-    if (loc) {
-      cameraRef.current?.easeTo({
-        center: [loc.longitude, loc.latitude],
-        zoom: MAP_FOCUS_ZOOM,
-        duration: 500,
-      });
-    }
-  }, [permission, userLocation, requestPermission, getCurrentLocation]);
-
   const handleZoomIn = useCallback(() => {
     cameraRef.current?.zoomTo(region.zoomLevel + 1, { duration: 300 });
   }, [region.zoomLevel]);
@@ -392,10 +328,6 @@ export function MapViewComponent({
   const handleZoomOut = useCallback(() => {
     cameraRef.current?.zoomTo(region.zoomLevel - 1, { duration: 300 });
   }, [region.zoomLevel]);
-
-  const handleToggleStyle = useCallback(() => {
-    setMapStyle((prev) => (prev === "standard" ? "satellite" : "standard"));
-  }, []);
 
   const handleToggleFollow = useCallback(() => {
     setFollowMode((prev) => !prev);
@@ -418,7 +350,7 @@ export function MapViewComponent({
     <View style={styles.container}>
       <Map
         style={StyleSheet.absoluteFill}
-        mapStyle={mapStyle === "standard" ? OSM_STANDARD_STYLE : SATELLITE_STYLE}
+        mapStyle={OSM_STANDARD_STYLE}
         onRegionDidChange={handleRegionChange}
         attribution={true}
       >
@@ -473,11 +405,8 @@ export function MapViewComponent({
         ))}
       </Map>
       <MapControls
-        onRecenter={handleRecenter}
         onToggleFollow={handleToggleFollow}
         followMode={followMode}
-        onToggleStyle={handleToggleStyle}
-        mapStyle={mapStyle}
         onZoomIn={handleZoomIn}
         onZoomOut={handleZoomOut}
       />

@@ -22,4 +22,3 @@ export interface MapViewProps {
   followUserLocation?: boolean;
 }
 
-export type MapStyle = 'standard' | 'satellite';

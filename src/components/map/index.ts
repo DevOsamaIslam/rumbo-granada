@@ -4,4 +4,4 @@
 // StopMarker/BusMarker/RoutePolyline/MapControls are native-only internals of
 // MapView.native.tsx and are intentionally NOT re-exported here.
 export { MapView } from './MapView';
-export type { MapViewProps, MapStyle } from './types';
+export type { MapViewProps } from './types';
