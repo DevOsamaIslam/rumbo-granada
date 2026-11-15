@@ -25,7 +25,7 @@ export function LineList({
   onToggleFavorite,
   onRefresh,
   refreshing,
-  emptyMessage = 'No lines found',
+  emptyMessage,
 }: LineListProps) {
   const { t } = useTranslation();
 
@@ -61,7 +61,7 @@ export function LineList({
       ItemSeparatorComponent={() => <View style={styles.separator} />}
       ListEmptyComponent={
         <View style={styles.centered}>
-          <Text style={styles.emptyText}>{emptyMessage}</Text>
+          <Text style={styles.emptyText}>{emptyMessage ?? t('noLinesFound', { ns: 'translation' })}</Text>
         </View>
       }
       contentContainerStyle={styles.listContent}

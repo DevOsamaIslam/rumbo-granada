@@ -46,7 +46,7 @@ export default function LinesScreen() {
           <Text style={styles.title}>{t('busLines', { ns: 'translation' })}</Text>
         </View>
         <SearchBar
-          placeholder="Search lines..."
+          placeholder={t('searchLinesPlaceholder', { ns: 'translation' })}
           value={query}
           onChangeText={setQuery}
           style={styles.searchBar}
@@ -61,7 +61,11 @@ export default function LinesScreen() {
         onToggleFavorite={handleToggleFavorite}
         onRefresh={handleRefresh}
         refreshing={refreshing}
-        emptyMessage={query ? 'No lines match your search' : t('noLinesFound', { ns: 'translation' })}
+        emptyMessage={
+          query
+            ? t('noLinesMatchSearch', { ns: 'translation' })
+            : t('noLinesFound', { ns: 'translation' })
+        }
       />
     </View>
   );

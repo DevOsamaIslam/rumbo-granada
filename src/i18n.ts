@@ -1,16 +1,29 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import LanguageDetector from 'i18next-browser-languagedetector';
+import { getLocales } from 'expo-localization';
 
 // the translations
 import enTranslation from '../locales/en/translation.json';
 import esTranslation from '../locales/es/translation.json';
 
+/**
+ * Device language: `'es'` when the device is set to Spanish, `'en'` otherwise.
+ * Used as the initial language when the user has never chosen one in settings.
+ */
+export function getDeviceLanguage(): 'es' | 'en' {
+  try {
+    return getLocales()[0]?.languageCode === 'es' ? 'es' : 'en';
+  } catch {
+    return 'en';
+  }
+}
+
 i18n
-  .use(LanguageDetector)
   .use(initReactI18next) // passes i18n down to react-i18next
   .init({
-    lng: 'en',
+    // Initial language from the device; `app/_layout.tsx` overrides it with
+    // the user's persisted choice from the settings store right after mount.
+    lng: getDeviceLanguage(),
     fallbackLng: 'en',
     resources: {
       en: {

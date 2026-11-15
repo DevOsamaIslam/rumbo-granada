@@ -67,10 +67,16 @@ export function TrackStopButton({
       // One tracking at a time: confirm before replacing the current one.
       Alert.alert(
         t('replaceTracking', { ns: 'translation' }),
-        `Ya estás rastreando la línea ${existing.routeShortName} hasta ${existing.stopName}. ¿Quieres reemplazarla por la línea ${routeShortName} hasta ${stopName}?`,
+        t('replaceTrackingMessage', {
+          ns: 'translation',
+          currentLine: existing.routeShortName,
+          currentStop: existing.stopName,
+          newLine: routeShortName,
+          newStop: stopName,
+        }),
         [
-          { text: 'Cancelar', style: 'cancel' },
-          { text: 'Reemplazar', onPress: confirmTrack },
+          { text: t('cancel', { ns: 'translation' }), style: 'cancel' },
+          { text: t('replace', { ns: 'translation' }), onPress: confirmTrack },
         ],
       );
       return;

@@ -28,8 +28,8 @@ const baseProps = {
 describe("LineList", () => {
   it("renders all lines", async () => {
     await render(<LineList {...baseProps} routes={routes} />);
-    expect(screen.getByText("Line 10")).toBeOnTheScreen();
-    expect(screen.getByText("Line 33")).toBeOnTheScreen();
+    expect(screen.getByText("Línea 10")).toBeOnTheScreen();
+    expect(screen.getByText("Línea 33")).toBeOnTheScreen();
   });
 
   it("renders empty message when no lines", async () => {
@@ -45,7 +45,7 @@ describe("LineList", () => {
 
   it("renders loading state", async () => {
     await render(<LineList {...baseProps} routes={[]} isLoading={true} />);
-    expect(screen.getByLabelText("Loading lines")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Cargando líneas")).toBeOnTheScreen();
   });
 
   it("renders error state with the error message", async () => {
@@ -56,14 +56,14 @@ describe("LineList", () => {
         error={new Error("Network failed")}
       />,
     );
-    expect(screen.getByText("Failed to load lines")).toBeOnTheScreen();
+    expect(screen.getByText("Error al cargar las líneas")).toBeOnTheScreen();
     expect(screen.getByText("Network failed")).toBeOnTheScreen();
   });
 
   it("calls onPress when a line is pressed", async () => {
     const onPress = vi.fn();
     await render(<LineList {...baseProps} routes={routes} onPress={onPress} />);
-    await fireEvent.press(screen.getByLabelText("Line 10"));
+    await fireEvent.press(screen.getByLabelText("Línea 10"));
     expect(onPress).toHaveBeenCalledWith(routes[0]);
   });
 });

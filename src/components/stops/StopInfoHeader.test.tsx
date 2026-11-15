@@ -110,7 +110,7 @@ describe('StopInfoHeader', () => {
       />,
     );
 
-    fireEvent.press(screen.getByLabelText('Add stop to favorites'));
+    fireEvent.press(screen.getByLabelText('Añadir a favoritos'));
     expect(onToggleFavorite).toHaveBeenCalled();
   });
 
@@ -126,7 +126,7 @@ describe('StopInfoHeader', () => {
       />,
     );
 
-    fireEvent.press(screen.getByLabelText('Open line 33'));
+    fireEvent.press(screen.getByLabelText('Abrir línea 33'));
     expect(onPressRoute).toHaveBeenCalledWith(
       expect.objectContaining({ route_id: 'r1' }),
     );

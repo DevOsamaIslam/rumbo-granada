@@ -36,7 +36,7 @@ describe('AddStopLabelModal', () => {
     const onConfirm = vi.fn();
     await render(<AddStopLabelModal {...baseProps} onConfirm={onConfirm} />);
 
-    await fireEvent.changeText(screen.getByLabelText('Stop label'), '  Casa  ');
+    await fireEvent.changeText(screen.getByLabelText('Etiqueta de parada'), '  Casa  ');
     await fireEvent.press(screen.getByText('Guardar'));
 
     expect(onConfirm).toHaveBeenCalledWith('Casa');
@@ -46,7 +46,7 @@ describe('AddStopLabelModal', () => {
     const onConfirm = vi.fn();
     await render(<AddStopLabelModal {...baseProps} onConfirm={onConfirm} />);
 
-    await fireEvent.changeText(screen.getByLabelText('Stop label'), '');
+    await fireEvent.changeText(screen.getByLabelText('Etiqueta de parada'), '');
     await fireEvent.press(screen.getByText('Guardar'));
 
     expect(onConfirm).toHaveBeenCalledWith('');

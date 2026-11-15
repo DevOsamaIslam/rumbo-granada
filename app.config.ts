@@ -55,6 +55,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         locationAlwaysAndWhenInUsePermission: 'Allow Rumbo Granada to access your location to show nearby bus stops and track buses.',
       },
     ],
+    [
+      'expo-localization',
+      {
+        supportedLocales: ['es', 'en'],
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,

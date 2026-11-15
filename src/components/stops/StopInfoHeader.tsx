@@ -31,7 +31,9 @@ export function StopInfoHeader({
         <View style={styles.titleBlock}>
           <Text style={styles.name}>{stop.stop_name}</Text>
           <Text style={styles.meta}>
-            {stop.stop_code ? `Código ${stop.stop_code}` : 'Sin código'}
+            {stop.stop_code
+              ? t('stopCode', { ns: 'translation', code: stop.stop_code })
+              : t('noStopCode', { ns: 'translation' })}
             {` · ${stop.stop_lat.toFixed(4)}, ${stop.stop_lon.toFixed(4)}`}
           </Text>
           {isFavorite && favoriteLabel ? (
@@ -47,10 +49,10 @@ export function StopInfoHeader({
         />
       </View>
 
-      <Text style={styles.sectionTitle}>Líneas ({routes.length})</Text>
+      <Text style={styles.sectionTitle}>{t('linesCount', { ns: 'translation', total: routes.length })}</Text>
       <View style={styles.routeRow}>
         {routes.length === 0 ? (
-          <Text style={styles.noRoutes}>Sin líneas registradas</Text>
+          <Text style={styles.noRoutes}>{t('noLinesRegistered', { ns: 'translation' })}</Text>
         ) : (
           routes.map((route) => {
             const color = getBadgeBackgroundColor(route.route_color, COLORS.primary);
@@ -64,7 +66,7 @@ export function StopInfoHeader({
                   icon='chevron-right'
                   size={20}
                   onPress={() => onPressRoute(route)}
-                  accessibilityLabel={`Open line ${route.route_short_name}`}
+                  accessibilityLabel={t('openLine', { ns: 'translation', line: route.route_short_name })}
                   style={styles.routeBadgeButton}
                 />
                 <Text style={[styles.routeBadgeText, { color: textColor }]}>

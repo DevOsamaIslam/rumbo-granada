@@ -4,6 +4,7 @@ import { ArrivalRow } from './ArrivalRow';
 import { COLORS } from '@/constants/colors';
 import { useTranslation } from 'react-i18next';
 import type { Arrival } from '@/types/api';
+import type { TFunction } from 'i18next';
 
 export interface ArrivalsListProps {
   arrivals: Arrival[];
@@ -20,13 +21,14 @@ export interface ArrivalsListProps {
 
 function formatLastUpdated(
   timestamp: number | null | undefined,
+  t: TFunction,
 ): string | null {
   if (!timestamp) return null;
   const seconds = Math.max(0, Math.round((Date.now() - timestamp) / 1000));
-  if (seconds < 10) return 'Actualizado ahora';
-  if (seconds < 60) return `Actualizado hace ${seconds}s`;
+  if (seconds < 10) return t('updatedNow');
+  if (seconds < 60) return t('updatedSecondsAgo', { seconds });
   const minutes = Math.round(seconds / 60);
-  return `Actualizado hace ${minutes} min`;
+  return t('updatedMinutesAgo', { minutes });
 }
 
 export function ArrivalsList({
@@ -40,7 +42,7 @@ export function ArrivalsList({
   lastUpdated = null,
 }: ArrivalsListProps) {
   const { t } = useTranslation();
-  const updatedAt = formatLastUpdated(lastUpdated);
+  const updatedAt = formatLastUpdated(lastUpdated, t);
   const header = updatedAt ? (
     <Text style={styles.updatedAt}>{updatedAt}</Text>
   ) : null;
@@ -61,7 +63,7 @@ export function ArrivalsList({
     return (
       <View style={styles.centered}>
         <Text style={styles.errorTitle}>
-          No se pudieron cargar las llegadas
+          {t('failedToLoadArrivals', { ns: 'translation' })}
         </Text>
         <Text style={styles.errorDetail}>{error.message}</Text>
       </View>
@@ -86,7 +88,7 @@ export function ArrivalsList({
       ListHeaderComponent={header ?? undefined}
       ListEmptyComponent={
         <View style={styles.centered}>
-          <Text style={styles.emptyText}>No hay autobuses previstos</Text>
+          <Text style={styles.emptyText}>{t('noScheduledBuses', { ns: 'translation' })}</Text>
         </View>
       }
       contentContainerStyle={styles.content}

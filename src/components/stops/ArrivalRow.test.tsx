@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react-native';
+import i18n from '@/i18n';
 import { ArrivalRow, formatArrivalMinutes } from './ArrivalRow';
 import type { Arrival } from '@/types/api';
+
+const t = i18n.t.bind(i18n);
 
 const makeArrival = (overrides: Partial<Arrival> = {}): Arrival => ({
   lineCode: '33',
@@ -14,15 +17,15 @@ const makeArrival = (overrides: Partial<Arrival> = {}): Arrival => ({
 
 describe('formatArrivalMinutes', () => {
   it('shows "Ahora" for arriving now', () => {
-    expect(formatArrivalMinutes(0)).toBe('Ahora');
-    expect(formatArrivalMinutes(-3)).toBe('Ahora');
+    expect(formatArrivalMinutes(0, t)).toBe('Ahora');
+    expect(formatArrivalMinutes(-3, t)).toBe('Ahora');
   });
 
   it('formats minutes and hours', () => {
-    expect(formatArrivalMinutes(1)).toBe('1 min');
-    expect(formatArrivalMinutes(12)).toBe('12 min');
-    expect(formatArrivalMinutes(60)).toBe('1h');
-    expect(formatArrivalMinutes(75)).toBe('1h 15min');
+    expect(formatArrivalMinutes(1, t)).toBe('1 min');
+    expect(formatArrivalMinutes(12, t)).toBe('12 min');
+    expect(formatArrivalMinutes(60, t)).toBe('1h');
+    expect(formatArrivalMinutes(75, t)).toBe('1h 15min');
   });
 });
 
@@ -62,7 +65,7 @@ describe('ArrivalRow', () => {
       ? Object.assign({}, ...badge!.props.style.filter(Boolean))
       : badge?.props?.style;
 
-    expect(style).toMatchObject({ backgroundColor: '#6200EE' });
+    expect(style).toMatchObject({ backgroundColor: '#A00020' });
   });
 
   it('keeps the GTFS line colour and derives readable text on a light badge', async () => {

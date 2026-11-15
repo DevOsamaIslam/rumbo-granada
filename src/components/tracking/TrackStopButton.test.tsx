@@ -46,7 +46,7 @@ describe('TrackStopButton', () => {
       />,
     );
 
-    fireEvent.press(getByLabelText('Rastrear autobús hasta parada'));
+    fireEvent.press(getByLabelText('Reanudar rastreo'));
 
     expect(addTrackedPair).toHaveBeenCalledWith({
       routeId: 'r1',
@@ -78,7 +78,7 @@ describe('TrackStopButton', () => {
       />,
     );
 
-    fireEvent.press(getByLabelText('Rastrear autobús hasta parada'));
+    fireEvent.press(getByLabelText('Reanudar rastreo'));
 
     expect(addTrackedPair).toHaveBeenCalledWith(
       expect.objectContaining({ stopId: 'uuid-1', stopCode: '74' }),
@@ -114,7 +114,7 @@ describe('TrackStopButton', () => {
       />,
     );
 
-    fireEvent.press(getByLabelText('Dejar de rastrear autobús'));
+    fireEvent.press(getByLabelText('Dejar de rastrear'));
 
     expect(toggleTracking).toHaveBeenCalledWith('p1');
   });
@@ -143,7 +143,7 @@ describe('TrackStopButton', () => {
       />,
     );
 
-    expect(getByLabelText('Dejar de rastrear autobús')).toBeTruthy();
-    expect(queryByLabelText('Rastrear autobús hasta parada')).toBeNull();
+    expect(getByLabelText('Dejar de rastrear')).toBeTruthy();
+    expect(queryByLabelText('Reanudar rastreo')).toBeNull();
   });
 });

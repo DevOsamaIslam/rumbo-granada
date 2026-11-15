@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
 import { Button, IconButton, Text, TextInput } from 'react-native-paper';
 import { COLORS } from '@/constants/colors';
+import { useTranslation } from 'react-i18next';
 
 export interface AddStopLabelModalProps {
   visible: boolean;
   /** Pre-filled label (existing favourite's label, if any). */
   initialLabel?: string;
   stopName: string;
-  /** Sheet title. Defaults to 'Guardar parada'. */
+  /** Sheet title. Defaults to the translated `saveStop` string. */
   title?: string;
   onCancel: () => void;
   onConfirm: (label: string) => void;
@@ -28,11 +29,13 @@ export function AddStopLabelModal({
   visible,
   initialLabel = '',
   stopName,
-  title = 'Guardar parada',
+  title,
   onCancel,
   onConfirm,
   onRemove,
 }: AddStopLabelModalProps) {
+  const { t } = useTranslation();
+  const resolvedTitle = title ?? t('saveStop');
   const [draft, setDraft] = useState({
     source: initialLabel,
     label: initialLabel,
@@ -56,11 +59,11 @@ export function AddStopLabelModal({
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
           <View style={styles.header}>
-            <Text style={styles.title}>{title}</Text>
+            <Text style={styles.title}>{resolvedTitle}</Text>
             <IconButton
               icon='close'
               onPress={onCancel}
-              accessibilityLabel='Close'
+              accessibilityLabel={t('close')}
             />
           </View>
 
@@ -68,29 +71,29 @@ export function AddStopLabelModal({
 
           <TextInput
             mode='outlined'
-            label='Etiqueta'
-            placeholder='Ej. Cerca del trabajo'
+            label={t('label')}
+            placeholder={t('labelExample')}
             value={label}
             onChangeText={(text) =>
               setDraft({ source: initialLabel, label: text })
             }
             style={styles.input}
-            accessibilityLabel='Stop label'
+            accessibilityLabel={t('stopLabel')}
             maxLength={40}
           />
 
           <View style={styles.actions}>
             {onRemove && (
               <Button mode='text' textColor={COLORS.error} onPress={onRemove}>
-                Quitar
+                {t('remove')}
               </Button>
             )}
             <View style={styles.actionSpacer} />
             <Button mode='outlined' onPress={onCancel}>
-              Cancelar
+              {t('cancel')}
             </Button>
             <Button mode='contained' onPress={handleConfirm}>
-              Guardar
+              {t('save')}
             </Button>
           </View>
         </View>

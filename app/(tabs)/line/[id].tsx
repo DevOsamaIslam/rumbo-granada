@@ -92,13 +92,15 @@ export default function LineDetailScreen() {
           <Text style={styles.badgeText}>{route.route_short_name}</Text>
         </View>
         <View style={styles.headerInfo}>
-          <Text style={styles.title}>Line {route.route_short_name}</Text>
+          <Text style={styles.title}>{t('lineTitle', { ns: 'translation', line: route.route_short_name })}</Text>
           <Text style={styles.subtitle}>{route.route_long_name}</Text>
         </View>
         <IconButton
           icon={isFavorite ? 'star' : 'star-outline'}
           onPress={handleToggleFavorite}
-          accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+          accessibilityLabel={
+            isFavorite ? t('removeFromFavorites', { ns: 'translation' }) : t('addToFavorites', { ns: 'translation' })
+          }
         />
       </View>
 
@@ -111,14 +113,14 @@ export default function LineDetailScreen() {
         <Text style={styles.mapButtonText}>{t('showOnMap', { ns: 'translation' })}</Text>
       </Pressable>
 
-      <Text style={styles.sectionTitle}>Stops ({stops.length})</Text>
+      <Text style={styles.sectionTitle}>{t('stopsCount', { ns: 'translation', total: stops.length })}</Text>
       {stops.map((stop, index) => (
         <Pressable
           key={`${stop.stop_id}-${index}`}
           style={styles.stopRow}
           onPress={() => router.push(`/stop/${stop.stop_id}`)}
           accessibilityRole="button"
-          accessibilityLabel={`Stop ${stop.stop_name}`}
+          accessibilityLabel={t('stopAccessibilityLabel', { ns: 'translation', name: stop.stop_name })}
         >
           <Text style={styles.stopNumber}>{index + 1}</Text>
           <Text style={styles.stopName}>{stop.stop_name}</Text>

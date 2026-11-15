@@ -10,13 +10,12 @@ import { gtfsService } from '@/services/gtfs';
 import { COLORS } from '@/constants/colors';
 import { getBadgeBackgroundColor } from '@/utils/colors';
 import type { Route, Stop } from '@/types/gtfs';
+import { useTranslation } from 'react-i18next';
 import { StopLinesTab, StopTabBar, type StopTab } from '@/components/stops/StopDetailTabs';
-
-const NO_STOP_CODE_MESSAGE =
-  'Esta parada no tiene código para consultar llegadas en tiempo real.';
 
 export default function StopDetailScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const stopId = typeof id === 'string' ? id : '';
 
@@ -161,7 +160,7 @@ export default function StopDetailScreen() {
         <ActivityIndicator
           animating
           size='large'
-          accessibilityLabel='Loading stop'
+          accessibilityLabel={t('loadingStop', { ns: 'translation' })}
         />
       </View>
     );
@@ -172,7 +171,7 @@ export default function StopDetailScreen() {
       <View
         style={[styles.container, styles.centered]}
       >
-        <Text style={styles.errorText}>Parada no encontrada</Text>
+        <Text style={styles.errorText}>{t('stopNotFound', { ns: 'translation' })}</Text>
       </View>
     );
   }
@@ -210,7 +209,7 @@ export default function StopDetailScreen() {
             />
           ) : (
             <View style={styles.centered}>
-              <Text style={styles.mutedText}>{NO_STOP_CODE_MESSAGE}</Text>
+              <Text style={styles.mutedText}>{t('noStopCodeMessage', { ns: 'translation' })}</Text>
             </View>
           )}
         </View>

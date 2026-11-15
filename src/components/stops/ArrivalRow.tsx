@@ -2,6 +2,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { COLORS } from '@/constants/colors';
 import { formatCountdown } from '@/utils/gtfs';
 import { getBadgeBackgroundColor, getBadgeTextColor } from '@/utils/colors';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import type { Arrival } from '@/types/api';
 
 export interface ArrivalRowProps {
@@ -13,12 +15,13 @@ export interface ArrivalRowProps {
 }
 
 /** Formats the countdown shown on the right of a row. */
-export function formatArrivalMinutes(minutes: number): string {
-  if (minutes <= 0) return 'Ahora';
+export function formatArrivalMinutes(minutes: number, t: TFunction): string {
+  if (minutes <= 0) return t('now');
   return formatCountdown(minutes);
 }
 
 export function ArrivalRow({ arrival, lineColor, lineTextColor }: ArrivalRowProps) {
+  const { t } = useTranslation();
   const badgeColor = getBadgeBackgroundColor(lineColor, COLORS.primary);
   // Many routes ship without `route_text_color`; derive a legible one so the line
   // code stays readable on light backgrounds.
@@ -37,11 +40,11 @@ export function ArrivalRow({ arrival, lineColor, lineTextColor }: ArrivalRowProp
         </Text>
         <Text style={styles.schedule}>
           {arrival.scheduledTime}
-          {arrival.isRealTime ? '' : ' · estimada'}
+          {arrival.isRealTime ? '' : ` · ${t('estimated')}`}
         </Text>
       </View>
       <Text style={styles.minutes}>
-        {formatArrivalMinutes(arrival.minutes)}
+        {formatArrivalMinutes(arrival.minutes, t)}
       </Text>
     </View>
   );

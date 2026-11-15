@@ -29,12 +29,12 @@ export function StopTabBar({
     <View style={styles.toolbar}>
       <View style={styles.tabs}>
         <TabButton
-          label='Llegadas'
+          label={t('arrivals', { ns: 'translation' })}
           active={tab === 'arrivals'}
           onPress={() => onTabChange('arrivals')}
         />
         <TabButton
-          label='Líneas'
+          label={t('lines', { ns: 'translation' })}
           active={tab === 'lines'}
           onPress={() => onTabChange('lines')}
         />
@@ -88,10 +88,12 @@ export interface StopLinesTabProps {
 
 /** The lines serving the stop, each opening its line detail screen. */
 export function StopLinesTab({ routes, stop, onPress }: StopLinesTabProps) {
+  const { t } = useTranslation();
+
   return (
     <ScrollView contentContainerStyle={styles.infoContent}>
       {routes.length === 0 ? (
-        <Text style={styles.mutedText}>Sin líneas registradas</Text>
+        <Text style={styles.mutedText}>{t('noLinesRegistered', { ns: 'translation' })}</Text>
       ) : (
         routes.map((route) => (
           <Pressable
@@ -99,7 +101,7 @@ export function StopLinesTab({ routes, stop, onPress }: StopLinesTabProps) {
             style={styles.routeRow}
             onPress={() => onPress(route)}
             accessibilityRole='button'
-            accessibilityLabel={`Line ${route.route_short_name}`}
+            accessibilityLabel={t('lineTitle', { ns: 'translation', line: route.route_short_name })}
           >
             <View
               style={[

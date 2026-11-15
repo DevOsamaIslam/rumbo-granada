@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { createSafeMMKV } from '@/services/mmkv';
+import { getDeviceLanguage } from '@/i18n';
 
 interface SettingsState {
   notificationThresholdMinutes: number;
@@ -38,7 +39,9 @@ export const useSettingsStore = create<SettingsState>()(
       mapStyle: 'standard',
       autoFollowUser: true,
       showBusLabels: true,
-      language: 'es',
+      // Default comes from the device (Spanish device → Spanish UI, otherwise
+      // English); zustand-persist overwrites it when a stored choice exists.
+      language: getDeviceLanguage(),
       setNotificationThreshold: (minutes) => set({ notificationThresholdMinutes: minutes }),
       setMapStyle: (style) => set({ mapStyle: style }),
       setAutoFollowUser: (enabled) => set({ autoFollowUser: enabled }),

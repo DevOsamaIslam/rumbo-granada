@@ -7,6 +7,11 @@
 // `SyntaxError: Unexpected token 'typeof'`, which killed every suite before a
 // single test ran. This file is registered first in `setupFiles` so the patch is
 // in place before `@testing-library/react-native` is loaded.
+
+// `__DEV__` is normally injected by Metro; `src/i18n.ts` reads it at module-eval
+// time, which (due to import hoisting) runs before setup.tsx assigns it.
+globalThis.__DEV__ = true;
+
 const Module = require("node:module");
 const path = require("node:path");
 

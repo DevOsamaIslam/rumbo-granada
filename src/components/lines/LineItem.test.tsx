@@ -24,7 +24,7 @@ describe("LineItem", () => {
         onToggleFavorite={() => {}}
       />,
     );
-    expect(screen.getByText("Line 10")).toBeOnTheScreen();
+    expect(screen.getByText("Línea 10")).toBeOnTheScreen();
     expect(screen.getByText("Alhambra - Centro")).toBeOnTheScreen();
   });
 
@@ -37,7 +37,7 @@ describe("LineItem", () => {
         onToggleFavorite={() => {}}
       />,
     );
-    expect(screen.getByLabelText("Remove from favorites")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Eliminar de favoritos")).toBeOnTheScreen();
   });
 
   it("shows outline star when not favorite", async () => {
@@ -49,7 +49,7 @@ describe("LineItem", () => {
         onToggleFavorite={() => {}}
       />,
     );
-    expect(screen.getByLabelText("Add to favorites")).toBeOnTheScreen();
+    expect(screen.getByLabelText("Añadir a favoritos")).toBeOnTheScreen();
   });
 
   it("calls onToggleFavorite when star pressed", async () => {
@@ -62,7 +62,7 @@ describe("LineItem", () => {
         onToggleFavorite={onToggleFavorite}
       />,
     );
-    await fireEvent.press(screen.getByLabelText("Add to favorites"));
+    await fireEvent.press(screen.getByLabelText("Añadir a favoritos"));
     expect(onToggleFavorite).toHaveBeenCalledWith(makeRoute());
   });
 
@@ -76,7 +76,7 @@ describe("LineItem", () => {
         onToggleFavorite={() => {}}
       />,
     );
-    await fireEvent.press(screen.getByLabelText("Line 10"));
+    await fireEvent.press(screen.getByLabelText("Línea 10"));
     expect(onPress).toHaveBeenCalledWith(makeRoute());
   });
 
@@ -91,7 +91,7 @@ describe("LineItem", () => {
         onToggleFavorite={onToggleFavorite}
       />,
     );
-    await fireEvent.press(screen.getByLabelText("Add to favorites"));
+    await fireEvent.press(screen.getByLabelText("Añadir a favoritos"));
     expect(onToggleFavorite).toHaveBeenCalledWith(makeRoute());
     expect(onPress).not.toHaveBeenCalled();
   });

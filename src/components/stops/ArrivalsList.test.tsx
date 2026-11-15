@@ -42,7 +42,7 @@ describe('ArrivalsList', () => {
       <ArrivalsList {...baseProps} arrivals={[]} isLoading={true} />,
     );
 
-    expect(screen.getByLabelText('Loading arrivals')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Cargando llegadas')).toBeOnTheScreen();
   });
 
   it('shows the error state when the request failed and nothing is cached', async () => {

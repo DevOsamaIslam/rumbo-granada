@@ -7,6 +7,7 @@
 import * as Notifications from 'expo-notifications';
 import { AndroidImportance } from 'expo-notifications';
 import { Platform } from 'react-native';
+import i18n from '@/i18n';
 
 /** Android notification channel used for arrival alerts. */
 const ARRIVAL_CHANNEL_ID = 'bus-arrival';
@@ -22,7 +23,7 @@ export const TRACKING_CHANNEL_ID = 'bus-tracking';
 async function ensureChannel(): Promise<void> {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync(ARRIVAL_CHANNEL_ID, {
-    name: 'Llegadas de autobús',
+    name: i18n.t('notificationChannelArrivals'),
     importance: AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 250, 250],
   });
@@ -32,7 +33,7 @@ async function ensureChannel(): Promise<void> {
 async function ensureTrackingChannel(): Promise<void> {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync(TRACKING_CHANNEL_ID, {
-    name: 'Seguimiento de autobús',
+    name: i18n.t('notificationChannelTracking'),
     importance: AndroidImportance.DEFAULT,
   });
 }
@@ -59,8 +60,12 @@ export async function scheduleArrivalNotification(params: {
   const { routeShortName, stopName, minutes } = params;
   const id = await Notifications.scheduleNotificationAsync({
     content: {
-      title: 'Autobús en camino',
-      body: `La línea ${routeShortName} llega a ${stopName} en ${minutes} minuto${minutes !== 1 ? 's' : ''}.`,
+      title: i18n.t('busOnTheWay'),
+      body: i18n.t('arrivalBody', {
+        line: routeShortName,
+        stop: stopName,
+        count: minutes,
+      }),
       sound: true,
     },
     trigger: null, // show immediately
@@ -88,7 +93,7 @@ async function ensureTrackingCategory(): Promise<void> {
     await Notifications.setNotificationCategoryAsync(TRACKING_CATEGORY_ID, [
       {
         identifier: TRACKING_CANCEL_ACTION,
-        buttonTitle: 'Cancelar',
+        buttonTitle: i18n.t('cancel'),
         options: { opensAppToForeground: false },
       },
     ]);
@@ -102,28 +107,29 @@ async function ensureTrackingCategory(): Promise<void> {
  * `minutes` is the sorted list of minutes until each bus of the line (0 means
  * one is arriving right now); empty means no upcoming buses for that line.
  *
- * Examples: "Llega en 4 minutos." / "Llegan en 4, 12 y 25 minutos." /
+ * Examples (Spanish): "Llega en 4 minutos." / "Llegan en 4, 12 y 25 minutos." /
  * "Llegando ahora." / "Llegando ahora y en 12 minutos."
  */
 export function formatTrackingBody(minutes: number[]): string {
   if (minutes.length === 0) {
-    return 'Sin próximos autobuses para esta línea.';
+    return i18n.t('noUpcomingBuses');
   }
 
   const arriving = minutes[0] === 0;
   const later = minutes.filter((m) => m > 0);
-  if (arriving && later.length === 0) return 'Llegando ahora.';
+  if (arriving && later.length === 0) return i18n.t('arrivingNow');
 
-  const unit = later.length === 1 && later[0] === 1 ? 'minuto' : 'minutos';
+  // The unit is singular only for a bare "1"; a list is always plural.
+  const unitCount = later.length === 1 ? later[0] : 2;
   const list =
     later.length === 1
       ? String(later[0])
-      : `${later.slice(0, -1).join(', ')} y ${later[later.length - 1]}`;
+      : `${later.slice(0, -1).join(', ')} ${i18n.t('and')} ${later[later.length - 1]}`;
 
-  if (arriving) return `Llegando ahora y en ${list} ${unit}.`;
+  if (arriving) return i18n.t('arrivingNowAndIn', { list, count: unitCount });
   return later.length === 1
-    ? `Llega en ${list} ${unit}.`
-    : `Llegan en ${list} ${unit}.`;
+    ? i18n.t('arrivesIn', { list, count: unitCount })
+    : i18n.t('arrivalsIn', { list });
 }
 
 /**
@@ -153,7 +159,7 @@ export async function updateTrackingNotification(params: {
   await Notifications.scheduleNotificationAsync({
     identifier: TRACKING_NOTIFICATION_ID,
     content: {
-      title: `Línea ${routeShortName} → ${stopName}`,
+      title: i18n.t('trackingTitle', { line: routeShortName, stop: stopName }),
       body: formatTrackingBody(minutes),
       sticky: true, // Android: cannot be dismissed by swipe (isOngoing)
       autoDismiss: false,

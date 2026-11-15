@@ -3,6 +3,26 @@ import "./rn-patch.cjs";
 import { vi } from "vitest";
 import { View, Text } from "react-native";
 
+// expo-localization is a native module; stub it with a Spanish device so the
+// language detection (used by `src/i18n.ts` and the settings store) is
+// deterministic in tests — matching the Spanish UI the tests were written
+// against. `src/i18n.test.ts` overrides the return value to exercise the
+// other language branches. `vi.hoisted` is required because `vi.mock`
+// factories run before top-level `const` declarations.
+const { getLocalesMock } = vi.hoisted(() => ({
+  getLocalesMock: vi.fn(() => [{ languageCode: "es", regionCode: "ES" }]),
+}));
+vi.mock("expo-localization", () => ({
+  getLocales: getLocalesMock,
+  getCalendars: () => [],
+}));
+
+// Initialize i18n for components using `useTranslation`. Tests were written
+// against the original Spanish UI, so force Spanish here (the app default at
+// first launch before the user picks a language).
+import i18n from "@/i18n";
+i18n.changeLanguage("es");
+
 // Make View/Text available for mocks declared in this file.
 global.View = View;
 global.Text = Text;

@@ -29,13 +29,13 @@ export function StopCard({
         <View style={styles.header}>
           <Text style={styles.name}>{stop.stop_name}</Text>
           {stop.stop_code && (
-            <Text style={styles.code}>Código {stop.stop_code}</Text>
+            <Text style={styles.code}>{t('stopCode', { ns: 'translation', code: stop.stop_code })}</Text>
           )}
         </View>
-        <Text style={styles.sectionTitle}>Líneas ({routes.length})</Text>
+        <Text style={styles.sectionTitle}>{t('linesCount', { ns: 'translation', total: routes.length })}</Text>
         <View style={styles.routeRow}>
           {routes.length === 0 ? (
-            <Text style={styles.noRoutes}>Sin líneas registradas</Text>
+            <Text style={styles.noRoutes}>{t('noLinesRegistered', { ns: 'translation' })}</Text>
           ) : (
             routes.map((route) => {
               const color = getBadgeBackgroundColor(route.route_color, COLORS.primary);
@@ -45,7 +45,7 @@ export function StopCard({
                   key={route.route_id}
                   style={[styles.routeBadge, { backgroundColor: color }]}
                   onPress={() => onPressRoute(route)}
-                  accessibilityLabel={`Open line ${route.route_short_name}`}
+                  accessibilityLabel={t('openLine', { ns: 'translation', line: route.route_short_name })}
                 >
                   <Text style={[styles.routeBadgeText, { color: textColor }]}>
                     {route.route_short_name}

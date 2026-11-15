@@ -20,7 +20,9 @@ export default function RootLayout() {
     useFavoritesStore.getState().loadFromStorage();
     useTrackingStore.getState().loadFromStorage();
     useSettingsStore.getState().loadFromStorage();
-    // Set i18n language from stored preference
+    // Set i18n language from the persisted preference. The store's default is
+    // the device language (Spanish device → 'es', otherwise 'en'), so a user
+    // who never chose a language gets the device language automatically.
     const storedLanguage = useSettingsStore.getState().language;
     i18n.changeLanguage(storedLanguage);
   }, []);

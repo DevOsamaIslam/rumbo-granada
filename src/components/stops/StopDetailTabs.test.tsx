@@ -54,7 +54,7 @@ describe('StopLinesTab', () => {
       />,
     );
 
-    expect(screen.getAllByLabelText('Rastrear autobús hasta parada')).toHaveLength(2);
+    expect(screen.getAllByLabelText('Reanudar rastreo')).toHaveLength(2);
   });
 
   it('marks the bell of the currently tracked line as active', async () => {
@@ -86,7 +86,7 @@ describe('StopLinesTab', () => {
     );
 
     expect(
-      screen.getByLabelText('Dejar de rastrear autobús'),
+      screen.getByLabelText('Dejar de rastrear'),
     ).toBeOnTheScreen();
   });
 
@@ -102,7 +102,7 @@ describe('StopLinesTab', () => {
       <StopLinesTab stop={makeStop()} routes={[makeRoute()]} onPress={onPress} />,
     );
 
-    fireEvent.press(screen.getByLabelText('Line 33'));
+    fireEvent.press(screen.getByLabelText('Línea 33'));
     expect(onPress).toHaveBeenCalledWith(
       expect.objectContaining({ route_id: 'r1' }),
     );

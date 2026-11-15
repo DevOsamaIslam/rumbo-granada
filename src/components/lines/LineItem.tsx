@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import { Route } from '@/types/gtfs';
 import { getBadgeBackgroundColor, getBadgeTextColor } from '@/utils/colors';
+import { useTranslation } from 'react-i18next';
 
 interface LineItemProps {
   route: Route;
@@ -11,6 +12,7 @@ interface LineItemProps {
 }
 
 export function LineItem({ route, isFavorite, onPress, onToggleFavorite }: LineItemProps) {
+  const { t } = useTranslation();
   const color = getBadgeBackgroundColor(route.route_color, '#6200EE');
   const textColor = getBadgeTextColor(color, route.route_text_color);
 
@@ -18,7 +20,7 @@ export function LineItem({ route, isFavorite, onPress, onToggleFavorite }: LineI
     <Pressable
       style={styles.container}
       onPress={() => onPress(route)}
-      accessibilityLabel={`Line ${route.route_short_name}`}
+      accessibilityLabel={t('lineTitle', { line: route.route_short_name })}
       accessibilityRole="button"
     >
       <View style={[styles.badge, { backgroundColor: color }]}>
@@ -26,7 +28,7 @@ export function LineItem({ route, isFavorite, onPress, onToggleFavorite }: LineI
       </View>
       <View style={styles.info}>
         <Text style={styles.shortName} numberOfLines={1}>
-          Line {route.route_short_name}
+          {t('lineTitle', { line: route.route_short_name })}
         </Text>
         <Text style={styles.longName} numberOfLines={2}>
           {route.route_long_name}
@@ -42,7 +44,7 @@ export function LineItem({ route, isFavorite, onPress, onToggleFavorite }: LineI
         // Make the whole area around the star clickable so tapping just above
         // or below the icon toggles the favorite instead of opening the line.
         hitSlop={{ top: 20, bottom: 20, left: 15, right: 15 }}
-        accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        accessibilityLabel={isFavorite ? t('removeFromFavorites') : t('addToFavorites')}
       />
     </Pressable>
   );

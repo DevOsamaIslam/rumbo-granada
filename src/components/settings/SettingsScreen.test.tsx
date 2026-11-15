@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent } from '@testing-library/react-native';
+import i18n from '@/i18n';
 
 type SettingsValues = {
   language: 'es' | 'en';
@@ -63,26 +64,29 @@ describe('SettingsScreen', () => {
       showBusLabels: true,
     });
     vi.clearAllMocks();
+    // The "changes the language" test switches the global i18n language;
+    // restore Spanish so every test renders the original UI language.
+    i18n.changeLanguage('es');
   });
 
   it('renders the settings sections', async () => {
     const { getByText } = await render(<SettingsScreen />);
-    expect(getByText('Ajustes')).toBeOnTheScreen();
+    expect(getByText('Configuración')).toBeOnTheScreen();
     expect(getByText('Idioma')).toBeOnTheScreen();
     expect(getByText('Español')).toBeOnTheScreen();
-    expect(getByText('English')).toBeOnTheScreen();
+    expect(getByText('Inglés')).toBeOnTheScreen();
     expect(getByText('Estilo del mapa')).toBeOnTheScreen();
     expect(getByText('Estándar')).toBeOnTheScreen();
     expect(getByText('Oscuro')).toBeOnTheScreen();
     expect(getByText('Preferencias')).toBeOnTheScreen();
-    expect(getByText('Seguir mi posición automáticamente')).toBeOnTheScreen();
+    expect(getByText('Seguir mi ubicación automáticamente')).toBeOnTheScreen();
     expect(getByText('Mostrar etiquetas de autobuses')).toBeOnTheScreen();
-    expect(getByText('Umbral de notificaciones (minutos)')).toBeOnTheScreen();
+    expect(getByText('Avisar con (minutos)')).toBeOnTheScreen();
   });
 
   it('changes the language', async () => {
     const { getByLabelText } = await render(<SettingsScreen />);
-    fireEvent.press(getByLabelText('English'));
+    fireEvent.press(getByLabelText('Inglés'));
     expect(setLanguageMock).toHaveBeenCalledWith('en');
     expect(state.language).toBe('en');
   });
@@ -96,7 +100,7 @@ describe('SettingsScreen', () => {
 
   it('toggles auto-follow user position', async () => {
     const { getByLabelText } = await render(<SettingsScreen />);
-    fireEvent.press(getByLabelText('Seguir mi posición automáticamente'));
+    fireEvent.press(getByLabelText('Seguir mi ubicación automáticamente'));
     expect(setAutoFollowUserMock).toHaveBeenCalledWith(false);
     expect(state.autoFollowUser).toBe(false);
   });
