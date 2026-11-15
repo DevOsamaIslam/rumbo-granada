@@ -86,6 +86,7 @@ export function MapViewComponent({
   initialRegion,
   selectedLineId,
   focusStop = null,
+  focusStopId,
   trackedBuses = [],
   onStopPress,
   onBusPress,
@@ -97,30 +98,38 @@ export function MapViewComponent({
   const { stops, loadStopsForRoute, loadAllStops } = useStops();
   const cameraRef = useRef<CameraRef>(null);
 
-  // Load every GTFS stop so all stop markers render on the map (when no line is selected).
+  // When focusStopId is set, only show that one stop's marker.
+  const focusedStop = useMemo(() => {
+    if (!focusStopId) return null;
+    return gtfsService.getStop(focusStopId) ?? null;
+  }, [focusStopId]);
+
+  const stopsToShow = useMemo(() => (focusedStop ? [focusedStop] : stops), [focusedStop, stops]);
+
+  // Load every GTFS stop so all stop markers render on the map (when no line is selected and no single stop is focused).
   useEffect(() => {
-    if (!selectedLineId && routes.length > 0) {
+    if (!focusStopId && !selectedLineId && routes.length > 0) {
       void loadAllStops();
     }
-  }, [routes.length, loadAllStops, selectedLineId]);
+  }, [routes.length, loadAllStops, selectedLineId, focusStopId]);
 
-  // Load the stops for the selected line (when a line is chosen).
+  // Load the stops for the selected line (when a line is chosen and no single stop is focused).
   useEffect(() => {
-    if (selectedLineId) {
+    if (!focusStopId && selectedLineId) {
       void loadStopsForRoute(selectedLineId);
     }
-  }, [selectedLineId, loadStopsForRoute]);
+  }, [selectedLineId, loadStopsForRoute, focusStopId]);
 
   // Route lines that serve at least one of the displayed stops.
   const routesServingStops = useMemo(() => {
     const routeIds = new Set<string>();
-    for (const stop of stops) {
+    for (const stop of stopsToShow) {
       for (const route of gtfsService.getRoutesForStop(stop.stop_id)) {
         routeIds.add(route.route_id);
       }
     }
     return routes.filter((route) => routeIds.has(route.route_id));
-  }, [stops, routes]);
+  }, [stopsToShow, routes]);
   const [region, setRegion] = useState<MapRegion>(() => {
     try {
       const savedRegion = Storage.getItem(STORAGE_KEY_MAP_REGION);
@@ -234,11 +243,11 @@ export function MapViewComponent({
         />
         {showUserLocation && <UserLocation />}
         {/* When a specific line is selected, show only its shape. */}
-        {selectedLineId && (
+        {!focusStopId && selectedLineId && (
           <RoutePolyline lineId={selectedLineId} routes={routes} zoomLevel={region.zoomLevel} />
         )}
-        {/* Otherwise, when no line is selected, draw lines serving each stop when zoomed in sufficiently. */}
-        {!selectedLineId &&
+        {/* Otherwise, when no line is selected and no single stop is focused, draw lines serving each stop when zoomed in sufficiently. */}
+        {!focusStopId && !selectedLineId &&
           routesServingStops.map((route) => (
             <RoutePolyline
               key={route.route_id}
@@ -247,7 +256,7 @@ export function MapViewComponent({
               zoomLevel={region.zoomLevel}
             />
           ))}
-        {stops.map((stop) => (
+        {stopsToShow.map((stop) => (
           <StopMarker
             key={stop.stop_id}
             lngLat={[stop.stop_lon, stop.stop_lat]}

@@ -1,10 +1,13 @@
 import React, { useEffect, useMemo } from 'react';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MapView } from '@/components/map';
+import { StopCard } from '@/components/map/StopCard.native';
 import { useLines } from '@/hooks/useLines';
 import { Stop } from '@/types/gtfs';
+import { gtfsService } from '@/services/gtfs';
+import type { Route } from '@/types/gtfs';
 
 export default function MapScreen() {
   const insets = useSafeAreaInsets();
@@ -17,7 +20,13 @@ export default function MapScreen() {
     lon?: string;
   }>();
 
-  const lineId = typeof params.lineId === 'string' ? params.lineId : routes[0]?.route_id;
+  // When arriving from a stop page, don't select any line - just focus that stop.
+  const lineId =
+    typeof params.stopId === 'string'
+      ? undefined
+      : typeof params.lineId === 'string'
+      ? params.lineId
+      : routes[0]?.route_id;
 
   // Arriving from "Show on map" on the stop screen: centre on those coordinates.
   const focusStop = useMemo(() => {
@@ -26,6 +35,16 @@ export default function MapScreen() {
     if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
     return { latitude: lat, longitude: lon };
   }, [params.lat, params.lon]);
+
+  // Look up the focused stop's data for the StopCard overlay.
+  const stopCard = useMemo(() => {
+    if (!params.stopId) return null;
+    const stop = gtfsService.getStop(params.stopId);
+    if (stop) {
+      return { stop, routes: gtfsService.getRoutesForStop(params.stopId) };
+    }
+    return null;
+  }, [params.stopId]);
 
   useEffect(() => {
     loadLines();
@@ -40,15 +59,34 @@ export default function MapScreen() {
     void bus;
   };
 
+  const handleCloseStopCard = () => {
+    router.push('/');
+  };
+
+  const handlePressRoute = (route: Route) => {
+    router.push(`/line/${route.route_id}`);
+  };
+
   return (
     <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
       <MapView
         initialRegion={{ latitude: 37.1773, longitude: -3.5986, zoomLevel: 13 }}
         selectedLineId={lineId}
         focusStop={focusStop}
+        focusStopId={typeof params.stopId === 'string' ? params.stopId : undefined}
         onStopPress={handleStopPress}
         onBusPress={handleBusPress}
       />
+      {stopCard && (
+        <View style={styles.cardContainer}>
+          <StopCard
+            stop={stopCard.stop}
+            routes={stopCard.routes}
+            onClose={handleCloseStopCard}
+            onPressRoute={handlePressRoute}
+          />
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -56,5 +94,13 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  cardContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 200,
+    pointerEvents: 'box-none',
   },
 });
