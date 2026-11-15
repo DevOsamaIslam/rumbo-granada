@@ -31,8 +31,6 @@ export default function RootLayout() {
           }}
         >
           <Stack.Screen name="(tabs)" options={{ presentation: "card" }} />
-          <Stack.Screen name="line/[id]" />
-          <Stack.Screen name="stop/[id]" />
           <Stack.Screen name="+not-found" />
         </Stack>
       </View>

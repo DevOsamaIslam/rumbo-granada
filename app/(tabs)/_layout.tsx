@@ -54,6 +54,18 @@ export default function TabLayout() {
           ),
         }}
       />
+      {/* Detail screens render inside the tab navigator (with the tab bar
+          visible) but without a tab button. NOTE: do not use `href: null`
+          here — in SDK 58's tabs, a focused hidden screen is redirected to
+          the initial tab. `tabBarButton: () => null` only hides the button. */}
+      <Tabs.Screen
+        name="line/[id]"
+        options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
+      />
+      <Tabs.Screen
+        name="stop/[id]"
+        options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
+      />
     </Tabs>
   );
 }
