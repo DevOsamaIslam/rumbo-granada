@@ -282,3 +282,80 @@ describe('LiveApiClient', () => {
     expect(client.getCachedArrivals('404')).toBeNull();
   });
 });
+
+describe('LiveApiClient.getLineStops (linea_paradas.php)', () => {
+  let lineClient: LiveApiClient;
+
+  beforeEach(() => {
+    lineClient = new LiveApiClient({ retryDelayMs: 1 });
+    vi.restoreAllMocks();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  /** Realistic `linea_paradas.php` HTML: hidden `parada` input + `tfcl` stop name per row (matches the live site). */
+  const LINEA_PARADAS_HTML = `
+<div class="tf" style="max-width:580px;">
+  <div class="tfr">
+    <input type="hidden" name="parada" value="10">
+    <div class="tfcl">Ctra de Sierra Nevada - Los Pinillos</div>
+  </div>
+  <div class="tfr">
+    <input type="hidden" name="parada" value="11">
+    <div class="tfcl">Avda. Sierra Nevada 140</div>
+  </div>
+  <div class="tfr">
+    <input type="hidden" name="parada" value="12">
+    <div class="tfcl">Centro - Gran V\u00eda</div>
+  </div>
+</div>
+`;
+
+  it('parses stop code and name pairs from linea_paradas.php HTML', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(response(LINEA_PARADAS_HTML));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const stops = await lineClient.getLineStops('33');
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('linea_paradas.php');
+    expect(init.method).toBe('POST');
+    expect(String(init.body)).toContain('linea=33');
+
+    expect(stops).toEqual([
+      { stopId: '10', stopName: 'Ctra de Sierra Nevada - Los Pinillos', lat: 0, lon: 0, order: 0 },
+      { stopId: '11', stopName: 'Avda. Sierra Nevada 140', lat: 0, lon: 0, order: 1 },
+      { stopId: '12', stopName: 'Centro - Gran Vía', lat: 0, lon: 0, order: 2 },
+    ]);
+  });
+
+  it('returns an empty array for an empty line code without calling the API', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    const stops = await lineClient.getLineStops('');
+
+    expect(stops).toEqual([]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('returns an empty array when the site reports the stop does not exist', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(response(NOT_FOUND_HTML));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const stops = await lineClient.getLineStops('999');
+    expect(stops).toEqual([]);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns an empty array when the page has no matching stop rows', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(response('<div class="tf">no rows here</div>'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const stops = await lineClient.getLineStops('33');
+    expect(stops).toEqual([]);
+  });
+});

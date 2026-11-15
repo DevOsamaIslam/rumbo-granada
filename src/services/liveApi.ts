@@ -5,7 +5,7 @@
 // the site expects, caches the last good response in MMKV, and retries transient
 // failures with a short backoff.
 import { CONFIG } from '@/constants/config';
-import type { Arrival, LiveApiLineStopsResponse, LiveApiStop, StopSearchResult } from '@/types/api';
+import type { Arrival, LiveApiStop, StopSearchResult } from '@/types/api';
 import {
   isStopNotFoundError,
   parseStopArrivalsHtml,
@@ -128,14 +128,14 @@ export class LiveApiClient {
 
     // Parse the HTML response to extract stop information.
     // The response contains hidden inputs with stop details inside table rows.
-    const stopPattern = /<input[^>]*name=\"parada\"[^>]*value=\"([^\"]*)\"[^>]*>\s*<div class=\"tfccs\"[^>]*>([\\s\\S]*?)<\/div>/gi;
+    const stopPattern = /<input[^>]*name="parada"[^>]*value="([^"]*)"[^>]*>\s*<div class="tfcl"[^>]*>([\s\S]*?)<\/div>/gi;
     const stops: LiveApiStop[] = [];
 
     let match: RegExpExecArray | null;
     while ((match = stopPattern.exec(html)) !== null) {
       const stopId = match[1].trim();
       const stopNameRaw = match[2];
-      const stopName = stopRaw
+      const stopName = stopNameRaw
         .replace(/<[^>]*>/g, ' ')
         .replace(/&nbsp;/gi, ' ')
         .replace(/&/gi, '&')
