@@ -145,8 +145,9 @@ describe('notifications service', () => {
         autoDismiss: false,
         sound: false,
         categoryIdentifier: TRACKING_CATEGORY_ID,
+        
       },
-      trigger: { channelId: TRACKING_CHANNEL_ID },
+      trigger: null,
     });
   });
 
@@ -232,7 +233,7 @@ describe('notifications service', () => {
 
     expect(mockScheduleNotificationAsync).toHaveBeenCalledWith(
       expect.objectContaining({
-        trigger: { channelId: TRACKING_CHANNEL_ID },
+        trigger: null,
       }),
     );
   });

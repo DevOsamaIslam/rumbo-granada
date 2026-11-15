@@ -160,9 +160,7 @@ export async function updateTrackingNotification(params: {
       sound: false,
       categoryIdentifier: TRACKING_CATEGORY_ID,
     },
-    // Immediate delivery on the silent channel: replacing the sticky
-    // notification updates it in place without alerting the user.
-    trigger: { channelId: TRACKING_CHANNEL_ID },
+    trigger: null, // show immediately (replaces previous notification with same identifier)
   });
   return true;
 }
