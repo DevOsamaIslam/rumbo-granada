@@ -170,7 +170,7 @@ const OSM_STANDARD_STYLE: StyleSpecification = {
         "tertiary",
         "residential",
       ],
-      minzoom: 12,
+      minzoom: 10,
       layout: {
         "text-field": ["get", "name"],
         "text-font": ["Noto Sans Regular"],
@@ -190,7 +190,7 @@ const OSM_STANDARD_STYLE: StyleSpecification = {
       source: "openmaptiles",
       "source-layer": "place",
       filter: ["in", "class", "city", "town", "village"],
-      minzoom: 12,
+      minzoom: 11,
       layout: {
         "text-field": ["get", "name"],
         "text-font": ["Noto Sans Regular"],
@@ -209,7 +209,7 @@ const OSM_STANDARD_STYLE: StyleSpecification = {
       source: "openmaptiles",
       "source-layer": "poi",
       filter: ["has", "name"],
-      minzoom: 14,
+      minzoom: 16,
       layout: {
         "text-field": ["get", "name"],
         "text-font": ["Noto Sans Regular"],
