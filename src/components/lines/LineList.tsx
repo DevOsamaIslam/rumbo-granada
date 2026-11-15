@@ -1,6 +1,7 @@
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 import { Route } from '@/types/gtfs';
+import { useTranslation } from 'react-i18next';
 import { LineItem } from './LineItem';
 
 interface LineListProps {
@@ -26,10 +27,12 @@ export function LineList({
   refreshing,
   emptyMessage = 'No lines found',
 }: LineListProps) {
+  const { t } = useTranslation();
+
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator animating size="large" accessibilityLabel="Loading lines" />
+        <ActivityIndicator animating size="large" accessibilityLabel={t('loadingLines', { ns: 'translation' })} />
       </View>
     );
   }
@@ -37,7 +40,7 @@ export function LineList({
   if (error) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.errorText}>Failed to load lines</Text>
+        <Text style={styles.errorText}>{t('failedToLoadLines', { ns: 'translation' })}</Text>
         <Text style={styles.errorDetail}>{error.message}</Text>
       </View>
     );

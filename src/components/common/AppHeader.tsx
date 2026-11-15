@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useBusTracking } from '@/hooks/useBusTracking';
 import { formatTrackingBody } from '@/services/notifications';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '@/constants/colors';
 
 const LOGO = require('../../../assets/logo.png');
@@ -29,6 +30,7 @@ const LIVE_INACTIVE_COLOR = '#9E9E9E';
  */
 export function AppHeader() {
   const { trackedPairs, arrivals, removeTrackedPair } = useBusTracking();
+  const { t } = useTranslation();
   const pair = trackedPairs[0];
   const isActive = !!pair?.enabled;
   // Pad below the system status bar so the header never sits under the
@@ -107,7 +109,7 @@ export function AppHeader() {
         disabled={!isActive}
         accessibilityRole={isActive ? 'button' : 'text'}
         accessibilityLabel={
-          isActive ? 'Ver seguimiento activo' : 'Sin seguimiento activo'
+          isActive ? t('viewTracking', { ns: 'translation' }) : t('noTracking', { ns: 'translation' })
         }
         accessibilityState={{ disabled: !isActive }}
         hitSlop={8}

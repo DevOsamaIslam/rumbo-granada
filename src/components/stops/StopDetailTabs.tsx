@@ -1,6 +1,7 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import { TrackStopButton } from '@/components/tracking';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '@/constants/colors';
 import type { Route, Stop } from '@/types/gtfs';
 
@@ -22,6 +23,8 @@ export function StopTabBar({
   refreshing,
   onShowOnMap,
 }: StopTabBarProps) {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.toolbar}>
       <View style={styles.tabs}>
@@ -40,13 +43,13 @@ export function StopTabBar({
         <IconButton
           icon='refresh'
           onPress={onRefresh}
-          accessibilityLabel='Refresh arrivals'
+          accessibilityLabel={t('refreshArrivals', { ns: 'translation' })}
           disabled={refreshing}
         />
         <IconButton
           icon='map-marker'
           onPress={onShowOnMap}
-          accessibilityLabel='Show stop on map'
+          accessibilityLabel={t('showStopOnMap', { ns: 'translation' })}
         />
       </View>
     </View>

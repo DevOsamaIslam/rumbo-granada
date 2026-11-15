@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import { COLORS } from '@/constants/colors';
 import { getBadgeBackgroundColor, getBadgeTextColor } from '@/utils/colors';
+import { useTranslation } from 'react-i18next';
 import type { Route, Stop } from '@/types/gtfs';
 
 export interface StopInfoHeaderProps {
@@ -22,6 +23,8 @@ export function StopInfoHeader({
   onToggleFavorite,
   onPressRoute,
 }: StopInfoHeaderProps) {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
       <View style={styles.titleRow}>
@@ -39,7 +42,7 @@ export function StopInfoHeader({
           icon={isFavorite ? 'star' : 'star-outline'}
           onPress={onToggleFavorite}
           accessibilityLabel={
-            isFavorite ? 'Remove stop from favorites' : 'Add stop to favorites'
+            isFavorite ? t('removeFromFavorites', { ns: 'translation' }) : t('addToFavorites', { ns: 'translation' })
           }
         />
       </View>

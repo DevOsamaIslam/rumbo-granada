@@ -1,6 +1,6 @@
 {
   "name": "rumbo-granada",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "main": "expo-router/entry",
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",

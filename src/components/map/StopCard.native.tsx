@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { IconButton } from "react-native-paper";
 import { COLORS } from "@/constants/colors";
+import { useTranslation } from "react-i18next";
 import { getBadgeBackgroundColor, getBadgeTextColor } from "@/utils/colors";
 import type { Route, Stop } from "@/types/gtfs";
 
@@ -18,9 +19,10 @@ export function StopCard({
   onClose,
   onPressRoute,
 }: StopCardProps) {
+  const { t } = useTranslation();
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.closeButton} onPress={onClose} accessibilityLabel="Close stop card">
+      <TouchableOpacity style={styles.closeButton} onPress={onClose} accessibilityLabel={t('closeStopCard', { ns: 'translation' })}>
         <IconButton icon="close" size={24} />
       </TouchableOpacity>
       <View style={styles.card}>

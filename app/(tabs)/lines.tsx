@@ -7,6 +7,7 @@ import { useLines } from '@/hooks/useLines';
 import { useFavorites } from '@/hooks/useFavorites';
 import { filterLines } from '@/utils/gtfs';
 import { Route } from '@/types/gtfs';
+import { useTranslation } from 'react-i18next';
 
 export default function LinesScreen() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function LinesScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const { routes, isLoading, error, loadLines } = useLines();
   const { isBusFavorite, toggleFavoriteBus } = useFavorites();
+  const {t} = useTranslation();
 
   const filtered = filterLines(routes, query);
 
@@ -41,7 +43,7 @@ export default function LinesScreen() {
     <View style={[styles.container]}>
       <View style={styles.header}>
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>Bus Lines</Text>
+          <Text style={styles.title}>{t('busLines', { ns: 'translation' })}</Text>
         </View>
         <SearchBar
           placeholder="Search lines..."
@@ -59,7 +61,7 @@ export default function LinesScreen() {
         onToggleFavorite={handleToggleFavorite}
         onRefresh={handleRefresh}
         refreshing={refreshing}
-        emptyMessage={query ? 'No lines match your search' : 'No lines found'}
+        emptyMessage={query ? 'No lines match your search' : t('noLinesFound', { ns: 'translation' })}
       />
     </View>
   );

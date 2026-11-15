@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, IconButton } from 'react-native-paper';
 import { gtfsService } from '@/services/gtfs';
 import { useFavorites } from '@/hooks/useFavorites';
+import { useTranslation } from 'react-i18next';
 import { TrackStopButton } from '@/components/tracking';
 import { Route, Stop } from '@/types/gtfs';
 
@@ -14,6 +15,7 @@ export default function LineDetailScreen() {
   const [stops, setStops] = useState<Stop[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { isBusFavorite, toggleFavoriteBus } = useFavorites();
+  const { t } = useTranslation();
 
   useEffect(() => {
     let cancelled = false;
@@ -73,7 +75,7 @@ export default function LineDetailScreen() {
   if (!route) {
     return (
       <View style={[styles.container, styles.centered]}>
-        <Text style={styles.errorText}>Line not found</Text>
+        <Text style={styles.errorText}>{t('lineNotFound', { ns: 'translation' })}</Text>
       </View>
     );
   }
@@ -104,9 +106,9 @@ export default function LineDetailScreen() {
         style={styles.mapButton}
         onPress={handleShowOnMap}
         accessibilityRole="button"
-        accessibilityLabel="Show on map"
+        accessibilityLabel={t('showOnMap', { ns: 'translation' })}
       >
-        <Text style={styles.mapButtonText}>Show on Map</Text>
+        <Text style={styles.mapButtonText}>{t('showOnMap', { ns: 'translation' })}</Text>
       </Pressable>
 
       <Text style={styles.sectionTitle}>Stops ({stops.length})</Text>

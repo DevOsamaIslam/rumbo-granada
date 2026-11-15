@@ -1,6 +1,7 @@
 import { Alert, Pressable, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useBusTracking } from '@/hooks/useBusTracking';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '@/constants/colors';
 
 export interface TrackStopButtonProps {
@@ -36,6 +37,7 @@ export function TrackStopButton({
     toggleTracking,
     trackedPairs,
   } = useBusTracking();
+  const { t } = useTranslation();
   const pair = trackedPairs.find(
     (p) => p.routeId === routeId && p.stopId === stopId,
   );
@@ -64,7 +66,7 @@ export function TrackStopButton({
     if (existing) {
       // One tracking at a time: confirm before replacing the current one.
       Alert.alert(
-        'Reemplazar seguimiento',
+        t('replaceTracking', { ns: 'translation' }),
         `Ya estás rastreando la línea ${existing.routeShortName} hasta ${existing.stopName}. ¿Quieres reemplazarla por la línea ${routeShortName} hasta ${stopName}?`,
         [
           { text: 'Cancelar', style: 'cancel' },
@@ -82,7 +84,7 @@ export function TrackStopButton({
       style={styles.button}
       onPress={handlePress}
       accessibilityLabel={
-        isActive ? 'Dejar de rastrear autobús' : 'Rastrear autobús hasta parada'
+        isActive ? t('stopTracking', { ns: 'translation' }) : t('resumeTracking', { ns: 'translation' })
       }
       accessibilityRole="button"
       hitSlop={styles.hitSlop}

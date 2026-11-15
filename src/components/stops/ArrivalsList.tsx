@@ -2,6 +2,7 @@ import { ActivityIndicator, Text } from 'react-native-paper';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { ArrivalRow } from './ArrivalRow';
 import { COLORS } from '@/constants/colors';
+import { useTranslation } from 'react-i18next';
 import type { Arrival } from '@/types/api';
 
 export interface ArrivalsListProps {
@@ -38,6 +39,7 @@ export function ArrivalsList({
   refreshing = false,
   lastUpdated = null,
 }: ArrivalsListProps) {
+  const { t } = useTranslation();
   const updatedAt = formatLastUpdated(lastUpdated);
   const header = updatedAt ? (
     <Text style={styles.updatedAt}>{updatedAt}</Text>
@@ -49,7 +51,7 @@ export function ArrivalsList({
         <ActivityIndicator
           animating
           size='large'
-          accessibilityLabel='Loading arrivals'
+          accessibilityLabel={t('loadingArrivals', { ns: 'translation' })}
         />
       </View>
     );

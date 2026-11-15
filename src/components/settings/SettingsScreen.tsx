@@ -22,13 +22,13 @@ interface ToggleRowProps {
 }
 
 const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
-  { value: 'es', label: 'Español' },
-  { value: 'en', label: 'English' },
+  { value: 'es', label: 'spanish' },
+  { value: 'en', label: 'english' },
 ];
 
 const MAP_STYLE_OPTIONS: { value: MapStyle; label: string }[] = [
-  { value: 'standard', label: 'Estándar' },
-  { value: 'dark', label: 'Oscuro' },
+  { value: 'standard', label: 'mapStyleStandard' },
+  { value: 'dark', label: 'mapStyleDark' },
 ];
 
 /** Notification threshold bounds, in minutes. */
@@ -55,6 +55,7 @@ function RadioRow({ label, selected, onPress }: RadioRowProps) {
 }
 
 function ToggleRow({ title, value, onPress }: ToggleRowProps) {
+  const { t } = useTranslation();
   return (
     <Pressable
       style={styles.row}
@@ -64,7 +65,7 @@ function ToggleRow({ title, value, onPress }: ToggleRowProps) {
       accessibilityState={{ checked: value }}
     >
       <Text style={styles.rowLabel}>{title}</Text>
-      <Text style={styles.toggleValue}>{value ? 'Activado' : 'Desactivado'}</Text>
+      <Text style={styles.toggleValue}>{value ? t('enabled') : t('disabled')}</Text>
     </Pressable>
   );
 }
@@ -72,8 +73,8 @@ function ToggleRow({ title, value, onPress }: ToggleRowProps) {
 /**
  * Settings screen.
  *
- * - Idioma: persists the UI language choice (`es`/`en`) in the settings store.
- *   This is a UI-only setting: the app's strings are shipped in Spanish.
+ * - Idioma: persists the UI language choice (`es`/`en`) in the settings store
+ *   and switches the i18n language. All strings come from the locale files.
  * - Estilo del mapa: persists `standard`/`dark` and is consumed by `MapView`.
  * - Preferencias: notification threshold, auto-follow position and bus labels.
  *   All values are persisted to MMKV via the zustand settings store.
@@ -125,7 +126,7 @@ export function SettingsScreen() {
           />
         ))}
 
-        <SectionTitle text="Preferencias" />
+        <SectionTitle text={t('preferences', { ns: 'translation' })} />
         <ToggleRow
           title={t('autoFollow', { ns: 'translation' })}
           value={autoFollowUser}
@@ -144,7 +145,7 @@ export function SettingsScreen() {
             onPress={() =>
               setNotificationThreshold(Math.max(notificationThresholdMinutes - 1, THRESHOLD_MIN))
             }
-            accessibilityLabel="Disminuir umbral"
+            accessibilityLabel={t('decreaseThreshold')}
           >
             <Text style={styles.stepText}>−</Text>
           </Pressable>
@@ -154,7 +155,7 @@ export function SettingsScreen() {
             onPress={() =>
               setNotificationThreshold(Math.min(notificationThresholdMinutes + 1, THRESHOLD_MAX))
             }
-            accessibilityLabel="Aumentar umbral"
+            accessibilityLabel={t('increaseThreshold')}
           >
             <Text style={styles.stepText}>+</Text>
           </Pressable>

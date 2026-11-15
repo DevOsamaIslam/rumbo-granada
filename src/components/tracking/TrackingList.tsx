@@ -2,6 +2,7 @@ import { FlatList, StyleSheet, Text, View, Pressable } from 'react-native';
 import { Divider, Switch } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useBusTracking } from '@/hooks/useBusTracking';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '@/constants/colors';
 
 /**
@@ -12,6 +13,7 @@ import { COLORS } from '@/constants/colors';
  */
 export function TrackingList() {
   const { trackedPairs, toggleTracking, removeTrackedPair } = useBusTracking();
+  const { t } = useTranslation();
 
   if (trackedPairs.length === 0) return null;
 
@@ -27,7 +29,7 @@ export function TrackingList() {
             style={styles.row}
             onPress={() => removeTrackedPair(item.id)}
             accessibilityLabel={
-              item.enabled ? 'Dejar de rastrear' : 'Reanudar rastreo'
+              item.enabled ? t('stopTracking', { ns: 'translation' }) : t('resumeTracking', { ns: 'translation' })
             }
             accessibilityRole="button"
           >

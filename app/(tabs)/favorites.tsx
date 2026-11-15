@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useFavorites } from '@/hooks/useFavorites';
 import { AddStopLabelModal } from '@/components/favorites';
 import { TrackingList } from '@/components/tracking';
+import { useTranslation } from 'react-i18next';
 
 import { COLORS } from '@/constants/colors';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
@@ -91,6 +92,7 @@ function SwipeToRemove({ onRemove, children }: { onRemove: () => void; children:
 export default function FavoritesScreen() {
   const router = useRouter();
   const { favoriteBuses, favoriteStops, isBusFavorite, isStopFavorite, toggleFavoriteBus, toggleFavoriteStop, removeFavoriteBus, removeFavoriteStop, updateBusLabel, updateStopLabel } = useFavorites();
+  const { t } = useTranslation();
 
   const [labelModal, setLabelModal] = useState<{
     type: 'bus' | 'stop';
@@ -141,9 +143,9 @@ export default function FavoritesScreen() {
   return (
     <View style={[styles.container]}>
       <View style={styles.content}>
-        <Title style={styles.title}>Favorite Bus Lines</Title>
+        <Title style={styles.title}>{t('favoriteBusLines', { ns: 'translation' })}</Title>
         {favoriteBuses.length === 0 ? (
-          <Text style={styles.emptyMessage}>No favorite bus lines yet</Text>
+          <Text style={styles.emptyMessage}>{t('noFavoriteBusLines', { ns: 'translation' })}</Text>
         ) : (
           <FlatList
             data={favoriteBuses}
@@ -187,9 +189,9 @@ export default function FavoritesScreen() {
           />
         )}
         <Divider style={styles.divider} />
-        <Title style={styles.title}>Favorite Stops</Title>
+        <Title style={styles.title}>{t('favoriteStops', { ns: 'translation' })}</Title>
         {favoriteStops.length === 0 ? (
-          <Text style={styles.emptyMessage}>No favorite stops yet</Text>
+          <Text style={styles.emptyMessage}>{t('noFavoriteStops', { ns: 'translation' })}</Text>
         ) : (
           <FlatList
             data={favoriteStops}
@@ -231,7 +233,7 @@ export default function FavoritesScreen() {
           />
         )}
         <Divider style={styles.divider} />
-        <Text style={styles.subtitle}>Favorite bus lines and labeled stops</Text>
+        <Text style={styles.subtitle}>{t('favoriteBusLinesAndLabeledStops', { ns: 'translation' })}</Text>
         <TrackingList />
       </View>
 
