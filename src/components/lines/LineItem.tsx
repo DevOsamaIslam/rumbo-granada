@@ -34,7 +34,14 @@ export function LineItem({ route, isFavorite, onPress, onToggleFavorite }: LineI
       </View>
       <IconButton
         icon={isFavorite ? 'star' : 'star-outline'}
-        onPress={() => onToggleFavorite(route)}
+        onPress={(event) => {
+          // Toggle the favorite without also navigating to the line page.
+          event.stopPropagation();
+          onToggleFavorite(route);
+        }}
+        // Make the whole area around the star clickable so tapping just above
+        // or below the icon toggles the favorite instead of opening the line.
+        hitSlop={{ top: 20, bottom: 20, left: 15, right: 15 }}
         accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
       />
     </Pressable>

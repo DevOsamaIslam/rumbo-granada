@@ -8,6 +8,8 @@ export interface AddStopLabelModalProps {
   /** Pre-filled label (existing favourite's label, if any). */
   initialLabel?: string;
   stopName: string;
+  /** Sheet title. Defaults to 'Guardar parada'. */
+  title?: string;
   onCancel: () => void;
   onConfirm: (label: string) => void;
   onRemove?: () => void;
@@ -15,7 +17,8 @@ export interface AddStopLabelModalProps {
 
 /**
  * Prompts for a custom label for a favourited stop (e.g. 'Cerca del trabajo').
- * Falls back to the stop name when the label is left blank.
+ * An empty label is saved as-is (''), meaning "no label": consumers should
+ * render nothing for it.
  *
  * The draft is seeded from `initialLabel` while the modal is closed, and remounted
  * (via `key`) each time it opens, so it never shows a stale value without needing
@@ -25,6 +28,7 @@ export function AddStopLabelModal({
   visible,
   initialLabel = '',
   stopName,
+  title = 'Guardar parada',
   onCancel,
   onConfirm,
   onRemove,
@@ -38,7 +42,7 @@ export function AddStopLabelModal({
   const label = draft.source === initialLabel ? draft.label : initialLabel;
 
   const handleConfirm = () => {
-    onConfirm(label.trim() || stopName);
+    onConfirm(label.trim());
   };
 
   return (
@@ -52,7 +56,7 @@ export function AddStopLabelModal({
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
           <View style={styles.header}>
-            <Text style={styles.title}>Guardar parada</Text>
+            <Text style={styles.title}>{title}</Text>
             <IconButton
               icon='close'
               onPress={onCancel}

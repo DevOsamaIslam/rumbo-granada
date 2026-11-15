@@ -7,6 +7,7 @@ export interface FavoriteBus {
   routeLongName: string;
   routeColor: string;
   routeTextColor: string;
+  label?: string;
 }
 
 export interface FavoriteStop {

@@ -8,6 +8,7 @@ interface FavoriteBus {
   routeLongName: string;
   routeColor: string;
   routeTextColor: string;
+  label?: string;
 }
 
 interface FavoriteStop {
@@ -23,6 +24,7 @@ interface FavoritesState {
   favoriteStops: FavoriteStop[];
   addFavoriteBus: (bus: FavoriteBus) => void;
   removeFavoriteBus: (routeId: string) => void;
+  updateBusLabel: (routeId: string, label: string) => void;
   addFavoriteStop: (stop: FavoriteStop) => void;
   removeFavoriteStop: (stopId: string) => void;
   updateStopLabel: (stopId: string, label: string) => void;
@@ -58,6 +60,12 @@ export const useFavoritesStore = create<FavoritesState>()(
       removeFavoriteBus: (routeId) =>
         set((state) => ({
           favoriteBuses: state.favoriteBuses.filter((b) => b.routeId !== routeId),
+        })),
+      updateBusLabel: (routeId, label) =>
+        set((state) => ({
+          favoriteBuses: state.favoriteBuses.map((b) =>
+            b.routeId === routeId ? { ...b, label } : b
+          ),
         })),
       addFavoriteStop: (stop) =>
         set((state) => ({

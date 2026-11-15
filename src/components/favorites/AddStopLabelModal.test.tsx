@@ -42,14 +42,14 @@ describe('AddStopLabelModal', () => {
     expect(onConfirm).toHaveBeenCalledWith('Casa');
   });
 
-  it('falls back to the stop name when the label is blank', async () => {
+  it('saves an empty label as-is when the field is blank', async () => {
     const onConfirm = vi.fn();
     await render(<AddStopLabelModal {...baseProps} onConfirm={onConfirm} />);
 
     await fireEvent.changeText(screen.getByLabelText('Stop label'), '');
     await fireEvent.press(screen.getByText('Guardar'));
 
-    expect(onConfirm).toHaveBeenCalledWith('Avda. Sierra Nevada 97');
+    expect(onConfirm).toHaveBeenCalledWith('');
   });
 
   it('cancels without confirming', async () => {

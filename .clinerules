@@ -26,3 +26,4 @@ tokens; behavior and exit code are unchanged.
 
 If asked to do a phase, check progress-tracker.md
 Update the package version based on according to what has been changed
+For paths in the command line, if some paths use parenthesis then put the path between quotes

@@ -79,4 +79,20 @@ describe("LineItem", () => {
     await fireEvent.press(screen.getByLabelText("Line 10"));
     expect(onPress).toHaveBeenCalledWith(makeRoute());
   });
+
+  it("toggles the favorite without navigating when the star is pressed", async () => {
+    const onPress = vi.fn();
+    const onToggleFavorite = vi.fn();
+    await render(
+      <LineItem
+        route={makeRoute()}
+        isFavorite={false}
+        onPress={onPress}
+        onToggleFavorite={onToggleFavorite}
+      />,
+    );
+    await fireEvent.press(screen.getByLabelText("Add to favorites"));
+    expect(onToggleFavorite).toHaveBeenCalledWith(makeRoute());
+    expect(onPress).not.toHaveBeenCalled();
+  });
 });

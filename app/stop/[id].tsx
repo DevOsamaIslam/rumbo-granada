@@ -116,7 +116,7 @@ export default function StopDetailScreen() {
   const handleToggleFavorite = useCallback(() => {
     if (!stop) return;
     if (!isFavorite) {
-      addFavoriteStop(buildFavoriteStop(stop.stop_name));
+      addFavoriteStop(buildFavoriteStop(''));
     }
     setLabelModalVisible(true);
   }, [stop, isFavorite, addFavoriteStop, buildFavoriteStop]);

@@ -111,10 +111,10 @@
 |---|------|--------|-------|
 | 7.1 | Create favorites Zustand store (`src/store/favorites.ts`) | ✅ | `favoriteBusIds: string[]`, `favoriteStops: FavoriteStop[]` with MMKV persistence |
 | 7.2 | Persist favorites to MMKV | ✅ | Hydrate on app start, versioned storage |
-| 7.3 | Create Favorites tab screen (`app/(tabs)/favorites.tsx`) | ✅ | Two sections: Buses, Stops with full UI |
+| 7.3 | Create Favorites tab screen (`app/(tabs)/favorites.tsx`) | ✅ | Two sections: Buses, Stops with full UI; unified card style; tapping a row navigates to line/stop detail |
 | 7 | Favorites: Buses | ✅ | Bus favorite toggling + Favorites screen with list |
-| 7.4 | Implement bus favorites list with quick actions | ✅ | Integrated in Lines screen, show on map, go to line detail |
-| 7.5 | Add swipe-to-remove for bus favorites | ✅ | Implemented via Swipeable from react-native-gesture-handler |
+| 7.4 | Implement bus favorites list with quick actions | ✅ | Integrated in Lines screen, show on map, go to line detail; edit-label (pencil) action beside favorite star opens `AddStopLabelModal`; `FavoriteBus.label` + `updateBusLabel` added |
+| 7.5 | Add swipe-to-remove for bus favorites | ✅ | Implemented via ReanimatedSwipeable from react-native-gesture-handler |
 | 7.6 | Unit tests for favorites store | ✅ | 119-test suite covers core functionality, including AddStopLabelModal |
 | 7.7 | Verify: add/remove bus favorites, persists across restarts | ✅ | Persistence works via MMKV and Zustand persist middleware |
 
@@ -127,9 +127,9 @@
 |---|------|--------|-------|
 | 8.1 | Extend `FavoriteStop` type: `{ stopId: string; label: string; createdAt: number }` | ✅ | Type defined in `src/types/favorites.ts` |
 | 8.2 | Add labeled stop favorite UI (modal with label input) | ✅ | `AddStopLabelModal.tsx` with label input |
-| 8.3 | Display labeled stops in Favorites tab | ✅ | Shown in Favorites screen with label + stop name |
-| 8.4 | Add edit label action (long press or menu) | ✅ | `updateStopLabel` function in hook and store |
-| 8.5 | Add swipe-to-remove for stop favorites | ✅ | Implemented via Swipeable from react-native-gesture-handler |
+| 8.3 | Display labeled stops in Favorites tab | ✅ | Shown in Favorites screen with label + stop name; same card style as buses (badge icon differs) |
+| 8.4 | Add edit label action (long press or menu) | ✅ | `updateStopLabel` in hook/store + pencil edit icon on each favorites row opens `AddStopLabelModal` |
+| 8.5 | Add swipe-to-remove for stop favorites | ✅ | Implemented via ReanimatedSwipeable, matching bus favorites (was broken/missing for stops) |
 | 8.6 | Unit tests for labeled stops | ✅ | Can be added using existing test infrastructure |
 | 8.7 | Verify: add/edit/remove labeled stops, persists | ✅ | Full CRUD workflow verified with MMKV persistence |
 
