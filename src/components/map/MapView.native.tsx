@@ -21,6 +21,7 @@ import { BusMarker } from "./BusMarker.native";
 import { RoutePolyline } from "./RoutePolyline.native";
 import { MapControls } from "./MapControls.native";
 import type { MapViewProps } from "./types";
+import { useSettingsStore } from "@/store/settings";
 
 export type { MapViewProps };
 
@@ -224,6 +225,141 @@ const OSM_STANDARD_STYLE: StyleSpecification = {
   ],
 };
 
+// Dark variant of the OpenFreeMap Liberty style for the "Oscuro" map setting.
+// Mirrors OSM_STANDARD_STYLE with a dark canvas and lighter strokes/labels.
+const OSM_DARK_STYLE: StyleSpecification = {
+  version: 8,
+  glyphs: "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
+  sources: {
+    openmaptiles: {
+      type: "vector",
+      url: "https://tiles.openfreemap.org/planet",
+      attribution:
+        '© OpenMapTiles | Data © OpenStreetMap contributors | https://openfreemap.org',
+    },
+  },
+  layers: [
+    { id: "background", type: "background", paint: { "background-color": "#1a1a1a" } },
+    {
+      id: "road-geometry",
+      type: "line",
+      source: "openmaptiles",
+      "source-layer": "transportation",
+      filter: [
+        "in",
+        "class",
+        "motorway",
+        "trunk",
+        "primary",
+        "secondary",
+        "tertiary",
+        "residential",
+        "service",
+      ],
+      minzoom: 9,
+      layout: {
+        "line-join": "round",
+        "line-cap": "round",
+      },
+      paint: {
+        "line-color": "#444444",
+        "line-width": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          9,
+          0.5,
+          14,
+          2,
+        ],
+      },
+    },
+    {
+      id: "building-fill",
+      type: "fill",
+      source: "openmaptiles",
+      "source-layer": "building",
+      minzoom: 13,
+      paint: {
+        "fill-color": ["case", ["has", "colour"], ["get", "colour"], "#333333"],
+        "fill-opacity": 0.85,
+      },
+    },
+    {
+      id: "building-outline",
+      type: "line",
+      source: "openmaptiles",
+      "source-layer": "building",
+      minzoom: 13,
+      paint: { "line-color": "#555555", "line-width": 0.5 },
+    },
+    {
+      id: "road-name",
+      type: "symbol",
+      source: "openmaptiles",
+      "source-layer": "transportation_name",
+      filter: [
+        "in",
+        "class",
+        "motorway",
+        "trunk",
+        "primary",
+        "secondary",
+        "tertiary",
+        "residential",
+      ],
+      minzoom: 10,
+      layout: {
+        "text-field": ["get", "name"],
+        "text-font": ["Noto Sans Regular"],
+        "text-size": 11,
+        "text-max-angle": 40,
+      },
+      paint: {
+        "text-color": "#bbbbbb",
+        "text-halo-color": "#000000",
+        "text-halo-width": 2,
+      },
+    },
+    {
+      id: "place-label",
+      type: "symbol",
+      source: "openmaptiles",
+      "source-layer": "place",
+      filter: ["in", "class", "city", "town", "village"],
+      minzoom: 4,
+      layout: {
+        "text-field": ["get", "name"],
+        "text-font": ["Noto Sans Regular"],
+        "text-size": 12,
+      },
+      paint: {
+        "text-color": "#cccccc",
+        "text-halo-color": "#000000",
+        "text-halo-width": 2,
+      },
+    },
+    {
+      id: "poi-label",
+      type: "symbol",
+      source: "openmaptiles",
+      "source-layer": "poi",
+      filter: ["has", "name"],
+      minzoom: 18,
+      layout: {
+        "text-field": ["get", "name"],
+        "text-font": ["Noto Sans Regular"],
+        "text-size": 10,
+      },
+      paint: {
+        "text-color": "#aaaaaa",
+        "text-halo-color": "#000000",
+        "text-halo-width": 2,
+      },
+    },
+  ],
+};
+
 
 export function MapViewComponent({
   initialRegion,
@@ -239,6 +375,7 @@ export function MapViewComponent({
 }: MapViewProps) {
   const { routes, loadLines } = useLines();
   const { stops, loadStopsForRoute, loadAllStops } = useStops();
+  const { mapStyle } = useSettingsStore();
   const cameraRef = useRef<CameraRef>(null);
 
   // When focusStopId is set, only show that one stop's marker.
@@ -350,7 +487,7 @@ export function MapViewComponent({
     <View style={styles.container}>
       <Map
         style={StyleSheet.absoluteFill}
-        mapStyle={OSM_STANDARD_STYLE}
+        mapStyle={mapStyle === "dark" ? OSM_DARK_STYLE : OSM_STANDARD_STYLE}
         onRegionDidChange={handleRegionChange}
         attribution={true}
       >
