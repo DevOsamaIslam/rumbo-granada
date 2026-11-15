@@ -2,6 +2,8 @@ import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text as PaperText, Title } from 'react-native-paper';
 import { useSettingsStore } from '@/store/settings';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 import { COLORS } from '@/constants/colors';
 
 type Language = 'es' | 'en';
@@ -90,30 +92,34 @@ export function SettingsScreen() {
     showBusLabels,
     setShowBusLabels,
   } = useSettingsStore();
+  const { t } = useTranslation();
 
   return (
     <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.content}>
-        <Title style={styles.title}>Ajustes</Title>
-        <PaperText style={styles.subtitle}>Idioma, mapa y preferencias</PaperText>
+        <Title style={styles.title}>{t('settings')}</Title>
+        <PaperText style={styles.subtitle}>{t('selectLanguage', { ns: 'translation' })}</PaperText>
 
-        <SectionTitle text="Idioma" />
-        <PaperText style={styles.description}>Idioma de la interfaz.</PaperText>
+        <SectionTitle text={t('language', { ns: 'translation' })} />
+        <PaperText style={styles.description}>{t('selectLanguageDescription', { ns: 'translation' })}</PaperText>
         {LANGUAGE_OPTIONS.map((option) => (
           <RadioRow
             key={option.value}
-            label={option.label}
+            label={t(option.label, { ns: 'translation' })}
             selected={language === option.value}
-            onPress={() => setLanguage(option.value)}
+            onPress={() => {
+              setLanguage(option.value);
+              i18n.changeLanguage(option.value);
+            }}
           />
         ))}
 
-        <SectionTitle text="Estilo del mapa" />
-        <PaperText style={styles.description}>Aspecto del mapa en la pantalla principal.</PaperText>
+        <SectionTitle text={t('mapStyle', { ns: 'translation' })} />
+        <PaperText style={styles.description}>{t('mapStyleDescription', { ns: 'translation' })}</PaperText>
         {MAP_STYLE_OPTIONS.map((option) => (
           <RadioRow
             key={option.value}
-            label={option.label}
+            label={t(option.label, { ns: 'translation' })}
             selected={mapStyle === option.value}
             onPress={() => setMapStyle(option.value)}
           />
@@ -121,18 +127,18 @@ export function SettingsScreen() {
 
         <SectionTitle text="Preferencias" />
         <ToggleRow
-          title="Seguir mi posición automáticamente"
+          title={t('autoFollow', { ns: 'translation' })}
           value={autoFollowUser}
           onPress={() => setAutoFollowUser(!autoFollowUser)}
         />
         <ToggleRow
-          title="Mostrar etiquetas de autobuses"
+          title={t('showBusLabels', { ns: 'translation' })}
           value={showBusLabels}
           onPress={() => setShowBusLabels(!showBusLabels)}
         />
 
         <View style={styles.thresholdRow}>
-          <Text style={styles.thresholdLabel}>Umbral de notificaciones (minutos)</Text>
+          <Text style={styles.thresholdLabel}>{t('notificationThreshold', { ns: 'translation' })}</Text>
           <Pressable
             style={styles.stepButton}
             onPress={() =>

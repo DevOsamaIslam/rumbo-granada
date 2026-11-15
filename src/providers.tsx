@@ -5,6 +5,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { createSafeMMKV } from '@/services/mmkv';
 import { Storage } from '@/services/storage';
 import { COLORS } from '@/constants/colors';
+import i18n from '@/i18n';
 
 // Create MMKV instance for general storage
 const storage = createSafeMMKV({ id: 'rumbo-granada-general' });
@@ -16,9 +17,6 @@ const theme: MD3Theme = {
   colors: {
     ...DefaultTheme.colors,
     primary: COLORS.primary,
-    primaryContainer: COLORS.primaryContainer,
-    onPrimary: COLORS.onPrimary,
-    onPrimaryContainer: COLORS.onPrimaryContainer,
     secondary: COLORS.secondary,
     secondaryContainer: COLORS.secondaryContainer,
     onSecondary: COLORS.onSecondary,
@@ -36,7 +34,6 @@ const theme: MD3Theme = {
     surface: COLORS.surface,
     onSurface: COLORS.onSurface,
     surfaceVariant: COLORS.surfaceVariant,
-    onSurfaceVariant: COLORS.onSurfaceVariant,
     outline: COLORS.outline,
     outlineVariant: COLORS.outlineVariant,
     inverseSurface: COLORS.inverseSurface,
