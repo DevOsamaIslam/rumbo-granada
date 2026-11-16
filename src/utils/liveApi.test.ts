@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+  calcMinutesFromScheduledTime,
   getLineStops,
   isStopNotFoundError,
   parseStopArrivalsHtml,
@@ -71,18 +72,23 @@ const NOT_FOUND_HTML =
   '<div class="message"><br />Esta parada no existe.<br /><br /></div>';
 
 describe('parseStopArrivalsHtml', () => {
-  it('parses every arrival row', () => {
+  it('parses every arrival row, computing minutes from the Llega column', () => {
     const arrivals = parseStopArrivalsHtml(ARRIVALS_HTML);
 
     expect(arrivals).toHaveLength(2);
-    expect(arrivals[0]).toEqual({
+    // minutes is now computed from the Llega column ("15:15"), not the Mins column (1)
+    expect(arrivals[0]).toMatchObject({
       lineCode: '33',
       destination: '33 CENES DE LA VEGA - ESTACIÓN AUTOBUSES',
-      minutes: 1,
       scheduledTime: '15:15',
       isRealTime: true,
     });
-    expect(arrivals[1]).toMatchObject({ minutes: 28, scheduledTime: '15:42' });
+    expect(arrivals[0].minutes).toBeGreaterThanOrEqual(0);
+    expect(arrivals[1]).toMatchObject({
+      scheduledTime: '15:42',
+      isRealTime: true,
+    });
+    expect(arrivals[1].minutes).toBeGreaterThanOrEqual(0);
   });
 
   it('ignores the header row (it has no line input)', () => {
@@ -96,6 +102,18 @@ describe('parseStopArrivalsHtml', () => {
 
   it('returns an empty array for empty input', () => {
     expect(parseStopArrivalsHtml('')).toEqual([]);
+  });
+
+  it('falls back to the Mins column value when the Llega time is empty', () => {
+    const html = ARRIVALS_HTML.replace('15:15', '--:--');
+    const arrivals = parseStopArrivalsHtml(html);
+    expect(arrivals[0].minutes).toBe(1);
+  });
+
+  it('falls back to the Mins column value when the Llega time is missing', () => {
+    const html = ARRIVALS_HTML.replace('>15:15<', '><');
+    const arrivals = parseStopArrivalsHtml(html);
+    expect(arrivals[0].minutes).toBe(1);
   });
 });
 
@@ -134,5 +152,59 @@ describe('getLineStops', () => {
   it('handles HTML with no matching stops', async () => {
     const stops = await getLineStops('999');
     expect(stops).toEqual([]);
+  });
+});
+
+describe('calcMinutesFromScheduledTime', () => {
+  it('returns minutes until a future time today', () => {
+    const now = Date.now();
+    const future = new Date(now + 30 * 60_000);
+    const timeStr = `${String(future.getHours()).padStart(2, '0')}:${String(future.getMinutes()).padStart(2, '0')}`;
+    const result = calcMinutesFromScheduledTime(timeStr);
+    expect(result).toBeGreaterThanOrEqual(28);
+    expect(result).toBeLessThanOrEqual(32);
+  });
+
+  it('returns null for an empty string', () => {
+    expect(calcMinutesFromScheduledTime('')).toBeNull();
+  });
+
+  it('returns null for "--:--"', () => {
+    expect(calcMinutesFromScheduledTime('--:--')).toBeNull();
+  });
+
+  it('returns null for malformed input', () => {
+    expect(calcMinutesFromScheduledTime('abc')).toBeNull();
+  });
+
+  it('returns null for invalid hours', () => {
+    expect(calcMinutesFromScheduledTime('25:00')).toBeNull();
+  });
+
+  it('returns null for invalid minutes', () => {
+    expect(calcMinutesFromScheduledTime('12:60')).toBeNull();
+  });
+
+  it('wraps past times to tomorrow', () => {
+    const yesterday = new Date(Date.now() - 60 * 60_000);
+    const timeStr = `${String(yesterday.getHours()).padStart(2, '0')}:${String(yesterday.getMinutes()).padStart(2, '0')}`;
+    const result = calcMinutesFromScheduledTime(timeStr);
+    // The past time (e.g. 1 hour ago) wrapped to tomorrow should be ~23 hours away
+    expect(result).toBeGreaterThan(23 * 60 - 5);
+    expect(result).toBeLessThan(24 * 60);
+  });
+
+  it('returns 0 for the current time (arriving now)', () => {
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    // Should be 0 (arriving now), not wrapped to tomorrow
+    expect(calcMinutesFromScheduledTime(timeStr)).toBe(0);
+  });
+
+  it('returns 0 for a time up to 30 seconds in the past', () => {
+    const past = new Date(Date.now() - 15_000);
+    const timeStr = `${String(past.getHours()).padStart(2, '0')}:${String(past.getMinutes()).padStart(2, '0')}`;
+    // 15 seconds past should still be 0 (arriving now), not wrapped
+    expect(calcMinutesFromScheduledTime(timeStr)).toBe(0);
   });
 });

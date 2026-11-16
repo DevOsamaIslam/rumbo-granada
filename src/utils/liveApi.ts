@@ -35,13 +35,46 @@ function toNumber(value: string): number {
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) ? parsed : 0;
 }
+/**
+ * Parses a wall-clock time string like "15:18" from the Llega column and returns
+ * the number of minutes until that time (relative to now). Returns `null` when
+ * the string can't be parsed (e.g. empty or "--:--").
+ *
+ * The Llega column is the source of truth because the Mins column is computed
+ * server-side and can be off by an hour or more when the server clock diverges
+ * from the device clock.
+ */
+export function calcMinutesFromScheduledTime(
+  scheduledTime: string,
+): number | null {
+  const match = String(scheduledTime).trim().match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return null;
+  const hours = Number.parseInt(match[1], 10);
+  const minutes = Number.parseInt(match[2], 10);
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
+
+  const now = Date.now();
+  const target = new Date(now);
+  target.setHours(hours, minutes, 0, 0);
+
+  // If the target has already passed by more than 30 minutes, assume it refers to
+  // the next day (e.g. a "00:15" schedule at 23:50). Within 30 minutes the bus is
+  // either arriving or has just arrived, so return 0 (arriving now).
+  if (target.getTime() + 30 * 60_000 <= now) {
+    target.setDate(target.getDate() + 1);
+  }
+
+  return Math.max(0, Math.round((target.getTime() - now) / 60_000));
+}
 
 /**
  * Parses the arrivals table of `paradas.htm`.
  *
  * Each row is `<div class="tfr">` containing four cells: line badge, destination,
- * minutes, and scheduled clock time. Rows are separated by `tfr` boundaries so the
- * per-row cell lists stay independent.
+ * minutes (Mins column), and scheduled clock time (Llega column). The `minutes`
+ * field is computed from the Llega column because the server's Mins column can
+ * be off by an hour or more when the server clock diverges from the device clock.
+ * Falls back to the Mins column value only when the Llega time can't be parsed.
  */
 export function parseStopArrivalsHtml(html: string): Arrival[] {
   const rows = html.split(/<div class="tfr["\s>]/i).slice(1);
@@ -57,9 +90,12 @@ export function parseStopArrivalsHtml(html: string): Arrival[] {
     if (!lineCode) continue;
 
     const destination = cells[1];
-    const minutes = toNumber(cells[2]);
+    const rawMinutes = toNumber(cells[2]);
     const scheduledTime = cells[3];
     if (!destination) continue;
+
+    // Prefer the Llega column (wall-clock time); fall back to the Mins column.
+    const minutes = calcMinutesFromScheduledTime(scheduledTime) ?? rawMinutes;
 
     arrivals.push({
       lineCode,

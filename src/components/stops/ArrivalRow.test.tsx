@@ -38,12 +38,6 @@ describe('ArrivalRow', () => {
       screen.getByText('CENES DE LA VEGA - ESTACIÓN AUTOBUSES'),
     ).toBeOnTheScreen();
     expect(screen.getByText('4 min')).toBeOnTheScreen();
-    expect(screen.getByText('14:47')).toBeOnTheScreen();
-  });
-
-  it('marks estimated arrivals', async () => {
-    await render(<ArrivalRow arrival={makeArrival({ isRealTime: false })} />);
-    expect(screen.getByText('14:47 · estimada')).toBeOnTheScreen();
   });
 
   it('uses the GTFS line colour when provided', async () => {

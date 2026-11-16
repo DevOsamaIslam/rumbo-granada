@@ -38,10 +38,6 @@ export function ArrivalRow({ arrival, lineColor, lineTextColor }: ArrivalRowProp
         <Text style={styles.destination} numberOfLines={2}>
           {arrival.destination}
         </Text>
-        <Text style={styles.schedule}>
-          {arrival.scheduledTime}
-          {arrival.isRealTime ? '' : ` · ${t('estimated')}`}
-        </Text>
       </View>
       <Text style={styles.minutes}>
         {formatArrivalMinutes(arrival.minutes, t)}
@@ -79,10 +75,6 @@ const styles = StyleSheet.create({
   destination: {
     fontSize: 15,
     color: COLORS.onSurface,
-  },
-  schedule: {
-    fontSize: 12,
-    color: COLORS.outline,
   },
   minutes: {
     fontSize: 16,

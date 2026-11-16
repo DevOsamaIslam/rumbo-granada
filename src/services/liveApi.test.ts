@@ -159,15 +159,15 @@ describe('LiveApiClient', () => {
 
     const arrivals = await client.getStopArrivals('9');
 
-    expect(arrivals).toEqual([
-      {
-        lineCode: '33',
-        destination: '33 CENES DE LA VEGA - ESTACIÓN AUTOBUSES',
-        minutes: 4,
-        scheduledTime: '14:47',
-        isRealTime: true,
-      },
-    ]);
+    expect(arrivals).toHaveLength(1);
+    expect(arrivals[0]).toMatchObject({
+      lineCode: '33',
+      destination: '33 CENES DE LA VEGA - ESTACIÓN AUTOBUSES',
+      scheduledTime: '14:47',
+      isRealTime: true,
+    });
+    // minutes is now computed from the Llega column ("14:47")
+    expect(arrivals[0].minutes).toBeGreaterThanOrEqual(0);
 
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toContain('paradas.htm');
