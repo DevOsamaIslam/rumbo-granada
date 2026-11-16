@@ -14,7 +14,7 @@ export interface MapViewProps {
   focusStop?: { latitude: number; longitude: number } | null;
   /** When set, only this stop's marker is shown (no other stops or route polylines). */
   focusStopId?: string;
-  trackedBuses?: { id: string; latitude: number; longitude: number; heading?: number }[];
+  trackedBuses?: { id: string; latitude: number; longitude: number; heading?: number; label?: string }[];
   onStopPress?: (stop: Stop) => void;
   onBusPress?: (bus: { id: string; latitude: number; longitude: number }) => void;
   onRegionChange?: (region: Region) => void;

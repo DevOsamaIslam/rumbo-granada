@@ -173,8 +173,14 @@ vi.mock("@maplibre/maplibre-react-native", () => {
     },
     Map: ({ children, ...props }: any) =>
       React.createElement(View, props, children),
-    Camera: ({ children, ...props }: any) =>
-      React.createElement(View, props, children),
+    Camera: ({ children, ...props }: any) => {
+      // Tests (e.g. MapView settings integration) assert on the camera props
+      // to verify follow-mode behaviour; the log is opt-in, read via the
+      // `__MAP_CAMERA_PROPS__` global.
+      const log = ((globalThis as any).__MAP_CAMERA_PROPS__ ??= []);
+      log.push(props);
+      return React.createElement(View, props, children);
+    },
     Marker: ({ children, ...props }: any) =>
       React.createElement(View, props, children),
     RasterSource: ({ children, ...props }: any) =>

@@ -375,7 +375,7 @@ export function MapViewComponent({
 }: MapViewProps) {
   const { routes, loadLines } = useLines();
   const { stops, loadStopsForRoute, loadAllStops } = useStops();
-  const { mapStyle } = useSettingsStore();
+  const { mapStyle, autoFollowUser, showBusLabels } = useSettingsStore();
   const cameraRef = useRef<CameraRef>(null);
 
   // When focusStopId is set, only show that one stop's marker.
@@ -428,7 +428,16 @@ export function MapViewComponent({
     }
     return initialRegion ?? DEFAULT_REGION;
   });
-  const [followMode, setFollowMode] = useState(followUserLocation);
+  const [followMode, setFollowMode] = useState(followUserLocation || autoFollowUser);
+  // Sync follow mode with the "auto-follow my location" settings toggle while
+  // the map is open. Skipped on mount so an explicit `followUserLocation` prop
+  // from a caller is not immediately overwritten by the stored setting.
+  const prevAutoFollowRef = useRef(autoFollowUser);
+  useEffect(() => {
+    if (prevAutoFollowRef.current === autoFollowUser) return;
+    prevAutoFollowRef.current = autoFollowUser;
+    setFollowMode(autoFollowUser);
+  }, [autoFollowUser]);
 
   const { permission } = useLocation();
 
@@ -537,6 +546,9 @@ export function MapViewComponent({
             key={bus.id}
             lngLat={[bus.longitude, bus.latitude]}
             heading={bus.heading}
+            // Honour the "Mostrar etiquetas de autobuses" setting: labels are
+            // only passed to the marker while the toggle is enabled.
+            label={showBusLabels ? bus.label || bus.id || undefined : undefined}
             onPress={onBusPress}
           />
         ))}

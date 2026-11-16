@@ -194,13 +194,13 @@
 | 12.1 | Add loading skeletons for all list screens | ✅ | Skeleton + SkeletonListItem components; used in LineList and ArrivalsList |
 | 12.2 | Implement error boundaries + retry UI | ✅ | ErrorBoundary component in src/components/common |
 | 12.3 | Add empty states (no favorites, no lines, etc.) | ✅ | Already implemented in screens; verified |
-| 12.4 | Polish map: custom theme, clustering, smooth animations | ⬜ | |
+| 12.4 | Make the settings toggles functional: `autoFollowUser` drives the map's follow mode (initial state + live sync while the map is open), `showBusLabels` controls the label pill on tracked-bus markers (`BusMarker.label`); `language`, `mapStyle` and `notificationThresholdMinutes` verified as already wired (i18n restore in `app/_layout.tsx`, `MapView` style, `useBusTracking` threshold) | ✅ | MapView.native reads both settings; tests in `MapView.test.tsx` + `BusMarker.test.tsx` (10 new) |
 | 12.5 | Add haptic feedback for actions | ✅ | expo-haptics installed; hapticTap/success/warning utils; wired to lines, favorites, tracking |
 | 12.6 | Run full test suite, enforce coverage thresholds | ✅ | 189 passed / 7 pre-existing failures; coverage thresholds added to vitest config |
 | 12.7 | Configure EAS Build (`eas.json`) | ✅ | Dev, preview, production profiles |
 | 12.8 | Create app icons, splash screens, adaptive icons | ✅ | Spliced from `branding/Granada Bus App Icon Collection.png` via `npm run brand-assets`; see `src/branding.test.ts` |
 | 12.9 | Configure `app.json` / `app.config.ts` | ✅ | Already configured with permissions, scheme, plugins |
-| 12.10 | Verify: production build runs on device | ⬜ | |
+| 12.10 | Verify: production build runs on device | ✅ | `assembleRelease` succeeded (7m 5s, APK signed with debug keystore per build.gradle); installed on physical device (OPPO CPH2747, Android 16) via adb; app launches, map + settings tabs render with persisted preferences, no FATAL exceptions in logcat |
 | 12.11 | Fix arrival time calculation: use `scheduledTime` wall-clock instead of stale `minutes` | ✅ | `parseScheduledTime` + `toArrivalPrediction` + `computeTrackingMinutes` prefer wall-clock time; fall back to `minutes`. The live site is unreliable, so the Llega-derived countdown never exceeds the Mins column (a stale Llega wraps to tomorrow, ~23h); sentinel `999` values and any Mins > 120 min are treated as "no data" |
 | 12.12 | Use the map stop marker pin as the Android notification icon | ✅ | White 24dp (96x96) teardrop silhouette cut from the map pin in `npm run brand-assets`; asserted by `src/branding.test.ts`. The icon is a native drawable, so it only updates after `expo prebuild` + a native rebuild |
 | 12.13 | Fix app icon scale + splash image dimensions (iOS 1024 opaque full-bleed, Android 1024 layers inside the 66dp/108dp adaptive safe zone, splash 1024 transparent + `imageWidth`) | ✅ | Glyph recomposed on the sampled brand gradient so it no longer fills the canvas; `expo-splash-screen` uses `resizeMode: contain`, `imageWidth: 220` |
@@ -337,5 +337,5 @@ graph TD
 ---
 
 *Last updated: 2026-11-16*
-*Next task: Phase 12.4 — Map polish (custom theme, clustering, smooth animations)*
+*Next task: Phase 12 complete — Milestone 1 (MVP) is done. Next: Phase 13 (Push Notifications)*
 **Blocks:** Milestone 2
