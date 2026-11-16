@@ -1,6 +1,6 @@
 {
   "name": "rumbo-granada",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "main": "expo-router/entry",
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
@@ -20,6 +20,7 @@
     "expo-location": "^58.0.22",
     "expo-notifications": "^58.1.9",
     "expo-router": "^58.0.31",
+    "expo-splash-screen": "~58.0.14",
     "expo-status-bar": "~58.0.5",
     "expo-task-manager": "^58.0.14",
     "i18next": "^27.1.2",
@@ -54,6 +55,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-native": "^5.0.0",
     "jest-expo": "^58.0.14",
+    "pngjs": "^7.0.0",
     "prettier": "^3.10.1",
     "react-test-renderer": "^19.3.0",
     "typescript": "~6.0.3",
@@ -66,6 +68,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
+    "brand-assets": "node scripts/generate-brand-assets.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

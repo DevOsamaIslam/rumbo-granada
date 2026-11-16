@@ -3,8 +3,8 @@ import { Marker } from "@maplibre/maplibre-react-native";
 import { Route, Stop } from "@/types/gtfs";
 import { StyleSheet, View, Image, Text } from "react-native";
 
-// App logo used as the stop marker icon when zoomed out.
-const STOP_ICON = require("../../../assets/logo.png");
+// Teardrop brand pin used as the stop marker icon when zoomed out.
+const STOP_ICON = require("../../../assets/map-pin.png");
 
 // Zoom at or above which the stop logo is replaced by colored line circles.
 const STOP_CIRCLE_ZOOM = 16;

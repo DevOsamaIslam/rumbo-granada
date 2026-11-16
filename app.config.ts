@@ -6,7 +6,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: 'rumbo-granada',
   version: '1.0.0',
   orientation: 'portrait',
-  icon: './assets/logo.png',
+  icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
   assetBundlePatterns: ['**/*'],
   scheme: 'rumbo-granada',
@@ -24,7 +24,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       foregroundImage: './assets/android-icon-foreground.png',
       backgroundImage: './assets/android-icon-background.png',
       monochromeImage: './assets/android-icon-monochrome.png',
-      backgroundColor: '#E6F4FE',
+      backgroundColor: '#95071A',
     },
     package: 'com.rumbo.granada.app',
     permissions: [
@@ -42,10 +42,18 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     '@maplibre/maplibre-react-native',
     'expo-router',
     [
+      'expo-splash-screen',
+      {
+        image: './assets/splash-icon.png',
+        resizeMode: 'cover',
+        backgroundColor: '#AE0420',
+      },
+    ],
+    [
       'expo-notifications',
       {
-        icon: './assets/logo.png',
-        color: '#6200EE',
+        icon: './assets/notification-icon.png',
+        color: '#AE0420',
         defaultChannel: 'default',
       },
     ],
