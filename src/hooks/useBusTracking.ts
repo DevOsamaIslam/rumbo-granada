@@ -22,6 +22,15 @@ const POLL_INTERVAL_MS = CONFIG.TRACKING_UPDATE_INTERVAL_MS;
 const NOTIFICATION_COOLDOWN_MS = 10 * 60 * 1000;
 
 /**
+ * Last notification time per `${pair.id}-${vehicleId}`, keyed globally rather
+ * than per hook instance: the app-wide header and a tracking screen can poll
+ * concurrently, and only one alert should fire for the same bus. The claim is
+ * made synchronously before the notification is scheduled so concurrent
+ * pollers cannot both pass the cooldown check.
+ */
+const lastNotifiedAt = new Map<string, number>();
+
+/**
  * Parses a wall-clock time string like "15:18" into today's absolute timestamp.
  * Returns `null` when the string can't be parsed (e.g. empty or "--:--").
  */
@@ -197,7 +206,6 @@ export function useBusTracking() {
 
   const appStateRef = useRef(AppState.currentState);
   const isTrackingRef = useRef(isTracking);
-  const notifiedRef = useRef<Map<string, number>>(new Map());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // Timestamp of the last in-place refresh of the persistent notification.
   const lastTrackingUpdateRef = useRef(0);
@@ -220,17 +228,16 @@ export function useBusTracking() {
       // Avoid re-notifying for the same vehicle within the cooldown window.
       const vehicleId = prediction.vehicleId ?? prediction.tripId;
       const key = `${pair.id}-${vehicleId}`;
-      const lastNotified = notifiedRef.current.get(key) ?? 0;
+      const lastNotified = lastNotifiedAt.get(key) ?? 0;
       if (now - lastNotified < NOTIFICATION_COOLDOWN_MS) return;
 
+      // Claim the cooldown synchronously so another polling instance cannot
+      // schedule a duplicate alert for this bus.
+      lastNotifiedAt.set(key, now);
       void scheduleArrivalNotification({
         stopName: pair.stopName,
         routeShortName: pair.routeShortName,
         minutes: Math.round(minutesUntilArrival),
-      }).then((notificationId) => {
-        if (notificationId) {
-          notifiedRef.current.set(key, now);
-        }
       });
     },
     [arrivalThreshold],

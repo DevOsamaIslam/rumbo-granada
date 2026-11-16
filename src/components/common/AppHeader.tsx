@@ -14,31 +14,64 @@ import { useBusTracking } from '@/hooks/useBusTracking';
 import { formatTrackingBody } from '@/services/notifications';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '@/constants/colors';
+import { CONFIG } from '@/constants/config';
+import type { ArrivalPrediction } from '@/types/tracking';
 
 const LOGO = require('../../../assets/logo.png');
 
 /** Live status icon color: inverse on-surface on the inverse-primary header. */
 const LIVE_ICON_COLOR = COLORS.inverseOnSurface;
 
+/** Refresh cadence of the header countdown; matches the arrival check loop. */
+const SUMMARY_REFRESH_MS = CONFIG.NOTIFICATION_CHECK_INTERVAL_MS;
+
 /**
- * App-wide header: logo on the left, a live status icon on the right.
+ * Minutes until the tracked line's arrivals at the stop. The live poll stores
+ * the line code in `tripId`, so predictions for other lines sharing the stop
+ * are filtered out. Sorted ascending and de-duplicated (0 = arriving now).
+ * Pure so the logic is unit-testable without React.
+ */
+export function computePredictionMinutes(
+  predictions: ArrivalPrediction[],
+  routeShortName: string,
+  now: number,
+): number[] {
+  const minutes = predictions
+    .filter((prediction) => prediction.tripId === routeShortName)
+    .map((prediction) => Math.round((prediction.arrivalTime - now) / 60_000))
+    .filter((minutes) => minutes >= 0);
+  return [...new Set(minutes)].sort((a, b) => a - b);
+}
+
+/**
+ * App-wide header: logo on the left, live tracking status on the right.
  *
- * The live icon is green and pulsing while a bus tracking is active — tapping
- * it opens a card with the tracking details and a cancel button. With no
- * active tracking it is grey and inert.
+ * While a bus tracking is active, the live icon is replaced by a compact chip
+ * showing the tracked line, its stop and the countdown — the same content as
+ * the persistent notification. Tapping it opens a card with the tracking
+ * details and a cancel button. With no active tracking the grey icon is inert.
  */
 export function AppHeader() {
-  const { trackedPairs, arrivals, removeTrackedPair } = useBusTracking();
+  const {
+    trackedPairs,
+    arrivals,
+    startTracking,
+    stopTracking,
+    removeTrackedPair,
+  } = useBusTracking();
   const { t } = useTranslation();
   const pair = trackedPairs[0];
   const isActive = !!pair?.enabled;
+  // Primitives for the effect dependencies below.
+  const stopId = pair?.stopId;
+  const routeShortName = pair?.routeShortName;
   // Pad below the system status bar so the header never sits under the
   // clock / notification / battery icons.
   const insets = useSafeAreaInsets();
 
   const [cardVisible, setCardVisible] = useState(false);
-  const [cardSummary, setCardSummary] = useState('');
-  // Stable Animated.Value for the pulse (useState so it is created once).
+  const [summary, setSummary] = useState('');
+  // Stable Animated.Value for the live dot pulse (useState so it is created once).
   const [pulse] = useState(() => new Animated.Value(1));
 
   useEffect(() => {
@@ -49,7 +82,7 @@ export function AppHeader() {
     const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(pulse, {
-          toValue: 1.3,
+          toValue: 0.35,
           duration: 700,
           useNativeDriver: true,
         }),
@@ -64,34 +97,44 @@ export function AppHeader() {
     return () => animation.stop();
   }, [isActive, pulse]);
 
+  // The header is mounted app-wide, so it owns a polling loop while a tracker
+  // is enabled. Without this, its own `arrivals` state stays empty: polling
+  // otherwise only runs in the hook instance that started the tracking (the
+  // track button's screen), which the header never sees.
+  useEffect(() => {
+    if (isActive) startTracking();
+    else stopTracking();
+  }, [isActive, startTracking, stopTracking]);
+
+  // Keep the header countdown in sync with the latest polled arrivals. The
+  // impure Date.now() lives in this callback, never in render.
+  useEffect(() => {
+    if (!isActive || !stopId || !routeShortName) return;
+    const update = () => {
+      const predictions = arrivals.get(stopId);
+      setSummary(
+        predictions
+          ? formatTrackingBody(
+              computePredictionMinutes(predictions, routeShortName, Date.now()),
+            )
+          : t('loadingArrivals', { ns: 'translation' }),
+      );
+    };
+    update();
+    const interval = setInterval(update, SUMMARY_REFRESH_MS);
+    return () => clearInterval(interval);
+  }, [arrivals, isActive, stopId, routeShortName, t]);
+
   const handleCancel = useCallback(() => {
     if (!pair) return;
     removeTrackedPair(pair.id);
     setCardVisible(false);
   }, [pair, removeTrackedPair]);
 
-  // The summary is computed when the card opens (an event, not render) so the
-  // impure Date.now() call is allowed and the values are fresh.
   const openCard = useCallback(() => {
     if (!pair) return;
-    const predictions = arrivals.get(pair.stopId);
-    if (!predictions || predictions.length === 0) {
-      setCardSummary('Buscando llegadas…');
-    } else {
-      const now = Date.now();
-      const minutes = [
-        ...new Set(
-          predictions
-            .map((prediction) =>
-              Math.round((prediction.arrivalTime - now) / 60_000),
-            )
-            .filter((minutes) => minutes >= 0),
-        ),
-      ].sort((a, b) => a - b);
-      setCardSummary(formatTrackingBody(minutes));
-    }
     setCardVisible(true);
-  }, [arrivals, pair]);
+  }, [pair]);
 
   return (
     <View
@@ -103,23 +146,41 @@ export function AppHeader() {
       <Image source={LOGO} style={styles.logo} accessibilityLabel='Granabus' />
 
       <Pressable
-        style={styles.liveButton}
+        style={[styles.liveButton, isActive && styles.liveChip]}
         onPress={isActive ? openCard : undefined}
         disabled={!isActive}
         accessibilityRole={isActive ? 'button' : 'text'}
         accessibilityLabel={
-          isActive ? t('viewTracking', { ns: 'translation' }) : t('noTracking', { ns: 'translation' })
+          isActive
+            ? t('viewTracking', { ns: 'translation' })
+            : t('noTracking', { ns: 'translation' })
         }
         accessibilityState={{ disabled: !isActive }}
         hitSlop={8}
       >
-        <Animated.View style={{ transform: [{ scale: pulse }] }}>
+        {isActive && pair ? (
+          <>
+            <Animated.View style={[styles.liveDot, { opacity: pulse }]} />
+            <View style={styles.liveText}>
+              <Text style={styles.liveTitle} numberOfLines={1}>
+                {t('trackingTitle', {
+                  line: pair.routeShortName,
+                  stop: pair.stopName,
+                  ns: 'translation',
+                })}
+              </Text>
+              <Text style={styles.liveSummary} numberOfLines={1}>
+                {summary}
+              </Text>
+            </View>
+          </>
+        ) : (
           <MaterialCommunityIcons
             name='broadcast'
             size={26}
             color={LIVE_ICON_COLOR}
           />
-        </Animated.View>
+        )}
       </Pressable>
 
       <Modal
@@ -141,7 +202,7 @@ export function AppHeader() {
                   Línea {pair.routeShortName} → {pair.stopName}
                 </Text>
                 <View style={styles.divider} />
-                <Text style={styles.cardBody}>{cardSummary}</Text>
+                <Text style={styles.cardBody}>{summary}</Text>
                 <Pressable
                   style={styles.cancelButton}
                   onPress={handleCancel}
@@ -179,6 +240,37 @@ const styles = StyleSheet.create({
   },
   liveButton: {
     padding: 6,
+  },
+  // Active tracking: the header shows the tracked line, stop and countdown
+  // instead of the icon, so the row reads like the persistent notification.
+  liveChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexShrink: 1,
+    maxWidth: '78%',
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(74, 0, 16, 0.10)',
+  },
+  liveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.onPrimaryContainer,
+  },
+  liveText: {
+    flexShrink: 1,
+  },
+  liveTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.onPrimaryContainer,
+  },
+  liveSummary: {
+    fontSize: 11,
+    color: COLORS.onPrimaryContainer,
   },
   scrim: {
     flex: 1,

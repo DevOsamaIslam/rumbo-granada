@@ -18,7 +18,8 @@ vi.mock('@expo/vector-icons', () => {
 });
 
 import { useBusTracking } from '@/hooks/useBusTracking';
-import { AppHeader } from './AppHeader';
+import { AppHeader, computePredictionMinutes } from './AppHeader';
+import type { ArrivalPrediction } from '@/types/tracking';
 
 const mockedUseBusTracking = vi.mocked(useBusTracking);
 
@@ -36,14 +37,57 @@ const makePair = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
+const makePrediction = (
+  tripId: string,
+  minutesFromNow: number,
+  now: number,
+): ArrivalPrediction => ({
+  stopId: 'uuid-1',
+  routeId: '',
+  tripId,
+  arrivalTime: now + minutesFromNow * 60_000,
+  departureTime: now + minutesFromNow * 60_000,
+  realtime: true,
+});
+
 const mockStore = (overrides: Record<string, unknown> = {}) => {
   mockedUseBusTracking.mockReturnValue({
     trackedPairs: [],
     arrivals: new Map(),
+    startTracking: vi.fn(),
+    stopTracking: vi.fn(),
     removeTrackedPair: vi.fn(),
     ...overrides,
   } as any);
 };
+
+describe('computePredictionMinutes', () => {
+  const now = 1_700_000_000_000;
+
+  it('keeps only the tracked line, sorted and de-duplicated', () => {
+    const predictions = [
+      makePrediction('33', 12, now),
+      makePrediction('21', 3, now),
+      makePrediction('33', 4, now),
+      makePrediction('33', 4, now),
+    ];
+
+    expect(computePredictionMinutes(predictions, '33', now)).toEqual([4, 12]);
+  });
+
+  it('drops arrivals in the past and normalises to zero', () => {
+    const predictions = [
+      makePrediction('33', -5, now),
+      makePrediction('33', 0, now),
+    ];
+
+    expect(computePredictionMinutes(predictions, '33', now)).toEqual([0]);
+  });
+
+  it('returns an empty list when the line has no predictions', () => {
+    expect(computePredictionMinutes([], '33', now)).toEqual([]);
+  });
+});
 
 describe('AppHeader', () => {
   beforeEach(() => {
@@ -68,6 +112,76 @@ describe('AppHeader', () => {
     expect(screen.queryByText('Seguimiento activo')).toBeNull();
   });
 
+  it('shows the line, stop and minutes in place of the icon when tracking is active', async () => {
+    const now = Date.now();
+    mockStore({
+      trackedPairs: [makePair()],
+      arrivals: new Map([
+        [
+          'uuid-1',
+          [
+            makePrediction('33', 4, now),
+            makePrediction('21', 2, now),
+          ],
+        ],
+      ]),
+    });
+
+    await render(<AppHeader />);
+
+    expect(screen.getByText('Línea 33 → Gran Vía')).toBeOnTheScreen();
+    await waitFor(() =>
+      expect(screen.getByText('Llega en 4 minutos.')).toBeOnTheScreen(),
+    );
+  });
+
+  it('says "Llegando ahora" instead of "0 minutos" when the bus reaches the stop', async () => {
+    const now = Date.now();
+    mockStore({
+      trackedPairs: [makePair()],
+      arrivals: new Map([['uuid-1', [makePrediction('33', 0, now)]]]),
+    });
+
+    await render(<AppHeader />);
+
+    await waitFor(() =>
+      expect(screen.getByText('Llegando ahora.')).toBeOnTheScreen(),
+    );
+    expect(screen.queryByText('Llega en 0 minutos.')).toBeNull();
+  });
+
+  it('shows a loading message until the first arrivals poll lands', async () => {
+    mockStore({ trackedPairs: [makePair()] });
+
+    await render(<AppHeader />);
+
+    await waitFor(() =>
+      expect(screen.getByText('Cargando llegadas')).toBeOnTheScreen(),
+    );
+  });
+
+  it('starts the tracking poll when a tracker is enabled', async () => {
+    const startTracking = vi.fn();
+    const stopTracking = vi.fn();
+    mockStore({ trackedPairs: [makePair()], startTracking, stopTracking });
+
+    await render(<AppHeader />);
+
+    expect(startTracking).toHaveBeenCalled();
+    expect(stopTracking).not.toHaveBeenCalled();
+  });
+
+  it('stops the tracking poll when nothing is enabled', async () => {
+    const startTracking = vi.fn();
+    const stopTracking = vi.fn();
+    mockStore({ startTracking, stopTracking });
+
+    await render(<AppHeader />);
+
+    expect(stopTracking).toHaveBeenCalled();
+    expect(startTracking).not.toHaveBeenCalled();
+  });
+
   it('opens the tracking card with details and cancel for an active tracking', async () => {
     const removeTrackedPair = vi.fn();
     mockStore({ trackedPairs: [makePair()], removeTrackedPair });
@@ -82,7 +196,8 @@ describe('AppHeader', () => {
     await waitFor(() =>
       expect(screen.getByText('Seguimiento activo')).toBeOnTheScreen(),
     );
-    expect(screen.getByText('Línea 33 → Gran Vía')).toBeOnTheScreen();
+    // The header chip and the card both show the tracked line.
+    expect(screen.getAllByText('Línea 33 → Gran Vía')).toHaveLength(2);
 
     fireEvent.press(screen.getByLabelText('Cancelar seguimiento'));
     expect(removeTrackedPair).toHaveBeenCalledWith('p1');
@@ -96,8 +211,8 @@ describe('AppHeader', () => {
         [
           'uuid-1',
           [
-            { stopId: 'uuid-1', routeId: '', tripId: '33', arrivalTime: now + 12 * 60_000, departureTime: now + 12 * 60_000, realtime: true },
-            { stopId: 'uuid-1', routeId: '', tripId: '33', arrivalTime: now + 4 * 60_000, departureTime: now + 4 * 60_000, realtime: true },
+            makePrediction('33', 12, now),
+            makePrediction('33', 4, now),
           ],
         ],
       ]),
@@ -108,7 +223,7 @@ describe('AppHeader', () => {
     fireEvent.press(screen.getByLabelText('Ver seguimiento activo'));
 
     await waitFor(() =>
-      expect(screen.getByText('Llegan en 4 y 12 minutos.')).toBeOnTheScreen(),
+      expect(screen.getAllByText('Llegan en 4 y 12 minutos.')).toHaveLength(2),
     );
   });
 });
