@@ -6,6 +6,7 @@ import { gtfsService } from '@/services/gtfs';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useTranslation } from 'react-i18next';
 import { TrackStopButton } from '@/components/tracking';
+import { COLORS } from '@/constants/colors';
 import { Route, Stop } from '@/types/gtfs';
 
 export default function LineDetailScreen() {
@@ -88,7 +89,7 @@ export default function LineDetailScreen() {
       contentContainerStyle={styles.content}
     >
       <View style={styles.header}>
-        <View style={[styles.badge, { backgroundColor: route.route_color ? `#${route.route_color}` : '#6200EE' }]}>
+        <View style={[styles.badge, { backgroundColor: route.route_color ? `#${route.route_color}` : COLORS.primary }]}>
           <Text style={styles.badgeText}>{route.route_short_name}</Text>
         </View>
         <View style={styles.headerInfo}>
@@ -105,7 +106,7 @@ export default function LineDetailScreen() {
       </View>
 
       <Pressable
-        style={styles.mapButton}
+        style={[styles.mapButton, { backgroundColor: COLORS.secondary }]}
         onPress={handleShowOnMap}
         accessibilityRole="button"
         accessibilityLabel={t('showOnMap', { ns: 'translation' })}
@@ -122,7 +123,9 @@ export default function LineDetailScreen() {
           accessibilityRole="button"
           accessibilityLabel={t('stopAccessibilityLabel', { ns: 'translation', name: stop.stop_name })}
         >
-          <Text style={styles.stopNumber}>{index + 1}</Text>
+          <View style={styles.stopNumber}>
+            <Text style={styles.stopNumberText}>{stop.stop_code}</Text>
+          </View>
           <Text style={styles.stopName}>{stop.stop_name}</Text>
           <TrackStopButton
             routeId={id}
@@ -179,21 +182,20 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    color: '#79747E',
+    color: COLORS.onSurfaceVariant,
   },
   errorText: {
-    color: '#B00020',
+    color: COLORS.error,
     fontSize: 15,
   },
   mapButton: {
-    backgroundColor: '#6200EE',
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: 'center',
     marginBottom: 24,
   },
   mapButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.onSecondary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -208,21 +210,25 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: COLORS.outlineVariant,
   },
   stopNumber: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#6200EE',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    lineHeight: 28,
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: COLORS.tertiary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stopNumberText: {
+    color: COLORS.onTertiary,
     fontSize: 13,
     fontWeight: '700',
+    textAlign: 'center',
   },
   stopName: {
     flex: 1,
     fontSize: 15,
+    color: COLORS.onSurface,
   },
 });

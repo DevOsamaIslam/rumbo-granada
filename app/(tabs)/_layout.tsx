@@ -1,19 +1,17 @@
 import { Tabs } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
+import { COLORS } from '@/constants/colors';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colorScheme === 'dark' ? '#D0BCFF' : '#6200EE',
-        tabBarInactiveTintColor: colorScheme === 'dark' ? '#79747E' : '#79747E',
+        tabBarActiveTintColor: COLORS.primary,
+        tabBarInactiveTintColor: COLORS.outline,
         tabBarStyle: {
-          backgroundColor: colorScheme === 'dark' ? '#1E1E1E' : '#FFFFFF',
+          backgroundColor: COLORS.surface,
           borderTopWidth: 1,
-          borderTopColor: colorScheme === 'dark' ? '#333333' : '#E0E0E0',
+          borderTopColor: COLORS.outlineVariant,
         },
         headerShown: false,
       }}
@@ -23,7 +21,7 @@ export default function TabLayout() {
         options={{
           title: 'Map',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="map-marker-radius" color={(color as string) ?? (colorScheme === 'dark' ? '#D0BCFF' : '#6200EE')} size={size} />
+            <MaterialCommunityIcons name="map-marker-radius" color={color as string} size={size} />
           ),
         }}
       />
@@ -32,7 +30,7 @@ export default function TabLayout() {
         options={{
           title: 'Lines',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="bus" color={(color as string) ?? (colorScheme === 'dark' ? '#D0BCFF' : '#6200EE')} size={size} />
+            <MaterialCommunityIcons name="bus" color={color as string} size={size} />
           ),
         }}
       />
@@ -41,7 +39,7 @@ export default function TabLayout() {
         options={{
           title: 'Favorites',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="star" color={(color as string) ?? (colorScheme === 'dark' ? '#D0BCFF' : '#6200EE')} size={size} />
+            <MaterialCommunityIcons name="star" color={color as string} size={size} />
           ),
         }}
       />
@@ -50,7 +48,7 @@ export default function TabLayout() {
         options={{
           title: 'Settings',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="cog" color={(color as string) ?? (colorScheme === 'dark' ? '#D0BCFF' : '#6200EE')} size={size} />
+            <MaterialCommunityIcons name="cog" color={color as string} size={size} />
           ),
         }}
       />

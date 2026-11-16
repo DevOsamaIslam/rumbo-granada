@@ -89,10 +89,10 @@ export function AddStopLabelModal({
               </Button>
             )}
             <View style={styles.actionSpacer} />
-            <Button mode='outlined' onPress={onCancel}>
+            <Button mode='outlined' color={COLORS.secondary} onPress={onCancel}>
               {t('cancel')}
             </Button>
-            <Button mode='contained' onPress={handleConfirm}>
+            <Button mode='contained' color={COLORS.secondary} onPress={handleConfirm}>
               {t('save')}
             </Button>
           </View>

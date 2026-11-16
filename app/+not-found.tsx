@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Title, Button } from 'react-native-paper';
+import { COLORS } from '@/constants/colors';
 
 export default function NotFoundScreen() {
   const router = useRouter();
@@ -8,7 +9,7 @@ export default function NotFoundScreen() {
     <View style={styles.container}>
       <Title style={styles.title}>404 - Not Found</Title>
       <Text style={styles.subtitle}>The screen you&apos;re looking for doesn&apos;t exist.</Text>
-      <Button mode="contained" onPress={() => router.back()}>
+      <Button mode="contained" color={COLORS.secondary} onPress={() => router.back()}>
         Go Back
       </Button>
     </View>

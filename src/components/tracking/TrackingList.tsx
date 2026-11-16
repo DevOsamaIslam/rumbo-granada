@@ -36,7 +36,7 @@ export function TrackingList() {
             <MaterialCommunityIcons
               name="bell-ring"
               size={18}
-              color={COLORS.primary}
+              color={COLORS.error}
               style={styles.icon}
             />
             <View style={styles.info}>

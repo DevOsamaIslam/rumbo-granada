@@ -1,6 +1,5 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { IconButton } from 'react-native-paper';
-import { TrackStopButton } from '@/components/tracking';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '@/constants/colors';
 import type { Route, Stop } from '@/types/gtfs';
@@ -117,16 +116,6 @@ export function StopLinesTab({ routes, stop, onPress }: StopLinesTabProps) {
                 {route.route_short_name}
               </Text>
             </View>
-            <Text style={styles.routeLongName} numberOfLines={2}>
-              {route.route_long_name}
-            </Text>
-            <TrackStopButton
-              routeId={route.route_id}
-              routeShortName={route.route_short_name}
-              stopId={stop.stop_id}
-              stopCode={stop.stop_code}
-              stopName={stop.stop_name}
-            />
           </Pressable>
         ))
       )}
@@ -178,16 +167,17 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.outlineVariant,
   },
   routeBadge: {
-    minWidth: 44,
+    width: 32,
     height: 32,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 8,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
   routeBadgeText: {
-    color: COLORS.onPrimary,
-    fontSize: 14,
+    color: '#FFFFFF',
+    fontSize: 12,
     fontWeight: '700',
   },
   routeLongName: {

@@ -17,9 +17,8 @@ import { COLORS } from '@/constants/colors';
 
 const LOGO = require('../../../assets/logo.png');
 
-/** Live status colors: green while a tracking is active, grey otherwise. */
-const LIVE_ACTIVE_COLOR = '#4CAF50';
-const LIVE_INACTIVE_COLOR = '#9E9E9E';
+/** Live status icon color: inverse on-surface on the inverse-primary header. */
+const LIVE_ICON_COLOR = COLORS.inverseOnSurface;
 
 /**
  * App-wide header: logo on the left, a live status icon on the right.
@@ -118,7 +117,7 @@ export function AppHeader() {
           <MaterialCommunityIcons
             name='broadcast'
             size={26}
-            color={isActive ? LIVE_ACTIVE_COLOR : LIVE_INACTIVE_COLOR}
+            color={LIVE_ICON_COLOR}
           />
         </Animated.View>
       </Pressable>
@@ -141,6 +140,7 @@ export function AppHeader() {
                 <Text style={styles.cardLine}>
                   Línea {pair.routeShortName} → {pair.stopName}
                 </Text>
+                <View style={styles.divider} />
                 <Text style={styles.cardBody}>{cardSummary}</Text>
                 <Pressable
                   style={styles.cancelButton}
@@ -168,9 +168,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.inversePrimary,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: COLORS.outlineVariant,
+    borderBottomColor: COLORS.inverseSurface,
   },
   logo: {
     width: 36,
@@ -208,6 +208,11 @@ const styles = StyleSheet.create({
   cardBody: {
     fontSize: 14,
     color: COLORS.onSurfaceVariant,
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: COLORS.outlineVariant,
+    marginVertical: 8,
   },
   cancelButton: {
     marginTop: 8,

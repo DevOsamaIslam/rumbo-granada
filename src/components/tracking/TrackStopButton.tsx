@@ -96,7 +96,7 @@ export function TrackStopButton({
       hitSlop={styles.hitSlop}
     >
       <MaterialCommunityIcons
-        name={isActive ? 'bell-ring' : 'bell'}
+        name={isActive ? 'bell-ring' : 'bell-outline'}
         size={24}
         color={isActive ? COLORS.error : COLORS.primary}
       />

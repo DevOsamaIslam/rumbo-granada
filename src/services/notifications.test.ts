@@ -79,7 +79,7 @@ describe('notifications service', () => {
     expect(mockScheduleNotificationAsync).toHaveBeenCalledWith({
       content: {
         title: 'Autobús en camino',
-        body: 'La línea 33 llega a Gran Vía en 3 minutos.',
+        body: 'La línea 33 llega a Gran Vía\nen 3 minutos.',
         sound: true,
       },
       trigger: null,
@@ -109,7 +109,7 @@ describe('notifications service', () => {
     expect(mockScheduleNotificationAsync).toHaveBeenCalledWith({
       content: {
         title: 'Autobús en camino',
-        body: 'La línea 5 llega a Parada Central en 1 minuto.',
+        body: 'La línea 5 llega a Parada Central\nen 1 minuto.',
         sound: true,
       },
       trigger: null,
