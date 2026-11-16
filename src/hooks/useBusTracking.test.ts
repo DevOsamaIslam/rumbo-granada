@@ -119,6 +119,36 @@ describe('useBusTracking', () => {
     expect(storeRemoveTrackedPair).toHaveBeenCalledWith('p1');
   });
 
+  it('cancelling an enabled tracking removes the pair instead of just disabling it', async () => {
+    trackedPairs.push(makePair({ enabled: true }));
+    const { result, rerender } = await renderHook(() => useBusTracking());
+    for (let i = 0; i < 10 && result.current === null; i++) {
+      await act(async () => { rerender({ iteration: i }); });
+    }
+    act(() => {
+      result.current.toggleTracking('p1');
+    });
+    // Cancelling removes the pair entirely so a new tracking can start immediately.
+    expect(storeRemoveTrackedPair).toHaveBeenCalledWith('p1');
+    expect(storeToggleTracking).not.toHaveBeenCalled();
+    expect(clearTrackingNotification).toHaveBeenCalled();
+    expect(result.current.isTracking).toBe(false);
+  });
+
+  it('re-enabling a disabled tracking toggles it back on', async () => {
+    trackedPairs.push(makePair({ enabled: false }));
+    const { result, rerender } = await renderHook(() => useBusTracking());
+    for (let i = 0; i < 10 && result.current === null; i++) {
+      await act(async () => { rerender({ iteration: i }); });
+    }
+    act(() => {
+      result.current.toggleTracking('p1');
+    });
+    expect(storeToggleTracking).toHaveBeenCalledWith('p1');
+    expect(storeRemoveTrackedPair).not.toHaveBeenCalled();
+    expect(result.current.isTracking).toBe(true);
+  });
+
   it('does not notify when arrival is beyond the threshold', async () => {
     vi.spyOn(Date, 'now').mockReturnValue(now);
     const { result, rerender } = await renderHook(() => useBusTracking());

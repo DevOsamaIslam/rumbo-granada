@@ -317,15 +317,23 @@ export function useBusTracking() {
 
   const toggleTracking = useCallback(
     (id: string) => {
-      storeToggleTracking(id);
       const pair = trackedPairs.find((p) => p.id === id);
-      if (pair?.enabled && shouldClearTrackingNotification(trackedPairs, id)) {
-        // Being disabled and no other enabled pair remains.
+      const wasEnabled = pair?.enabled;
+
+      if (wasEnabled) {
+        // Cancelling: remove the pair entirely so a new tracking can start
+        // immediately without a "replace existing tracking" confirmation.
+        storeRemoveTrackedPair(id);
         void clearTrackingNotification();
+        setIsTracking(false);
+      } else {
+        // Re-enabling: toggle back on and resume polling.
+        storeToggleTracking(id);
+        setIsTracking(true);
+        ensureIntervalRef.current();
       }
-      setIsTracking((prev) => !prev);
     },
-    [storeToggleTracking, trackedPairs],
+    [storeToggleTracking, storeRemoveTrackedPair, trackedPairs],
   );
 
   const addTrackedPair = useCallback(
