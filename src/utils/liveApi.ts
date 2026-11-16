@@ -72,9 +72,10 @@ export function calcMinutesFromScheduledTime(
  *
  * Each row is `<div class="tfr">` containing four cells: line badge, destination,
  * minutes (Mins column), and scheduled clock time (Llega column). The `minutes`
- * field is computed from the Llega column because the server's Mins column can
- * be off by an hour or more when the server clock diverges from the device clock.
- * Falls back to the Mins column value only when the Llega time can't be parsed.
+ * field prefers the Llega column (wall-clock time) but never exceeds the Mins
+ * column: the site is unreliable, and a Llega time that has already passed wraps
+ * to tomorrow (~23h) while Mins holds the live countdown. Falls back to the Mins
+ * column value when the Llega time can't be parsed.
  */
 export function parseStopArrivalsHtml(html: string): Arrival[] {
   const rows = html.split(/<div class="tfr["\s>]/i).slice(1);
@@ -90,12 +91,22 @@ export function parseStopArrivalsHtml(html: string): Arrival[] {
     if (!lineCode) continue;
 
     const destination = cells[1];
-    const rawMinutes = toNumber(cells[2]);
+    // Keep `null` when the Mins cell is empty/garbage so it cannot masquerade
+    // as "arriving now" in the comparison below.
+    const parsedMinutes = Number.parseInt(cells[2], 10);
+    const rawMinutes = Number.isFinite(parsedMinutes) ? parsedMinutes : null;
     const scheduledTime = cells[3];
     if (!destination) continue;
 
-    // Prefer the Llega column (wall-clock time); fall back to the Mins column.
-    const minutes = calcMinutesFromScheduledTime(scheduledTime) ?? rawMinutes;
+    // The site is unreliable: Mins is the live countdown, while Llega is a
+    // wall-clock time that can refer to tomorrow (a stale row read just after
+    // midnight shows ~23h). When the Llega-derived countdown is longer than the
+    // Mins column, trust the Mins column.
+    const fromLlega = calcMinutesFromScheduledTime(scheduledTime);
+    const minutes =
+      fromLlega !== null && rawMinutes !== null && fromLlega > rawMinutes
+        ? rawMinutes
+        : (fromLlega ?? rawMinutes ?? 0);
 
     arrivals.push({
       lineCode,

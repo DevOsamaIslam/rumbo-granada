@@ -201,7 +201,10 @@
 | 12.8 | Create app icons, splash screens, adaptive icons | ✅ | Spliced from `branding/Granada Bus App Icon Collection.png` via `npm run brand-assets`; see `src/branding.test.ts` |
 | 12.9 | Configure `app.json` / `app.config.ts` | ✅ | Already configured with permissions, scheme, plugins |
 | 12.10 | Verify: production build runs on device | ⬜ | |
-| 12.11 | Fix arrival time calculation: use `scheduledTime` wall-clock instead of stale `minutes` | ✅ | `parseScheduledTime` + `toArrivalPrediction` + `computeTrackingMinutes` prefer wall-clock time; fall back to `minutes` |
+| 12.11 | Fix arrival time calculation: use `scheduledTime` wall-clock instead of stale `minutes` | ✅ | `parseScheduledTime` + `toArrivalPrediction` + `computeTrackingMinutes` prefer wall-clock time; fall back to `minutes`. The live site is unreliable, so the Llega-derived countdown never exceeds the Mins column (a stale Llega wraps to tomorrow, ~23h); sentinel `999` values and any Mins > 120 min are treated as "no data" |
+| 12.12 | Use the map stop marker pin as the Android notification icon | ✅ | White 24dp (96x96) teardrop silhouette cut from the map pin in `npm run brand-assets`; asserted by `src/branding.test.ts`. The icon is a native drawable, so it only updates after `expo prebuild` + a native rebuild |
+| 12.13 | Fix app icon scale + splash image dimensions (iOS 1024 opaque full-bleed, Android 1024 layers inside the 66dp/108dp adaptive safe zone, splash 1024 transparent + `imageWidth`) | ✅ | Glyph recomposed on the sampled brand gradient so it no longer fills the canvas; `expo-splash-screen` uses `resizeMode: contain`, `imageWidth: 220` |
+| 12.14 | Redesign the settings screen | ✅ | Scrollable labelled cards, per-row brand icons, MD3 switches, pill stepper and footer with app version |
 
 **Depends on:** 1–11  
 **Blocks:** Milestone 2

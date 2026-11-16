@@ -124,11 +124,13 @@ describe('computeTrackingMinutes', () => {
   });
 
   it('derives minutes from scheduledTime when present', () => {
-    const now = Date.now();
-    vi.spyOn(Date, 'now').mockReturnValue(now);
-    const nowDate = new Date(now);
-    const nowHour = nowDate.getHours();
-    const nowMin = nowDate.getMinutes();
+    // Truncate to a whole minute so the expected countdown is exact regardless
+    // of the seconds on the wall clock when the suite happens to run.
+    const now = new Date();
+    now.setSeconds(0, 0);
+    vi.spyOn(Date, 'now').mockReturnValue(now.getTime());
+    const nowHour = now.getHours();
+    const nowMin = now.getMinutes();
     // Schedule a time 10 minutes from now
     let targetMin = nowMin + 10;
     let targetHour = nowHour;
@@ -142,6 +144,21 @@ describe('computeTrackingMinutes', () => {
       makeArrival({ lineCode: '33', minutes: 999, scheduledTime }),
     ];
     expect(computeTrackingMinutes(rows, '33')).toEqual([10]);
+    vi.restoreAllMocks();
+  });
+
+  it('prefers the Mins column over a stale Llega-derived countdown', () => {
+    // Truncate to a whole minute for a deterministic expected countdown.
+    const now = new Date();
+    now.setSeconds(0, 0);
+    vi.spyOn(Date, 'now').mockReturnValue(now.getTime());
+    // A Llega time one hour in the past wraps to tomorrow (~23h); Mins says 20.
+    const past = new Date(now.getTime() - 60 * 60_000);
+    const timeStr = `${String(past.getHours()).padStart(2, '0')}:${String(past.getMinutes()).padStart(2, '0')}`;
+    const rows = [
+      makeArrival({ lineCode: '33', minutes: 20, scheduledTime: timeStr }),
+    ];
+    expect(computeTrackingMinutes(rows, '33')).toEqual([20]);
     vi.restoreAllMocks();
   });
 

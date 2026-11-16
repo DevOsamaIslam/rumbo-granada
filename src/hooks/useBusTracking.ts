@@ -13,6 +13,7 @@ import { Arrival } from '@/types/api';
 import { scheduleArrivalNotification, updateTrackingNotification, clearTrackingNotification, requestNotificationPermissions, registerTrackingResponseHandler, TRACKING_CANCEL_ACTION, TRACKING_OPEN_ACTION } from '@/services/notifications';
 import { router } from 'expo-router';
 import { liveApiClient } from '@/services/liveApi';
+import { calcMinutesFromScheduledTime } from '@/utils/liveApi';
 import { CONFIG } from '@/constants/config';
 
 /** Default polling interval for arrival checks while tracking is active. */
@@ -31,23 +32,6 @@ const NOTIFICATION_COOLDOWN_MS = 10 * 60 * 1000;
 const lastNotifiedAt = new Map<string, number>();
 
 /**
- * Parses a wall-clock time string like "15:18" into today's absolute timestamp.
- * Returns `null` when the string can't be parsed (e.g. empty or "--:--").
- */
-function parseScheduledTime(scheduledTime: string): number | null {
-  const match = String(scheduledTime).trim().match(/^(\d{1,2}):(\d{2})/);
-  if (!match) return null;
-  const hours = Number.parseInt(match[1], 10);
-  const minutes = Number.parseInt(match[2], 10);
-  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
-
-  const now = Date.now();
-  const today = new Date(now);
-  today.setHours(hours, minutes, 0, 0);
-  return today.getTime();
-}
-
-/**
  * Normalises a live-API arrival row into a typed prediction with an absolute
  * arrival time. The site reports both a `minutes` countdown and a
  * `scheduledTime` wall-clock (e.g. "15:18"). The clock time is the source of
@@ -58,9 +42,14 @@ function toArrivalPrediction(stopId: string, arrival: Arrival): ArrivalPredictio
   const now = Date.now();
 
   let arrivalTime: number;
-  const scheduled = parseScheduledTime(arrival.scheduledTime);
-  if (scheduled !== null) {
-    arrivalTime = scheduled;
+  const fromLlega = calcMinutesFromScheduledTime(arrival.scheduledTime);
+  if (fromLlega !== null) {
+    // Same reliability rule as the live-API parser: a Llega time that already
+    // passed wraps to tomorrow (~23h), so never report more than the Mins
+    // column claims.
+    const minutes =
+      arrival.minutes >= 0 ? Math.min(fromLlega, arrival.minutes) : fromLlega;
+    arrivalTime = now + minutes * 60_000;
   } else {
     arrivalTime = now + Math.max(arrival.minutes, 0) * 60_000;
   }
@@ -82,22 +71,28 @@ function toArrivalPrediction(stopId: string, arrival: Arrival): ArrivalPredictio
  * has no upcoming arrivals for the stop. Pure so the logic is unit-testable
  * without React.
  */
+const MAX_TRACKING_MINUTES = 120; // 2h cap — anything above is treated as “no data”
+
 export function computeTrackingMinutes(
   rows: Arrival[],
   routeShortName: string,
 ): number[] {
-  const now = Date.now();
   const lineMinutes = rows
     .filter((row) => row.lineCode === routeShortName)
     .map((row) => {
       // Prefer the wall-clock scheduled time; fall back to the raw `minutes`
       // field when the clock time can't be parsed.
-      const scheduled = parseScheduledTime(row.scheduledTime);
-      if (scheduled !== null) {
-        return Math.max(0, Math.round((scheduled - now) / 60000));
+      const fromLlega = calcMinutesFromScheduledTime(row.scheduledTime);
+      if (fromLlega !== null) {
+        // Same reliability rule as the live-API parser: a Llega time that
+        // already passed wraps to tomorrow (~23h), so never report more than
+        // the Mins column claims.
+        return row.minutes >= 0 ? Math.min(fromLlega, row.minutes) : fromLlega;
       }
       // Negative `minutes` means "no data" — exclude it.
-      return row.minutes >= 0 ? row.minutes : -1;
+      // Also exclude sentinel values such as the API's 999 “no data” marker.
+      const raw = row.minutes >= 0 ? row.minutes : -1;
+      return raw <= MAX_TRACKING_MINUTES ? raw : -1;
     })
     .filter((m) => m >= 0);
   return [...new Set(lineMinutes)].sort((a, b) => a - b);

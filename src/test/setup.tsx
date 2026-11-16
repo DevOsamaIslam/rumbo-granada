@@ -211,6 +211,23 @@ vi.mock("expo-notifications", () => ({
   AndroidImportance: { HIGH: 'high', DEFAULT: 'default' },
 }));
 
+// `@expo/vector-icons` loads native icon fonts. Render every icon as plain
+// text in the Node test env so components using icons mount cleanly.
+vi.mock("@expo/vector-icons", () => {
+  const React = require("react");
+  const { Text: RNText } = require("react-native");
+  return {
+    MaterialCommunityIcons: (props: any) => React.createElement(RNText, props),
+  };
+});
+
+// expo-constants exposes the app manifest; the settings footer reads the
+// version from it. Stub a stable value for the Node test env.
+vi.mock("expo-constants", () => ({
+  __esModule: true,
+  default: { expoConfig: { version: "1.0.0" }, nativeAppVersion: "1.0.0" },
+}));
+
 // Mock expo-haptics (native module, not available in the Node test env).
 vi.mock("expo-haptics", () => ({
   __esModule: true,

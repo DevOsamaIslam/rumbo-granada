@@ -1,25 +1,25 @@
-import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text as PaperText, Title } from 'react-native-paper';
-import { useSettingsStore } from '@/store/settings';
+import type { ComponentProps, ReactNode } from 'react';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Switch } from 'react-native-paper';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
+import { useSettingsStore } from '@/store/settings';
 import { COLORS } from '@/constants/colors';
+import { hapticTap } from '@/utils/haptics';
 
 type Language = 'es' | 'en';
 type MapStyle = 'standard' | 'dark';
+type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
-interface RadioRowProps {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-}
+/** Brand mark shown in the footer, matching the app header. */
+const LOGO = require('../../../assets/logo.png');
 
-interface ToggleRowProps {
-  title: string;
-  value: boolean;
-  onPress: () => void;
-}
+/** Cards sit on the warm app background, so they use the plain surface white. */
+const CARD_BACKGROUND = '#FFFFFF';
+/** Soft brand-red wash behind each row icon. */
+const ICON_BADGE_BACKGROUND = 'rgba(160, 0, 32, 0.08)';
 
 const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
   { value: 'es', label: 'spanish' },
@@ -35,38 +35,164 @@ const MAP_STYLE_OPTIONS: { value: MapStyle; label: string }[] = [
 const THRESHOLD_MIN = 1;
 const THRESHOLD_MAX = 180;
 
-function SectionTitle({ text }: { text: string }) {
-  return <PaperText style={styles.sectionTitle}>{text}</PaperText>;
+interface SectionProps {
+  title: string;
+  description?: string;
+  children: ReactNode;
 }
 
-function RadioRow({ label, selected, onPress }: RadioRowProps) {
+/** Grouped settings card with an uppercase section label and a hint line. */
+function Section({ title, description, children }: SectionProps) {
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle} accessibilityRole="header">
+        {title}
+      </Text>
+      {description ? <Text style={styles.sectionDescription}>{description}</Text> : null}
+      <View style={styles.card}>{children}</View>
+    </View>
+  );
+}
+
+function IconBadge({ name }: { name: IconName }) {
+  return (
+    <View style={styles.iconBadge}>
+      <MaterialCommunityIcons name={name} size={18} color={COLORS.primary} />
+    </View>
+  );
+}
+
+interface OptionRowProps {
+  icon: IconName;
+  label: string;
+  selected: boolean;
+  last?: boolean;
+  onPress: () => void;
+}
+
+/** Single-choice row: the radio mark mirrors the accessibility state. */
+function OptionRow({ icon, label, selected, last, onPress }: OptionRowProps) {
   return (
     <Pressable
-      style={styles.row}
-      onPress={onPress}
+      style={[styles.row, last && styles.lastRow]}
+      onPress={() => {
+        void hapticTap();
+        onPress();
+      }}
       accessibilityLabel={label}
       accessibilityRole="radio"
       accessibilityState={{ selected }}
     >
-      <Text style={styles.radioIndicator}>{selected ? '●' : '○'}</Text>
+      <IconBadge name={icon} />
       <Text style={styles.rowLabel}>{label}</Text>
+      <MaterialCommunityIcons
+        name={selected ? 'radiobox-marked' : 'radiobox-blank'}
+        size={22}
+        color={selected ? COLORS.primary : COLORS.outline}
+      />
     </Pressable>
   );
 }
 
-function ToggleRow({ title, value, onPress }: ToggleRowProps) {
-  const { t } = useTranslation();
+interface ToggleRowProps {
+  icon: IconName;
+  title: string;
+  value: boolean;
+  last?: boolean;
+  onPress: () => void;
+}
+
+/**
+ * Switch row. The whole row is the touch target (with the switch label and
+ * role), while the visible switch is decorative so screen readers announce one
+ * control instead of two.
+ */
+function ToggleRow({ icon, title, value, last, onPress }: ToggleRowProps) {
   return (
     <Pressable
-      style={styles.row}
-      onPress={onPress}
+      style={[styles.row, last && styles.lastRow]}
+      onPress={() => {
+        void hapticTap();
+        onPress();
+      }}
       accessibilityLabel={title}
       accessibilityRole="switch"
       accessibilityState={{ checked: value }}
     >
+      <IconBadge name={icon} />
       <Text style={styles.rowLabel}>{title}</Text>
-      <Text style={styles.toggleValue}>{value ? t('enabled') : t('disabled')}</Text>
+      <View
+        pointerEvents="none"
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
+        <Switch
+          value={value}
+          color={COLORS.primary}
+          trackColor={{ false: COLORS.outlineVariant, true: COLORS.primary }}
+        />
+      </View>
     </Pressable>
+  );
+}
+
+interface StepperRowProps {
+  icon: IconName;
+  title: string;
+  hint: string;
+  value: number;
+  decreaseLabel: string;
+  increaseLabel: string;
+  onDecrease: () => void;
+  onIncrease: () => void;
+}
+
+/** Numeric row with −/+ steppers (notification lead time). */
+function StepperRow({
+  icon,
+  title,
+  hint,
+  value,
+  decreaseLabel,
+  increaseLabel,
+  onDecrease,
+  onIncrease,
+}: StepperRowProps) {
+  return (
+    <View style={[styles.row, styles.lastRow]}>
+      <IconBadge name={icon} />
+      <View style={styles.rowText}>
+        <Text style={styles.rowLabel}>{title}</Text>
+        <Text style={styles.rowHint}>{hint}</Text>
+      </View>
+      <View style={styles.stepper}>
+        <Pressable
+          style={styles.stepButton}
+          onPress={() => {
+            void hapticTap();
+            onDecrease();
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={decreaseLabel}
+          hitSlop={8}
+        >
+          <MaterialCommunityIcons name="minus" size={18} color={COLORS.primary} />
+        </Pressable>
+        <Text style={styles.stepperValue}>{value}</Text>
+        <Pressable
+          style={styles.stepButton}
+          onPress={() => {
+            void hapticTap();
+            onIncrease();
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={increaseLabel}
+          hitSlop={8}
+        >
+          <MaterialCommunityIcons name="plus" size={18} color={COLORS.primary} />
+        </Pressable>
+      </View>
+    </View>
   );
 }
 
@@ -80,7 +206,6 @@ function ToggleRow({ title, value, onPress }: ToggleRowProps) {
  *   All values are persisted to MMKV via the zustand settings store.
  */
 export function SettingsScreen() {
-  const insets = useSafeAreaInsets();
   const {
     language,
     setLanguage,
@@ -94,155 +219,228 @@ export function SettingsScreen() {
     setShowBusLabels,
   } = useSettingsStore();
   const { t } = useTranslation();
+  const version = Constants.expoConfig?.version;
 
   return (
-    <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.content}>
-        <Title style={styles.title}>{t('settings')}</Title>
-        <PaperText style={styles.subtitle}>{t('selectLanguage', { ns: 'translation' })}</PaperText>
-
-        <SectionTitle text={t('language', { ns: 'translation' })} />
-        <PaperText style={styles.description}>{t('selectLanguageDescription', { ns: 'translation' })}</PaperText>
-        {LANGUAGE_OPTIONS.map((option) => (
-          <RadioRow
-            key={option.value}
-            label={t(option.label, { ns: 'translation' })}
-            selected={language === option.value}
-            onPress={() => {
-              setLanguage(option.value);
-              i18n.changeLanguage(option.value);
-            }}
-          />
-        ))}
-
-        <SectionTitle text={t('mapStyle', { ns: 'translation' })} />
-        <PaperText style={styles.description}>{t('mapStyleDescription', { ns: 'translation' })}</PaperText>
-        {MAP_STYLE_OPTIONS.map((option) => (
-          <RadioRow
-            key={option.value}
-            label={t(option.label, { ns: 'translation' })}
-            selected={mapStyle === option.value}
-            onPress={() => setMapStyle(option.value)}
-          />
-        ))}
-
-        <SectionTitle text={t('preferences', { ns: 'translation' })} />
-        <ToggleRow
-          title={t('autoFollow', { ns: 'translation' })}
-          value={autoFollowUser}
-          onPress={() => setAutoFollowUser(!autoFollowUser)}
-        />
-        <ToggleRow
-          title={t('showBusLabels', { ns: 'translation' })}
-          value={showBusLabels}
-          onPress={() => setShowBusLabels(!showBusLabels)}
-        />
-
-        <View style={styles.thresholdRow}>
-          <Text style={styles.thresholdLabel}>{t('notificationThreshold', { ns: 'translation' })}</Text>
-          <Pressable
-            style={styles.stepButton}
-            onPress={() =>
-              setNotificationThreshold(Math.max(notificationThresholdMinutes - 1, THRESHOLD_MIN))
-            }
-            accessibilityLabel={t('decreaseThreshold')}
-          >
-            <Text style={styles.stepText}>−</Text>
-          </Pressable>
-          <Text style={styles.thresholdValue}>{notificationThresholdMinutes}</Text>
-          <Pressable
-            style={styles.stepButton}
-            onPress={() =>
-              setNotificationThreshold(Math.min(notificationThresholdMinutes + 1, THRESHOLD_MAX))
-            }
-            accessibilityLabel={t('increaseThreshold')}
-          >
-            <Text style={styles.stepText}>+</Text>
-          </Pressable>
+    <View style={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.hero}>
+          <Text style={styles.eyebrow}>{t('appName')}</Text>
+          <Text style={styles.title} accessibilityRole="header">
+            {t('settings')}
+          </Text>
+          <Text style={styles.subtitle}>{t('settingsSubtitle')}</Text>
         </View>
-      </View>
-    </SafeAreaView>
+
+        <Section title={t('language')} description={t('selectLanguageDescription')}>
+          {LANGUAGE_OPTIONS.map((option, index) => (
+            <OptionRow
+              key={option.value}
+              icon="translate"
+              label={t(option.label)}
+              selected={language === option.value}
+              last={index === LANGUAGE_OPTIONS.length - 1}
+              onPress={() => {
+                setLanguage(option.value);
+                i18n.changeLanguage(option.value);
+              }}
+            />
+          ))}
+        </Section>
+
+        <Section title={t('mapStyle')} description={t('mapStyleDescription')}>
+          {MAP_STYLE_OPTIONS.map((option, index) => (
+            <OptionRow
+              key={option.value}
+              icon={option.value === 'dark' ? 'theme-light-dark' : 'map-outline'}
+              label={t(option.label)}
+              selected={mapStyle === option.value}
+              last={index === MAP_STYLE_OPTIONS.length - 1}
+              onPress={() => setMapStyle(option.value)}
+            />
+          ))}
+        </Section>
+
+        <Section title={t('preferences')}>
+          <ToggleRow
+            icon="crosshairs-gps"
+            title={t('autoFollow')}
+            value={autoFollowUser}
+            onPress={() => setAutoFollowUser(!autoFollowUser)}
+          />
+          <ToggleRow
+            icon="tag-outline"
+            title={t('showBusLabels')}
+            value={showBusLabels}
+            onPress={() => setShowBusLabels(!showBusLabels)}
+          />
+          <StepperRow
+            icon="bell-outline"
+            title={t('notificationThreshold')}
+            hint={t('notificationThresholdHint')}
+            value={notificationThresholdMinutes}
+            decreaseLabel={t('decreaseThreshold')}
+            increaseLabel={t('increaseThreshold')}
+            onDecrease={() =>
+              setNotificationThreshold(
+                Math.max(notificationThresholdMinutes - 1, THRESHOLD_MIN),
+              )
+            }
+            onIncrease={() =>
+              setNotificationThreshold(
+                Math.min(notificationThresholdMinutes + 1, THRESHOLD_MAX),
+              )
+            }
+          />
+        </Section>
+
+        <View style={styles.footer}>
+          <Image source={LOGO} style={styles.footerLogo} />
+          <Text style={styles.footerName}>{t('appName')}</Text>
+          <Text style={styles.footerTagline}>{t('appTagline')}</Text>
+          {version ? <Text style={styles.footerVersion}>v{version}</Text> : null}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    backgroundColor: COLORS.background,
   },
   content: {
-    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 32,
+    gap: 24,
+  },
+  hero: {
+    gap: 4,
+  },
+  eyebrow: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    color: COLORS.primary,
   },
   title: {
-    marginBottom: 4,
+    fontSize: 30,
+    fontWeight: '700',
+    color: COLORS.onSurface,
   },
   subtitle: {
-    color: COLORS.outline,
-    textAlign: 'center',
-    marginBottom: 20,
+    fontSize: 14,
+    color: COLORS.onSurfaceVariant,
+  },
+  section: {
+    gap: 8,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.onSurface,
-    marginTop: 20,
-    marginBottom: 8,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    color: COLORS.outline,
   },
-  description: {
+  sectionDescription: {
     fontSize: 13,
     color: COLORS.onSurfaceVariant,
-    marginBottom: 12,
+    marginTop: -2,
+  },
+  card: {
+    backgroundColor: CARD_BACKGROUND,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: COLORS.outlineVariant,
+    overflow: 'hidden',
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 16,
     paddingVertical: 14,
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: COLORS.outlineVariant,
   },
-  radioIndicator: {
-    fontSize: 20,
-    marginRight: 12,
-    width: 24,
-    textAlign: 'center',
+  lastRow: {
+    borderBottomWidth: 0,
+  },
+  rowText: {
+    flex: 1,
+    gap: 2,
   },
   rowLabel: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
+    fontWeight: '500',
     color: COLORS.onSurface,
   },
-  toggleValue: {
-    fontSize: 14,
-    color: COLORS.outline,
-    fontWeight: '600',
+  rowHint: {
+    fontSize: 12,
+    color: COLORS.onSurfaceVariant,
   },
-  thresholdRow: {
+  iconBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: ICON_BADGE_BACKGROUND,
+  },
+  stepper: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.outlineVariant,
-  },
-  thresholdLabel: {
-    fontSize: 16,
-    color: COLORS.onSurface,
-  },
-  thresholdValue: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.primary,
-    marginHorizontal: 12,
-    minWidth: 30,
-    textAlign: 'center',
+    gap: 4,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: COLORS.outlineVariant,
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: 4,
   },
   stepButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  stepText: {
-    fontSize: 22,
+  stepperValue: {
+    minWidth: 26,
+    textAlign: 'center',
+    fontSize: 15,
+    fontWeight: '700',
     color: COLORS.primary,
+  },
+  footer: {
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 8,
+  },
+  footerLogo: {
+    width: 40,
+    height: 38,
+    resizeMode: 'contain',
+    opacity: 0.9,
+  },
+  footerName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.onSurfaceVariant,
+  },
+  footerTagline: {
+    fontSize: 12,
+    color: COLORS.outline,
+  },
+  footerVersion: {
+    fontSize: 11,
+    color: COLORS.outline,
   },
 });
 

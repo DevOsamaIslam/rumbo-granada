@@ -44,8 +44,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-splash-screen',
       {
+        // 1024x1024 transparent PNG: Expo centres it on the brand red and scales
+        // it with `imageWidth` (see assets/splash-icon.png).
         image: './assets/splash-icon.png',
-        resizeMode: 'cover',
+        imageWidth: 220,
+        resizeMode: 'contain',
         backgroundColor: '#AE0420',
       },
     ],

@@ -115,6 +115,16 @@ describe('parseStopArrivalsHtml', () => {
     const arrivals = parseStopArrivalsHtml(html);
     expect(arrivals[0].minutes).toBe(1);
   });
+
+  it('uses the Mins column when the Llega-derived countdown is longer', () => {
+    // A Llega time one hour in the past wraps to tomorrow (~23h), while the Mins
+    // column holds the live countdown — the site is unreliable, so trust Mins.
+    const past = new Date(Date.now() - 60 * 60_000);
+    const timeStr = `${String(past.getHours()).padStart(2, '0')}:${String(past.getMinutes()).padStart(2, '0')}`;
+    const html = ARRIVALS_HTML.replace('>15:15<', `>${timeStr}<`).replace('>1<', '>20<');
+    const arrivals = parseStopArrivalsHtml(html);
+    expect(arrivals[0].minutes).toBe(20);
+  });
 });
 
 describe('parseStopSearchHtml', () => {

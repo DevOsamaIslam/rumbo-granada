@@ -45,10 +45,6 @@ vi.mock('@/store/settings', () => ({
   })),
 }));
 
-vi.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
-}));
-
 // vitest hoists `vi.mock` to the top of the file, so the import of the
 // component under test must come after the mock registrations.
 /* eslint-disable-next-line import/first */
@@ -72,16 +68,28 @@ describe('SettingsScreen', () => {
   it('renders the settings sections', async () => {
     const { getByText } = await render(<SettingsScreen />);
     expect(getByText('Configuración')).toBeOnTheScreen();
+    expect(getByText('Personaliza tu experiencia')).toBeOnTheScreen();
     expect(getByText('Idioma')).toBeOnTheScreen();
     expect(getByText('Español')).toBeOnTheScreen();
     expect(getByText('Inglés')).toBeOnTheScreen();
     expect(getByText('Estilo del mapa')).toBeOnTheScreen();
+    expect(getByText('Elige la apariencia del mapa')).toBeOnTheScreen();
     expect(getByText('Estándar')).toBeOnTheScreen();
     expect(getByText('Oscuro')).toBeOnTheScreen();
     expect(getByText('Preferencias')).toBeOnTheScreen();
     expect(getByText('Seguir mi ubicación automáticamente')).toBeOnTheScreen();
     expect(getByText('Mostrar etiquetas de autobuses')).toBeOnTheScreen();
     expect(getByText('Avisar con (minutos)')).toBeOnTheScreen();
+    expect(getByText('Con cuánta antelación avisamos de la llegada')).toBeOnTheScreen();
+  });
+
+  it('shows the current threshold value and the app footer', async () => {
+    const { getByText, getAllByText } = await render(<SettingsScreen />);
+    expect(getByText('5')).toBeOnTheScreen();
+    // App name in the eyebrow and in the footer, plus tagline and version.
+    expect(getAllByText('Rumbo Granada')).toHaveLength(2);
+    expect(getByText('Tu autobús, en tiempo real')).toBeOnTheScreen();
+    expect(getByText('v1.0.0')).toBeOnTheScreen();
   });
 
   it('changes the language', async () => {

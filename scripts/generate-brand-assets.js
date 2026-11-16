@@ -143,59 +143,137 @@ const SPLASH_RED = sample(splash2, 3, splash2.height >> 1);
 console.log(`splash red: rgb(${SPLASH_RED.join(',')}) = ${hex(SPLASH_RED)}`);
 
 // --- Core app assets --------------------------------------------------------
-// Full-bleed opaque app icon (Apple rejects transparency in store icons):
-// the rounded art is composited on the sampled brand red, then square-padded.
-const masterFullBleed = padSquare(master, Math.max(master.width, master.height), BRAND_RED);
-save(resize(masterFullBleed, 1024, 1024), 'assets/icon.png');
+// The collection's master art is a rounded tile with a subtle red gradient
+// backdrop. Store icons must be square and full-bleed (the OS applies its own
+// mask), so the glyph (castle + bus) is cut out of the art and recomposed on a
+// clean gradient: full-bleed for iOS, inside the Android adaptive safe zone.
+const GLYPH_CANVAS = 1024;
+/** iOS/store icon: 1024x1024, opaque, glyph leaving a ~14% margin per side. */
+const ICON_GLYPH_FRACTION = 0.72;
+/** Android adaptive safe zone: 66dp of the 108dp layer canvas (~61%). */
+const ADAPTIVE_GLYPH_FRACTION = 0.6;
+/** Splash logo: 1024x1024 transparent PNG, same breathing room as the icon. */
+const SPLASH_GLYPH_FRACTION = 0.62;
 
-// Rounded logo for in-app use (AppHeader) — transparent outside the art.
-save(resize(master, 256, 245), 'assets/logo.png');
+// Gradient stops sampled from the art's own backdrop (top light → bottom dark).
+const GRADIENT_TOP = sample(master, 30, 30);
+const GRADIENT_BOTTOM = sample(master, 30, master.height - 31);
+console.log(`icon gradient: ${hex(GRADIENT_TOP)} → ${hex(GRADIENT_BOTTOM)}`);
 
-// Android adaptive icon: full-bleed foreground over the solid red background;
-// the launcher mask crops it to the system shape.
-save(resize(masterFullBleed, 1024, 1024), 'assets/android-icon-foreground.png');
-save(solid(1024, BRAND_RED), 'assets/android-icon-background.png');
+/** Opaque vertical brand gradient, matching the collection backdrop. */
+function redGradient(size, top, bottom) {
+  const out = new PNG({ width: size, height: size });
+  for (let y = 0; y < size; y++) {
+    const t = y / (size - 1);
+    for (let x = 0; x < size; x++) {
+      const i = (y * size + x) * 4;
+      for (let c = 0; c < 3; c++) {
+        out.data[i + c] = Math.round(top[c] * (1 - t) + bottom[c] * t);
+      }
+      out.data[i + 3] = 255;
+    }
+  }
+  return out;
+}
 
-// Monochrome (white) glyph for Android themed icons: every pixel far enough
-// from the brand red becomes white with soft alpha.
-const [br, bgc, bb] = BRAND_RED;
-const dist = (r, g, b) => Math.abs(r - br) + Math.abs(g - bgc) + Math.abs(b - bb);
+/** Fully transparent square canvas. */
+function transparent(size) {
+  return new PNG({ width: size, height: size });
+}
+
+// Glyph extraction: only the bright artwork counts — the castle is beige
+// (#FDD4A2) and the bus is white — while every red shade (backdrop gradient,
+// hill) has near-zero green/blue. The bounding box crops the art so it can be
+// re-scaled independently of the rounded tile it came from.
 let minX = master.width, maxX = 0, minY = master.height, maxY = 0;
-const glyph = new PNG({ width: master.width, height: master.height });
+const glyphArt = new PNG({ width: master.width, height: master.height });
+const glyphMask = new PNG({ width: master.width, height: master.height });
 for (let y = 0; y < master.height; y++) {
   for (let x = 0; x < master.width; x++) {
     const i = (y * master.width + x) * 4;
-    const d = dist(master.data[i], master.data[i + 1], master.data[i + 2]);
-    const a = Math.max(0, Math.min(255, Math.round((d - 60) * 3)));
+    const a = Math.max(0, Math.min(255, Math.round((Math.min(master.data[i + 1], master.data[i + 2]) - 85) * 5)));
     if (a > 0) {
       if (x < minX) minX = x;
       if (x > maxX) maxX = x;
       if (y < minY) minY = y;
       if (y > maxY) maxY = y;
     }
-    glyph.data[i] = 255; glyph.data[i + 1] = 255; glyph.data[i + 2] = 255; glyph.data[i + 3] = a;
+    glyphArt.data[i] = master.data[i];
+    glyphArt.data[i + 1] = master.data[i + 1];
+    glyphArt.data[i + 2] = master.data[i + 2];
+    glyphArt.data[i + 3] = a;
+    glyphMask.data[i] = 255;
+    glyphMask.data[i + 1] = 255;
+    glyphMask.data[i + 2] = 255;
+    glyphMask.data[i + 3] = a;
   }
 }
-// Glyph inside the adaptive safe zone (~62% of the canvas).
-const gw = maxX - minX + 1;
-const gh = maxY - minY + 1;
-const glyphBox = new PNG({ width: gw, height: gh });
-for (let y = 0; y < gh; y++) {
-  for (let x = 0; x < gw; x++) {
-    const si = ((y + minY) * master.width + (x + minX)) * 4;
-    const di = (y * gw + x) * 4;
-    for (let c = 0; c < 4; c++) glyphBox.data[di + c] = glyph.data[si + c];
-  }
-}
-const GLYPH_CANVAS = 1024;
-const GLYPH_MAX = Math.round(GLYPH_CANVAS * 0.62);
-const gScale = GLYPH_MAX / Math.max(gw, gh);
-const glyphScaled = resize(glyphBox, Math.round(gw * gScale), Math.round(gh * gScale));
-save(padSquare(glyphScaled, GLYPH_CANVAS), 'assets/android-icon-monochrome.png');
-save(padSquare(resize(glyphScaled, 62, 62), 96), 'assets/notification-icon.png');
 
-// Splash artwork (portrait, full-bleed design) for expo-splash-screen.
-save(resize(splash2, 588, 1035), 'assets/splash-icon.png');
+/** Crop a glyph layer down to its visible bounding box. */
+function cropGlyph(source) {
+  const w = maxX - minX + 1;
+  const h = maxY - minY + 1;
+  const out = new PNG({ width: w, height: h });
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const si = ((y + minY) * source.width + (x + minX)) * 4;
+      const di = (y * w + x) * 4;
+      for (let c = 0; c < 4; c++) out.data[di + c] = source.data[si + c];
+    }
+  }
+  return out;
+}
+const glyphBox = cropGlyph(glyphArt);
+const glyphSilhouette = cropGlyph(glyphMask);
+
+/**
+ * Scale `art` to `fraction` of the square canvas and source-over composite it
+ * on `bg` (PNG.bitblt would overwrite instead of blending).
+ */
+function glyphOn(bg, fraction, art = glyphBox) {
+  const size = bg.width;
+  const scale = (size * fraction) / Math.max(art.width, art.height);
+  const scaled = resize(art, Math.round(art.width * scale), Math.round(art.height * scale));
+  const out = new PNG({ width: size, height: size });
+  out.data.set(bg.data);
+  const offX = (size - scaled.width) >> 1;
+  const offY = (size - scaled.height) >> 1;
+  for (let y = 0; y < scaled.height; y++) {
+    for (let x = 0; x < scaled.width; x++) {
+      const si = (y * scaled.width + x) * 4;
+      const sa = scaled.data[si + 3] / 255;
+      if (sa === 0) continue;
+      const di = ((y + offY) * size + (x + offX)) * 4;
+      const da = out.data[di + 3] / 255;
+      const oa = sa + da * (1 - sa);
+      for (let c = 0; c < 3; c++) {
+        out.data[di + c] = Math.round(
+          (scaled.data[si + c] * sa + out.data[di + c] * da * (1 - sa)) / oa,
+        );
+      }
+      out.data[di + 3] = Math.round(oa * 255);
+    }
+  }
+  return out;
+}
+
+// Full-bleed opaque app icon (Apple rejects transparency in store icons).
+save(glyphOn(redGradient(GLYPH_CANVAS, GRADIENT_TOP, GRADIENT_BOTTOM), ICON_GLYPH_FRACTION), 'assets/icon.png');
+
+// Rounded logo for in-app use (AppHeader) — transparent outside the art.
+const masterFullBleed = padSquare(master, Math.max(master.width, master.height), BRAND_RED);
+save(resize(master, 256, 245), 'assets/logo.png');
+
+// Android adaptive icon: transparent glyph-only foreground inside the safe
+// zone, over the solid brand red background layer.
+save(glyphOn(transparent(GLYPH_CANVAS), ADAPTIVE_GLYPH_FRACTION), 'assets/android-icon-foreground.png');
+save(solid(GLYPH_CANVAS, BRAND_RED), 'assets/android-icon-background.png');
+// Monochrome (white) glyph for Android themed icons.
+save(glyphOn(transparent(GLYPH_CANVAS), SPLASH_GLYPH_FRACTION, glyphSilhouette), 'assets/android-icon-monochrome.png');
+
+// Splash logo: square, transparent, centred glyph. expo-splash-screen scales it
+// with `imageWidth` over the brand red background (see app.config.ts).
+save(glyphOn(transparent(GLYPH_CANVAS), SPLASH_GLYPH_FRACTION), 'assets/splash-icon.png');
 
 // Favicon: the master art on brand red.
 save(fitSquare(masterFullBleed, 48, BRAND_RED), 'assets/favicon.png');
@@ -204,6 +282,23 @@ save(fitSquare(masterFullBleed, 48, BRAND_RED), 'assets/favicon.png');
 // when React Native renders it at width == height).
 const pin = crop(...BOX.pin);
 save(resize(padSquare(pin, Math.max(pin.width, pin.height)), 340, 340), 'assets/map-pin.png');
+
+// Notification icon (Android status bar): the same map pin as the stop marker,
+// flattened to a white silhouette with transparency, as Android requires.
+// 96x96 px = 24dp at xxxhdpi.
+function silhouette(png, size, fraction) {
+  const scale = (size * fraction) / Math.max(png.width, png.height);
+  const scaled = resize(png, Math.round(png.width * scale), Math.round(png.height * scale));
+  for (let i = 0; i < scaled.data.length; i += 4) {
+    scaled.data[i] = 255;
+    scaled.data[i + 1] = 255;
+    scaled.data[i + 2] = 255;
+    // Android draws the status-bar icon as a mask: hard edges, no halo.
+    scaled.data[i + 3] = scaled.data[i + 3] >= 40 ? 255 : 0;
+  }
+  return padSquare(scaled, size);
+}
+save(silhouette(pin, 96, 0.9), 'assets/notification-icon.png');
 
 // --- Additional branding components (store listing, future UI) --------------
 save(resize(crop(...BOX.banner), 1294, 532), 'assets/branding/banner.png');
