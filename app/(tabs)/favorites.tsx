@@ -1,98 +1,36 @@
-import { useState, type ReactNode } from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable, useWindowDimensions } from 'react-native';
-import { Title, Divider, IconButton } from 'react-native-paper';
+import { useState } from 'react';
+import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
+import { IconButton } from 'react-native-paper';
+import { FavoritesTabBar } from '@/components/favorites/FavoritesTabBar';
+import { AddStopLabelModal } from '@/components/favorites';
 import { useRouter } from 'expo-router';
 import { useFavorites } from '@/hooks/useFavorites';
-import { AddStopLabelModal } from '@/components/favorites';
-import { TrackingList } from '@/components/tracking';
 import { useTranslation } from 'react-i18next';
 
 import { COLORS } from '@/constants/colors';
-import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming, withSpring, runOnJS } from 'react-native-reanimated';
-
-/** Dismiss threshold: swipe left beyond this distance and the row removes itself. */
-const DISMISS_THRESHOLD = -80;
-const ROW_MARGIN = 12;
-
-/** Backup removal in case the exit animation is interrupted before finishing. */
-function scheduleRemoval(onRemove: () => void) {
-  setTimeout(onRemove, 420);
-}
-
-/**
- * Swipe-left-to-dismiss wrapper. No action button: the row follows the finger,
- * releasing past the threshold slides it out, fades it and collapses its height
- * so the list reflows smoothly, then removes it. Releasing earlier springs back.
- */
-function SwipeToRemove({ onRemove, children }: { onRemove: () => void; children: ReactNode }) {
-  const { width } = useWindowDimensions();
-  const translateX = useSharedValue(0);
-  const opacity = useSharedValue(1);
-  const height = useSharedValue(0);
-  const marginBottom = useSharedValue(ROW_MARGIN);
-  const exiting = useSharedValue(false);
-
-  const pan = Gesture.Pan()
-    .activeOffsetX([-16, 16])
-    .failOffsetY([-8, 8])
-    .onUpdate((e) => {
-      if (exiting.value) return;
-      translateX.value = Math.max(-width, Math.min(0, e.translationX));
-    })
-    .onEnd((e) => {
-      if (exiting.value) return;
-      if (e.translationX < DISMISS_THRESHOLD) {
-        exiting.value = true;
-        translateX.value = withTiming(-width, { duration: 170 });
-        opacity.value = withTiming(0, { duration: 170 }, (finished) => {
-          if (!finished) return;
-          height.value = withTiming(0, { duration: 150 }, (finished2) => {
-            if (finished2) runOnJS(onRemove)();
-          });
-          marginBottom.value = withTiming(0, { duration: 150 });
-        });
-        // Safety net: if the exit animation is interrupted (e.g. the user
-        // navigates away mid-swipe), its completion callbacks never fire and
-        // the row would stay in the store while looking gone. The scheduled
-        // removal keeps state consistent; when the animation completes first
-        // the second call is a no-op (remove is idempotent).
-        runOnJS(scheduleRemoval)(onRemove);
-      } else {
-        translateX.value = withSpring(0, { damping: 28, stiffness: 260 });
-      }
-    });
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-    opacity: opacity.value,
-    marginBottom: marginBottom.value,
-    // Height only participates while collapsing: its measured value is captured
-    // in onLayout, then animated to 0 so sibling rows reflow without a jump.
-    height: exiting.value ? height.value : undefined,
-  }));
-
-  return (
-    <GestureDetector gesture={pan}>
-      <Animated.View
-        style={animatedStyle}
-        onLayout={(e) => {
-          // Reanimated shared values are mutable by design; this write is a
-          // false positive for the React Compiler immutability rule.
-          // eslint-disable-next-line react-hooks/immutability
-          height.value = e.nativeEvent.layout.height;
-        }}
-      >
-        {children}
-      </Animated.View>
-    </GestureDetector>
-  );
-}
 
 export default function FavoritesScreen() {
   const router = useRouter();
-  const { favoriteBuses, favoriteStops, isBusFavorite, isStopFavorite, toggleFavoriteBus, toggleFavoriteStop, removeFavoriteBus, removeFavoriteStop, updateBusLabel, updateStopLabel } = useFavorites();
+  const {
+    favoriteBuses,
+    favoriteStops,
+    reminders,
+    addReminder,
+    removeReminder,
+    clearOldReminders,
+    isBusFavorite,
+    isStopFavorite,
+    toggleFavoriteBus,
+    toggleFavoriteStop,
+    updateBusLabel,
+    updateStopLabel,
+  } = useFavorites();
   const { t } = useTranslation();
+
+  const [tab, setTab] = useState<'favoriteLines' | 'favoriteStops' | 'previousReminders'>(
+    'favoriteLines'
+  );
+  const [refreshing, setRefreshing] = useState(false);
 
   const [labelModal, setLabelModal] = useState<{
     type: 'bus' | 'stop';
@@ -101,6 +39,12 @@ export default function FavoritesScreen() {
     itemName: string;
     title: string;
   } | null>(null);
+
+  const handleRefresh = () => {
+    clearOldReminders();
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 400);
+  };
 
   const handleBusPress = (bus: (typeof favoriteBuses)[number]) => {
     router.push(`/line/${bus.routeId}`);
@@ -140,20 +84,42 @@ export default function FavoritesScreen() {
     setLabelModal(null);
   };
 
+  const handleRepeatReminder = (reminder: (typeof reminders)[number]) => {
+    addReminder({
+      stopId: reminder.stopId,
+      stopName: reminder.stopName,
+      label: reminder.label,
+      minutes: reminder.minutes,
+    });
+  };
+
   return (
-    <View style={[styles.container]}>
+    <View style={styles.container}>
+      <FavoritesTabBar
+        tab={tab}
+        onTabChange={setTab}
+        onRefresh={handleRefresh}
+        refreshing={refreshing}
+      />
+
       <View style={styles.content}>
-        <Title style={styles.title}>{t('favoriteBusLines', { ns: 'translation' })}</Title>
-        {favoriteBuses.length === 0 ? (
-          <Text style={styles.emptyMessage}>{t('noFavoriteBusLines', { ns: 'translation' })}</Text>
-        ) : (
-          <FlatList
-            data={favoriteBuses}
-            keyExtractor={(bus) => bus.routeId}
-            renderItem={({ item }) => (
-              <SwipeToRemove onRemove={() => removeFavoriteBus(item.routeId)}>
+        {tab === 'favoriteLines' &&
+          (favoriteBuses.length === 0 ? (
+            <Text style={styles.emptyMessage}>
+              {t('noFavoriteBusLines', { ns: 'translation' })}
+            </Text>
+          ) : (
+            <FlatList
+              data={favoriteBuses}
+              keyExtractor={(bus) => bus.routeId}
+              renderItem={({ item }) => (
                 <Pressable style={styles.item} onPress={() => handleBusPress(item)}>
-                  <View style={[styles.badgeBackground, { backgroundColor: item.routeColor ? `#${item.routeColor}` : COLORS.primary }]}>
+                  <View
+                    style={[
+                      styles.badgeBackground,
+                      { backgroundColor: item.routeColor ? `#${item.routeColor}` : COLORS.primary },
+                    ]}
+                  >
                     <Text style={styles.badgeText}>{item.routeShortName}</Text>
                   </View>
                   <View style={styles.busInfo}>
@@ -167,14 +133,18 @@ export default function FavoritesScreen() {
                   <View style={styles.favoriteArea}>
                     <IconButton
                       icon={isBusFavorite(item.routeId) ? 'star' : 'star-outline'}
-                      onPress={() => toggleFavoriteBus({
-                        routeId: item.routeId,
-                        routeShortName: item.routeShortName,
-                        routeLongName: item.routeLongName,
-                        routeColor: item.routeColor,
-                        routeTextColor: item.routeTextColor,
-                      })}
-                      accessibilityLabel={isBusFavorite(item.routeId) ? 'Remove from favorites' : 'Add to favorites'}
+                      onPress={() =>
+                        toggleFavoriteBus({
+                          routeId: item.routeId,
+                          routeShortName: item.routeShortName,
+                          routeLongName: item.routeLongName,
+                          routeColor: item.routeColor,
+                          routeTextColor: item.routeTextColor,
+                        })
+                      }
+                      accessibilityLabel={
+                        isBusFavorite(item.routeId) ? 'Remove from favorites' : 'Add to favorites'
+                      }
                     />
                     <IconButton
                       icon='pencil'
@@ -183,42 +153,42 @@ export default function FavoritesScreen() {
                     />
                   </View>
                 </Pressable>
-              </SwipeToRemove>
-            )}
-            contentContainerStyle={styles.listContent}
-          />
-        )}
-        <Divider style={styles.divider} />
-        <Title style={styles.title}>{t('favoriteStops', { ns: 'translation' })}</Title>
-        {favoriteStops.length === 0 ? (
-          <Text style={styles.emptyMessage}>{t('noFavoriteStops', { ns: 'translation' })}</Text>
-        ) : (
-          <FlatList
-            data={favoriteStops}
-            keyExtractor={(stop) => stop.stopId}
-            renderItem={({ item }) => (
-              <SwipeToRemove onRemove={() => removeFavoriteStop(item.stopId)}>
+              )}
+              contentContainerStyle={styles.listContent}
+            />
+          ))}
+
+        {tab === 'favoriteStops' &&
+          (favoriteStops.length === 0 ? (
+            <Text style={styles.emptyMessage}>{t('noFavoriteStops', { ns: 'translation' })}</Text>
+          ) : (
+            <FlatList
+              data={favoriteStops}
+              keyExtractor={(stop) => stop.stopId}
+              renderItem={({ item }) => (
                 <Pressable style={styles.item} onPress={() => handleStopPress(item)}>
                   <View style={[styles.badgeBackground, { backgroundColor: COLORS.primary }]}>
                     <Text style={styles.badgeText}>&#9733;</Text>
                   </View>
                   <View style={styles.stopInfo}>
                     <Text style={styles.stopName}>{item.stopName}</Text>
-                    {item.label && (
-                      <Text style={styles.stopLabel}>Label: {item.label}</Text>
-                    )}
+                    {item.label && <Text style={styles.stopLabel}>Label: {item.label}</Text>}
                   </View>
                   <View style={styles.favoriteArea}>
                     <IconButton
                       icon={isStopFavorite(item.stopId) ? 'star' : 'star-outline'}
-                      onPress={() => toggleFavoriteStop({
-                        stopId: item.stopId,
-                        stopName: item.stopName,
-                        label: item.label,
-                        lat: item.lat,
-                        lon: item.lon,
-                      })}
-                      accessibilityLabel={isStopFavorite(item.stopId) ? 'Remove from favorites' : 'Add to favorites'}
+                      onPress={() =>
+                        toggleFavoriteStop({
+                          stopId: item.stopId,
+                          stopName: item.stopName,
+                          label: item.label,
+                          lat: item.lat,
+                          lon: item.lon,
+                        })
+                      }
+                      accessibilityLabel={
+                        isStopFavorite(item.stopId) ? 'Remove from favorites' : 'Add to favorites'
+                      }
                     />
                     <IconButton
                       icon='pencil'
@@ -227,15 +197,45 @@ export default function FavoritesScreen() {
                     />
                   </View>
                 </Pressable>
-              </SwipeToRemove>
-            )}
-            contentContainerStyle={styles.listContent}
-          />
-        )}
-        <Divider style={styles.divider} />
-        <Text style={styles.subtitle}>{t('favoriteBusLinesAndLabeledStops', { ns: 'translation' })}</Text>
-        <TrackingList />
+              )}
+              contentContainerStyle={styles.listContent}
+            />
+          ))}
       </View>
+
+        {tab === 'previousReminders' &&
+          (reminders.length === 0 ? (
+            <Text style={styles.emptyMessage}>{t('noReminders', { ns: 'translation' })}</Text>
+          ) : (
+            <FlatList
+              data={reminders}
+              keyExtractor={(reminder) => reminder.id}
+              renderItem={({ item }) => (
+                <Pressable style={styles.item} onPress={() => handleRepeatReminder(item)}>
+                  <View style={[styles.badgeBackground, { backgroundColor: COLORS.primary }]}>
+                    <Text style={styles.badgeText}>{item.minutes ? `${item.minutes}m` : '⏰'}</Text>
+                  </View>
+                  <View style={styles.stopInfo}>
+                    <Text style={styles.stopName}>{item.stopName}</Text>
+                    {item.label && <Text style={styles.stopLabel}>Label: {item.label}</Text>}
+                  </View>
+                  <View style={styles.favoriteArea}>
+                    <IconButton
+                      icon='alarm'
+                      onPress={() => handleRepeatReminder(item)}
+                      accessibilityLabel='Repeat reminder'
+                    />
+                    <IconButton
+                      icon='delete'
+                      onPress={() => removeReminder(item.id)}
+                      accessibilityLabel='Remove reminder'
+                    />
+                  </View>
+                </Pressable>
+              )}
+              contentContainerStyle={styles.listContent}
+            />
+          ))}
 
       <AddStopLabelModal
         visible={labelModal !== null}
@@ -257,25 +257,13 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  title: {
-    marginBottom: 8,
-  },
   emptyMessage: {
     color: '#79747E',
     fontSize: 16,
     textAlign: 'center',
     padding: 24,
   },
-  divider: {
-    marginVertical: 8,
-    borderColor: '#EEE',
-  },
-  subtitle: {
-    color: '#79747E',
-    textAlign: 'center',
-    marginTop: 4,
-  },
-  // Unified item style - same for buses and stops, only the badge icon differs
+  // Unified item style - same for buses, stops and reminders, only the badge icon differs
   item: {
     backgroundColor: '#FFF',
     padding: 12,
@@ -283,6 +271,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -316,9 +305,6 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingVertical: 8,
-  },
-  swipeRightIcon: {
-    marginRight: 8,
   },
   favoriteArea: {
     flexDirection: 'row',

@@ -7,12 +7,16 @@ export function useFavorites() {
   const {
     favoriteBuses,
     favoriteStops,
+    reminders,
     addFavoriteBus,
     removeFavoriteBus,
     updateBusLabel,
     addFavoriteStop,
     removeFavoriteStop,
     updateStopLabel,
+    addReminder,
+    removeReminder,
+    clearOldReminders,
   } = useFavoritesStore();
 
   const toggleFavoriteBus = useCallback((bus: FavoriteBus) => {
@@ -51,6 +55,7 @@ export function useFavorites() {
   return {
     favoriteBuses,
     favoriteStops,
+    reminders,
     toggleFavoriteBus,
     toggleFavoriteStop,
     addFavoriteStop,
@@ -61,5 +66,8 @@ export function useFavorites() {
     isBusFavorite,
     isStopFavorite,
     getStopLabel,
+    addReminder,
+    removeReminder,
+    clearOldReminders,
   };
 }

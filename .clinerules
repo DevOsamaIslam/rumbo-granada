@@ -27,3 +27,10 @@ tokens; behavior and exit code are unchanged.
 If asked to do a phase, check progress-tracker.md
 Update the package version based on according to what has been changed
 For paths in the command line, if some paths use parenthesis then put the path between quotes
+
+Workflow:
+- Update the tracker.
+- Do the implementation.
+- Create unit and integration tests, run them, if something is wrong, fix it.
+- Run typecheck and lint, then fix.
+- Ask the developer to test, and wait for their feedback.
