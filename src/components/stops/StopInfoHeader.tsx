@@ -1,7 +1,7 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import { COLORS } from '@/constants/colors';
-import { getBadgeBackgroundColor, getBadgeTextColor } from '@/utils/colors';
+import { getBadgeBackgroundColor } from '@/utils/colors';
 import { useTranslation } from 'react-i18next';
 import type { Route, Stop } from '@/types/gtfs';
 
@@ -56,23 +56,18 @@ export function StopInfoHeader({
         ) : (
           routes.map((route) => {
             const color = getBadgeBackgroundColor(route.route_color, COLORS.primary);
-            const textColor = getBadgeTextColor(color, route.route_text_color);
             return (
-              <View
+              <Pressable
                 key={route.route_id}
                 style={[styles.routeBadge, { backgroundColor: color }]}
+                onPress={() => onPressRoute(route)}
+                accessibilityRole='button'
+                accessibilityLabel={t('openLine', { ns: 'translation', line: route.route_short_name })}
               >
-                <IconButton
-                  icon='chevron-right'
-                  size={20}
-                  onPress={() => onPressRoute(route)}
-                  accessibilityLabel={t('openLine', { ns: 'translation', line: route.route_short_name })}
-                  style={styles.routeBadgeButton}
-                />
-                <Text style={[styles.routeBadgeText, { color: textColor }]}>
+                <Text style={styles.routeBadgeText}>
                   {route.route_short_name}
                 </Text>
-              </View>
+              </Pressable>
             );
           })
         )}
@@ -123,19 +118,17 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   routeBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    width: 32,
+    height: 32,
     borderRadius: 16,
-    paddingLeft: 4,
-    paddingRight: 8,
-  },
-  routeBadgeButton: {
-    margin: 0,
-    width: 28,
-    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
   routeBadgeText: {
-    fontSize: 13,
+    color: '#FFFFFF',
+    fontSize: 12,
     fontWeight: '700',
   },
   noRoutes: {
