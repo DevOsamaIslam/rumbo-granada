@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useBusTracking } from '@/hooks/useBusTracking';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '@/constants/colors';
+import { hapticTap } from '@/utils/haptics';
 
 /**
  * List of active bus trackings, shown on the Favorites tab.
@@ -27,7 +28,10 @@ export function TrackingList() {
         renderItem={({ item }) => (
           <Pressable
             style={styles.row}
-            onPress={() => removeTrackedPair(item.id)}
+            onPress={() => {
+              void hapticTap();
+              removeTrackedPair(item.id);
+            }}
             accessibilityLabel={
               item.enabled ? t('stopTracking', { ns: 'translation' }) : t('resumeTracking', { ns: 'translation' })
             }

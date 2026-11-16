@@ -34,3 +34,4 @@ Workflow:
 - Create unit and integration tests, run them, if something is wrong, fix it.
 - Run typecheck and lint, then fix.
 - Ask the developer to test, and wait for their feedback.
+- If all good, update the package version

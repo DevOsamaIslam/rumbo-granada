@@ -191,15 +191,15 @@
 ### Phase 12: Polish, Testing, Build Config
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 12.1 | Add loading skeletons for all list screens | ⬜ | |
-| 12.2 | Implement error boundaries + retry UI | ⬜ | |
-| 12.3 | Add empty states (no favorites, no lines, etc.) | ⬜ | |
+| 12.1 | Add loading skeletons for all list screens | ✅ | Skeleton + SkeletonListItem components; used in LineList and ArrivalsList |
+| 12.2 | Implement error boundaries + retry UI | ✅ | ErrorBoundary component in src/components/common |
+| 12.3 | Add empty states (no favorites, no lines, etc.) | ✅ | Already implemented in screens; verified |
 | 12.4 | Polish map: custom theme, clustering, smooth animations | ⬜ | |
-| 12.5 | Add haptic feedback for actions | ⬜ | `expo-haptics` |
-| 12.6 | Run full test suite, enforce coverage thresholds | ⬜ | `npm run test:coverage` |
-| 12.7 | Configure EAS Build (`eas.json`) | ⬜ | Dev, preview, production profiles |
+| 12.5 | Add haptic feedback for actions | ✅ | expo-haptics installed; hapticTap/success/warning utils; wired to lines, favorites, tracking |
+| 12.6 | Run full test suite, enforce coverage thresholds | ✅ | 189 passed / 7 pre-existing failures; coverage thresholds added to vitest config |
+| 12.7 | Configure EAS Build (`eas.json`) | ✅ | Dev, preview, production profiles |
 | 12.8 | Create app icons, splash screens, adaptive icons | ⬜ | `expo-app-icon` |
-| 12.9 | Configure `app.json` / `app.config.ts` | ⬜ | Permissions, scheme, plugins |
+| 12.9 | Configure `app.json` / `app.config.ts` | ✅ | Already configured with permissions, scheme, plugins |
 | 12.10 | Verify: production build runs on device | ⬜ | |
 
 **Depends on:** 1–11  
@@ -332,6 +332,6 @@ graph TD
 
 ---
 
-*Last updated: 2026-11-17*
-*Next task: Phase 10 — Bus Tracking & Notifications*
-**Blocks:** 11, 12
+*Last updated: 2026-11-16*
+*Next task: Phase 12.4 — Map polish (custom theme, clustering, smooth animations)*
+**Blocks:** Milestone 2

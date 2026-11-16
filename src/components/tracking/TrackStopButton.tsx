@@ -3,6 +3,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useBusTracking } from '@/hooks/useBusTracking';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '@/constants/colors';
+import { hapticTap, hapticSuccess } from '@/utils/haptics';
 
 export interface TrackStopButtonProps {
   routeId: string;
@@ -44,6 +45,7 @@ export function TrackStopButton({
   const isActive = !!pair?.enabled;
 
   const confirmTrack = () => {
+    void hapticSuccess();
     addTrackedPair({
       routeId,
       routeShortName,
@@ -57,6 +59,7 @@ export function TrackStopButton({
   };
 
   const handlePress = () => {
+    void hapticTap();
     if (pair) {
       toggleTracking(pair.id);
       return;

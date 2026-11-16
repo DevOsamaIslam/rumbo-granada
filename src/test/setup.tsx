@@ -211,6 +211,22 @@ vi.mock("expo-notifications", () => ({
   AndroidImportance: { HIGH: 'high', DEFAULT: 'default' },
 }));
 
+// Mock expo-haptics (native module, not available in the Node test env).
+vi.mock("expo-haptics", () => ({
+  __esModule: true,
+  impactAsync: vi.fn().mockResolvedValue(undefined),
+  ImpactFeedbackStyle: {
+    Light: 'light',
+    Medium: 'medium',
+    Heavy: 'heavy',
+  },
+  NotificationFeedbackStyle: {
+    Success: 'success',
+    Warning: 'warning',
+    Error: 'error',
+  },
+}));
+
 vi.mock("@tanstack/react-query", () => ({
   QueryClient: vi.fn().mockImplementation(() => ({
     getQueryCache: () => ({ findAll: () => [] }),

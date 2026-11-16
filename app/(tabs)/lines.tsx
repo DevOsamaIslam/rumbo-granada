@@ -8,6 +8,7 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { filterLines } from '@/utils/gtfs';
 import { Route } from '@/types/gtfs';
 import { useTranslation } from 'react-i18next';
+import { hapticTap } from '@/utils/haptics';
 
 export default function LinesScreen() {
   const router = useRouter();
@@ -20,16 +21,19 @@ export default function LinesScreen() {
   const filtered = filterLines(routes, query);
 
   const handleRefresh = async () => {
+    void hapticTap();
     setRefreshing(true);
     await loadLines();
     setRefreshing(false);
   };
 
   const handleLinePress = (route: Route) => {
+    void hapticTap();
     router.push(`/line/${route.route_id}`);
   };
 
   const handleToggleFavorite = (route: Route) => {
+    void hapticTap();
     toggleFavoriteBus({
       routeId: route.route_id,
       routeShortName: route.route_short_name,

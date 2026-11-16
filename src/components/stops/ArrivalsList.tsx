@@ -1,8 +1,9 @@
-import { ActivityIndicator, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { ArrivalRow } from './ArrivalRow';
 import { COLORS } from '@/constants/colors';
 import { useTranslation } from 'react-i18next';
+import { SkeletonListItem } from '@/components/common/Skeleton';
 import type { Arrival } from '@/types/api';
 import type { TFunction } from 'i18next';
 
@@ -49,12 +50,13 @@ export function ArrivalsList({
 
   if (isLoading && arrivals.length === 0) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator
-          animating
-          size='large'
-          accessibilityLabel={t('loadingArrivals', { ns: 'translation' })}
-        />
+      <View
+        style={styles.skeletonContainer}
+        accessibilityLabel={t('loadingArrivals', { ns: 'translation' })}
+      >
+        {[...Array(4)].map((_, i) => (
+          <SkeletonListItem key={i} />
+        ))}
       </View>
     );
   }
@@ -103,6 +105,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 24,
     gap: 8,
+  },
+  skeletonContainer: {
+    padding: 8,
   },
   content: {
     paddingBottom: 24,

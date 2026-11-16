@@ -6,6 +6,7 @@ import { AddStopLabelModal } from '@/components/favorites';
 import { useRouter } from 'expo-router';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useTranslation } from 'react-i18next';
+import { hapticTap } from '@/utils/haptics';
 
 import { COLORS } from '@/constants/colors';
 
@@ -41,20 +42,24 @@ export default function FavoritesScreen() {
   } | null>(null);
 
   const handleRefresh = () => {
+    void hapticTap();
     clearOldReminders();
     setRefreshing(true);
     setTimeout(() => setRefreshing(false), 400);
   };
 
   const handleBusPress = (bus: (typeof favoriteBuses)[number]) => {
+    void hapticTap();
     router.push(`/line/${bus.routeId}`);
   };
 
   const handleStopPress = (stop: (typeof favoriteStops)[number]) => {
+    void hapticTap();
     router.push(`/stop/${stop.stopId}`);
   };
 
   const handleBusEdit = (bus: (typeof favoriteBuses)[number]) => {
+    void hapticTap();
     setLabelModal({
       type: 'bus',
       id: bus.routeId,
@@ -65,6 +70,7 @@ export default function FavoritesScreen() {
   };
 
   const handleStopEdit = (stop: (typeof favoriteStops)[number]) => {
+    void hapticTap();
     setLabelModal({
       type: 'stop',
       id: stop.stopId,

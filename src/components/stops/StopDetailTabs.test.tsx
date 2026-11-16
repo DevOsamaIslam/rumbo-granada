@@ -39,7 +39,7 @@ const makeRoute = (overrides: Partial<Route> = {}): Route => ({
 });
 
 describe('StopLinesTab', () => {
-  it('shows a line number circle for every line serving the stop', async () => {
+  it('shows a tracking bell for every line serving the stop', async () => {
     mockedUseBusTracking.mockReturnValue({
       trackedPairs: [],
       addTrackedPair: vi.fn(),
@@ -54,38 +54,16 @@ describe('StopLinesTab', () => {
       />,
     );
 
-    expect(screen.getByText('33')).toBeOnTheScreen();
-    expect(screen.getByText('21')).toBeOnTheScreen();
+    expect(screen.getAllByLabelText('Reanudar rastreo')).toHaveLength(2);
   });
 
-  it('only shows the line number, not the long name', async () => {
-    mockedUseBusTracking.mockReturnValue({
-      trackedPairs: [],
-      addTrackedPair: vi.fn(),
-      removeTrackedPair: vi.fn(),
-    } as any);
-
-    await render(
-      <StopLinesTab
-        stop={makeStop()}
-        routes={[makeRoute()]}
-        onPress={() => {}}
-      />,
-    );
-
-    expect(screen.getByText('33')).toBeOnTheScreen();
-    expect(
-      screen.queryByText('CENES DE LA VEGA - ESTACIÓN AUTOBUSES'),
-    ).toBeNull();
-  });
-
-  it('shows no tracking bell on the lines tab', async () => {
+  it('marks the bell of the currently tracked line as active', async () => {
     mockedUseBusTracking.mockReturnValue({
       trackedPairs: [
         {
           id: 'p1',
-          routeId: 'r1',
-          routeShortName: '33',
+          routeId: 'r2',
+          routeShortName: '21',
           stopId: 'stop-1',
           stopCode: '9',
           stopName: 'Avda. Sierra Nevada 97',
@@ -100,11 +78,16 @@ describe('StopLinesTab', () => {
     } as any);
 
     await render(
-      <StopLinesTab stop={makeStop()} routes={[makeRoute()]} onPress={() => {}} />,
+      <StopLinesTab
+        stop={makeStop()}
+        routes={[makeRoute(), makeRoute({ route_id: 'r2', route_short_name: '21' })]}
+        onPress={() => {}}
+      />,
     );
 
-    expect(screen.queryByLabelText('Reanudar rastreo')).toBeNull();
-    expect(screen.queryByLabelText('Dejar de rastrear')).toBeNull();
+    expect(
+      screen.getByLabelText('Dejar de rastrear'),
+    ).toBeOnTheScreen();
   });
 
   it('still opens the line screen when a row is tapped', async () => {

@@ -1,8 +1,8 @@
 import { FlatList, StyleSheet, Text, View } from 'react-native';
-import { ActivityIndicator } from 'react-native-paper';
 import { Route } from '@/types/gtfs';
 import { useTranslation } from 'react-i18next';
 import { LineItem } from './LineItem';
+import { SkeletonListItem } from '@/components/common/Skeleton';
 
 interface LineListProps {
   routes: Route[];
@@ -31,8 +31,13 @@ export function LineList({
 
   if (isLoading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator animating size="large" accessibilityLabel={t('loadingLines', { ns: 'translation' })} />
+      <View
+        style={styles.skeletonContainer}
+        accessibilityLabel={t('loadingLines', { ns: 'translation' })}
+      >
+        {[...Array(6)].map((_, i) => (
+          <SkeletonListItem key={i} />
+        ))}
       </View>
     );
   }
@@ -75,6 +80,9 @@ export function LineList({
 }
 
 const styles = StyleSheet.create({
+  skeletonContainer: {
+    padding: 8,
+  },
   centered: {
     flex: 1,
     alignItems: 'center',
