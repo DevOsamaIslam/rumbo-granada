@@ -122,6 +122,36 @@ describe('computeTrackingMinutes', () => {
     ];
     expect(computeTrackingMinutes(rows, '33')).toEqual([5]);
   });
+
+  it('derives minutes from scheduledTime when present', () => {
+    const now = Date.now();
+    vi.spyOn(Date, 'now').mockReturnValue(now);
+    const nowDate = new Date(now);
+    const nowHour = nowDate.getHours();
+    const nowMin = nowDate.getMinutes();
+    // Schedule a time 10 minutes from now
+    let targetMin = nowMin + 10;
+    let targetHour = nowHour;
+    if (targetMin >= 60) {
+      targetMin -= 60;
+      targetHour += 1;
+    }
+    if (targetHour >= 24) targetHour -= 24;
+    const scheduledTime = `${String(targetHour).padStart(2, '0')}:${String(targetMin).padStart(2, '0')}`;
+    const rows = [
+      makeArrival({ lineCode: '33', minutes: 999, scheduledTime }),
+    ];
+    expect(computeTrackingMinutes(rows, '33')).toEqual([10]);
+    vi.restoreAllMocks();
+  });
+
+  it('falls back to minutes when scheduledTime is unparseable', () => {
+    const rows = [
+      makeArrival({ lineCode: '33', minutes: 8, scheduledTime: '--:--' }),
+      makeArrival({ lineCode: '33', minutes: 3, scheduledTime: '' }),
+    ];
+    expect(computeTrackingMinutes(rows, '33')).toEqual([3, 8]);
+  });
 });
 
 describe('shouldClearTrackingNotification', () => {

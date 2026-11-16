@@ -22,13 +22,40 @@ const POLL_INTERVAL_MS = CONFIG.TRACKING_UPDATE_INTERVAL_MS;
 const NOTIFICATION_COOLDOWN_MS = 10 * 60 * 1000;
 
 /**
+ * Parses a wall-clock time string like "15:18" into today's absolute timestamp.
+ * Returns `null` when the string can't be parsed (e.g. empty or "--:--").
+ */
+function parseScheduledTime(scheduledTime: string): number | null {
+  const match = String(scheduledTime).trim().match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return null;
+  const hours = Number.parseInt(match[1], 10);
+  const minutes = Number.parseInt(match[2], 10);
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
+
+  const now = Date.now();
+  const today = new Date(now);
+  today.setHours(hours, minutes, 0, 0);
+  return today.getTime();
+}
+
+/**
  * Normalises a live-API arrival row into a typed prediction with an absolute
- * arrival time. The site reports `minutes` until arrival, so we convert it to
- * an absolute timestamp the threshold check can compare against `now`.
+ * arrival time. The site reports both a `minutes` countdown and a
+ * `scheduledTime` wall-clock (e.g. "15:18"). The clock time is the source of
+ * truth because `minutes` can go stale between polls; we fall back to
+ * `minutes` only when the clock time can't be parsed.
  */
 function toArrivalPrediction(stopId: string, arrival: Arrival): ArrivalPrediction {
   const now = Date.now();
-  const arrivalTime = now + Math.max(arrival.minutes, 0) * 60_000;
+
+  let arrivalTime: number;
+  const scheduled = parseScheduledTime(arrival.scheduledTime);
+  if (scheduled !== null) {
+    arrivalTime = scheduled;
+  } else {
+    arrivalTime = now + Math.max(arrival.minutes, 0) * 60_000;
+  }
+
   return {
     stopId,
     routeId: '',
@@ -50,9 +77,20 @@ export function computeTrackingMinutes(
   rows: Arrival[],
   routeShortName: string,
 ): number[] {
+  const now = Date.now();
   const lineMinutes = rows
-    .filter((row) => row.lineCode === routeShortName && row.minutes >= 0)
-    .map((row) => row.minutes);
+    .filter((row) => row.lineCode === routeShortName)
+    .map((row) => {
+      // Prefer the wall-clock scheduled time; fall back to the raw `minutes`
+      // field when the clock time can't be parsed.
+      const scheduled = parseScheduledTime(row.scheduledTime);
+      if (scheduled !== null) {
+        return Math.max(0, Math.round((scheduled - now) / 60000));
+      }
+      // Negative `minutes` means "no data" — exclude it.
+      return row.minutes >= 0 ? row.minutes : -1;
+    })
+    .filter((m) => m >= 0);
   return [...new Set(lineMinutes)].sort((a, b) => a - b);
 }
 
