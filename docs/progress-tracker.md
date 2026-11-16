@@ -212,79 +212,66 @@
 
 ## Milestone 2: Enhancements
 
-### Phase 13: Push Notifications (OneSignal/Expo)
+### Phase 13: Stops Screen & Tab
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 13.1 | Set up Expo push credentials (FCM/APNs) | ⬜ | |
-| 13.2 | Implement push token registration | ⬜ | Store on backend (future) |
-| 13.3 | Send push from background task (fallback) | ⬜ | |
-| 13.4 | Add notification categories/actions | ⬜ | "Open", "Dismiss" |
-| 13.5 | Test push on both platforms | ⬜ | |
+| 13.1 | Add Stops screen (`app/(tabs)/stops.tsx`) and tab item beside Lines | ⬜ | Icon + label; follows Lines tab pattern |
+| 13.2 | Add SearchBar to Stops screen (same UX as Lines) | ⬜ | Reuse `SearchBar` component |
+| 13.3 | Implement stop search by code or name | ⬜ | Accent/case-insensitive match on `stop_id`/`stop_code` and `stop_name` |
+| 13.4 | Wire search results list to Stop Detail navigation | ⬜ | Reuse existing stop list item components |
+| 13.5 | Unit tests + typecheck + lint | ⬜ | Follow Lines screen test patterns |
 
-**Depends on:** 10, 11
+**Depends on:** 2, 3, 5, 6
 
 ---
 
-### Phase 14: Offline Support & Caching
+### Phase 14: Dark Mode (App Theme)
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 14.1 | Cache GTFS data for offline use | ⬜ | Already in MMKV |
-| 14.2 | Cache last known arrivals for favorites | ⬜ | Show stale data with timestamp |
-| 14.3 | Add offline indicator in UI | ⬜ | |
-| 14.4 | Implement cache invalidation strategy | ⬜ | |
+| 14.1 | Add theme preference (light / dark / system) to settings store | ⬜ | Persist in MMKV |
+| 14.2 | Create dark Paper theme and apply app-wide based on preference | ⬜ | App theme is **separate from map style**; map tiles unaffected |
+| 14.3 | Add theme selector in Settings screen | ⬜ | Segmented buttons or radio group |
+| 14.4 | Audit screens/components for hardcoded colors | ⬜ | Replace with theme tokens |
+| 14.5 | Unit tests for theme switching + typecheck + lint | ⬜ | |
 
-**Depends on:** 3, 11
+**Depends on:** 2, 5
 
 ---
 
-### Phase 15: Search & Filter
+### Phase 15: Arabic & RTL Support
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 15.1 | Add global search (lines + stops) | ⬜ | Fuse.js for fuzzy search |
-| 15.2 | Filter lines by type (day/night/express) | ⬜ | From GTFS route_type |
-| 15.3 | Filter stops by distance from user | ⬜ | |
-| 15.4 | Recent searches history | ⬜ | |
-
-**Depends on:** 5, 6
-
----
-
-### Phase 16: Accessibility & i18n
-| # | Task | Status | Notes |
-|---|------|--------|-------|
-| 16.1 | Add Spanish translations (all strings) | ⬜ | `expo-localization` + i18n |
-| 16.2 | English translations | ⬜ | |
-| 16.3 | Accessibility audit: labels, roles, contrast | ⬜ | `react-native-accessibility` |
-| 16.4 | Dynamic type support | ⬜ | |
-| 16.5 | VoiceOver / TalkBack testing | ⬜ | |
+| 15.1 | Add Arabic locale (`locales/ar`) with all app strings | ⬜ | Full translation coverage |
+| 15.2 | Enable RTL layout direction when Arabic is active | ⬜ | `I18nManager.allowRTL` / layout direction handling |
+| 15.3 | Make custom components RTL-aware | ⬜ | Row directions, icon alignment, padding/margin logical properties |
+| 15.4 | Locale-aware number/date formatting for Arabic | ⬜ | Arrivals, timestamps |
+| 15.5 | Add Arabic option to language selector in Settings + RTL smoke tests | ⬜ | Typecheck + lint |
 
 **Depends on:** 1–12
 
 ---
 
-### Phase 17: Performance Optimization
+### Phase 16: Favorites Screen Cleanup
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 17.1 | Profile JS bundle size | ⬜ | `expo-bundle-analyzer` |
-| 17.2 | Optimize map rendering (memo, virtualization) | ⬜ | |
-| 17.3 | Lazy-load heavy screens | ⬜ | `React.lazy` + `Suspense` |
-| 17.4 | Image optimization (WebP, resize) | ⬜ | |
-| 17.5 | Hermes bytecode compilation | ⬜ | EAS Build config |
+| 16.1 | Remove the reload button beside the tabs in the Favorites screen | ⬜ | |
+| 16.2 | Ensure data refresh still available (e.g. pull-to-refresh on the list) | ⬜ | Preserve existing refresh hook if present |
+| 16.3 | Update affected tests / snapshots + typecheck + lint | ⬜ | |
 
-**Depends on:** 1–12
+**Depends on:** 7, 8
 
 ---
 
-### Phase 18: App Store Release Prep
+### Phase 17: Dynamic Stops in Map Viewport
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 18.1 | Create App Store Connect / Play Console entries | ⬜ | |
-| 18.2 | Privacy policy & terms URLs | ⬜ | |
-| 18.3 | Screenshots for all device sizes | ⬜ | |
-| 18.4 | Submit TestFlight / Internal Test | ⬜ | |
-| 18.5 | Production release | ⬜ | |
+| 17.1 | Compute stops inside the current map viewport (visible region) | ⬜ | Spatial filter over GTFS stop index |
+| 17.2 | Render only viewport stops; add/remove markers as the map pans/zooms | ⬜ | Throttled `onRegionChange` |
+| 17.3 | Animate new stops entering the viewport on pan | ⬜ | Fade/scale-in entrance animation for added markers |
+| 17.4 | Performance guards: throttle region events, cap marker count | ⬜ | Reuse/augment existing clustering |
+| 17.5 | Unit tests for viewport filter + animation logic + typecheck + lint | ⬜ | |
 
-**Depends on:** 13–17
+**Depends on:** 3, 4
 
 ---
 
@@ -317,25 +304,21 @@ graph TD
     9 --> 11
     10 --> 11
     11 --> 12
-    10 --> 13
-    11 --> 13
-    3 --> 14
-    11 --> 14
-    5 --> 15
-    6 --> 15
-    1 --> 16
-    12 --> 16
-    1 --> 17
-    12 --> 17
-    13 --> 18
-    14 --> 18
-    15 --> 18
-    16 --> 18
-    17 --> 18
+    2 --> 13
+    3 --> 13
+    5 --> 13
+    6 --> 13
+    2 --> 14
+    5 --> 14
+    1 --> 15
+    12 --> 15
+    7 --> 16
+    3 --> 17
+    4 --> 17
 ```
 
 ---
 
 *Last updated: 2026-11-16*
-*Next task: Phase 12 complete — Milestone 1 (MVP) is done. Next: Phase 13 (Push Notifications)*
+*Next task: Milestone 1 (MVP) is complete. Milestone 2 has been re-scoped (Phases 13–17). Next: Phase 13 (Stops Screen & Tab)*
 **Blocks:** Milestone 2

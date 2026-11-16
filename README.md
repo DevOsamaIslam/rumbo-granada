@@ -95,7 +95,7 @@ npm run lint
 |----------|----------|
 | [`docs/detailed-plan.md`](./docs/detailed-plan.md) | Architecture index + quick reference |
 | [`docs/sections/`](./docs/sections) | Architecture sections (stack, data, map, notifications, etc.) |
-| [`docs/phases/`](./docs/phases) | Milestone 1 (MVP, phases 1–12), Milestone 2 (Polish, phases 13–18) task lists |
+| [`docs/phases/`](./docs/phases) | Milestone 1 (MVP, phases 1–12), Milestone 2 (Enhancements, phases 13–17) task lists |
 | [`docs/progress-tracker.md`](./docs/progress-tracker.md) | Phase status and dependencies |
 
 ## Agent Workflow

@@ -80,16 +80,15 @@ src/components/StopMarker.tsx → Custom stop markers
 | 11 | Background Fetch & Persistence | ⬜ | 10 |
 | 12 | Polish, Testing, Build Config | ⬜ | 1–11 |
 
-### Milestone 2: Enhancements (Phases 13–18)
+### Milestone 2: Enhancements (Phases 13–17)
 
 | Phase | Title | Status | Dependencies |
 |-------|-------|--------|--------------|
-| 13 | Push Notifications (OneSignal/Expo) | ⬜ | 10, 11 |
-| 14 | Offline Support & Caching | ⬜ | 3, 11 |
-| 15 | Search & Filter | ⬜ | 5, 6 |
-| 16 | Accessibility & i18n (ES/EN) | ⬜ | 1–12 |
-| 17 | Performance Optimization | ⬜ | 1–12 |
-| 18 | App Store Release Prep | ⬜ | 13–17 |
+| 13 | Stops Screen & Tab | ⬜ | 2, 3, 5, 6 |
+| 14 | Dark Mode (App Theme) | ⬜ | 2, 5 |
+| 15 | Arabic & RTL Support | ⬜ | 1–12 |
+| 16 | Favorites Screen Cleanup | ⬜ | 7, 8 |
+| 17 | Dynamic Stops in Map Viewport | ⬜ | 3, 4 |
 
 ---
 
