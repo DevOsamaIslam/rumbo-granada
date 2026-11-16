@@ -275,6 +275,19 @@
 
 ---
 
+### Phase 18: Production Build & Store Release
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 18.1 | Configure production build profiles (EAS) | ⬜ | `eas build --profile production`; app signing, version codes/build numbers |
+| 18.2 | Store listings: Play Store & App Store | ⬜ | Descriptions, keywords, categories, privacy policy & terms URLs |
+| 18.3 | Screenshots & assets for all required device sizes | ⬜ | |
+| 18.4 | Internal testing track / TestFlight validation | ⬜ | Test on real devices before submission |
+| 18.5 | Submit for review & production release | ⬜ | Play Console + App Store Connect |
+
+**Depends on:** 13–17
+
+---
+
 ## Dependency Graph
 
 ```mermaid
@@ -315,10 +328,15 @@ graph TD
     7 --> 16
     3 --> 17
     4 --> 17
+    13 --> 18
+    14 --> 18
+    15 --> 18
+    16 --> 18
+    17 --> 18
 ```
 
 ---
 
 *Last updated: 2026-11-16*
-*Next task: Milestone 1 (MVP) is complete. Milestone 2 has been re-scoped (Phases 13–17). Next: Phase 13 (Stops Screen & Tab)*
+*Next task: Milestone 1 (MVP) is complete. Milestone 2 has been re-scoped (Phases 13–18). Next: Phase 13 (Stops Screen & Tab)*
 **Blocks:** Milestone 2

@@ -80,7 +80,7 @@ src/components/StopMarker.tsx → Custom stop markers
 | 11 | Background Fetch & Persistence | ⬜ | 10 |
 | 12 | Polish, Testing, Build Config | ⬜ | 1–11 |
 
-### Milestone 2: Enhancements (Phases 13–17)
+### Milestone 2: Enhancements (Phases 13–18)
 
 | Phase | Title | Status | Dependencies |
 |-------|-------|--------|--------------|
@@ -89,6 +89,7 @@ src/components/StopMarker.tsx → Custom stop markers
 | 15 | Arabic & RTL Support | ⬜ | 1–12 |
 | 16 | Favorites Screen Cleanup | ⬜ | 7, 8 |
 | 17 | Dynamic Stops in Map Viewport | ⬜ | 3, 4 |
+| 18 | Production Build & Store Release | ⬜ | 13–17 |
 
 ---
 
