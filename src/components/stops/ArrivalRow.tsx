@@ -2,6 +2,9 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useAppColors, useThemedStyles } from '@/constants/themes';
 import type { AppColors } from '@/constants/colors';
 import { formatCountdown } from '@/utils/gtfs';
+import { formatNumber } from '@/utils/format';
+import { isRtlLanguage } from '@/utils/rtl';
+import i18n from '@/i18n';
 import { getBadgeBackgroundColor, getBadgeTextColor } from '@/utils/colors';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -16,9 +19,29 @@ export interface ArrivalRowProps {
 }
 
 /** Formats the countdown shown on the right of a row. */
-export function formatArrivalMinutes(minutes: number, t: TFunction): string {
+/**
+ * Formats the countdown shown on the right of a row.
+ *
+ * Latin locales keep the compact `12 min` / `1h 15min` format, while RTL
+ * locales (Arabic) render Arabic-Indic digits and use the short unit labels
+ * from the translation files.
+ */
+export function formatArrivalMinutes(
+  minutes: number,
+  t: TFunction,
+  language: string = 'es',
+): string {
   if (minutes <= 0) return t('now');
-  return formatCountdown(minutes);
+  if (!isRtlLanguage(language)) return formatCountdown(minutes);
+
+  const n = (value: number) => formatNumber(value, language);
+  if (minutes < 60) return `${n(minutes)} ${t('minutesShort')}`;
+
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return mins > 0
+    ? `${n(hours)}${t('hourShort')} ${n(mins)}${t('minutesShort')}`
+    : `${n(hours)}${t('hourShort')}`;
 }
 
 export function ArrivalRow({ arrival, lineColor, lineTextColor }: ArrivalRowProps) {
@@ -43,7 +66,7 @@ export function ArrivalRow({ arrival, lineColor, lineTextColor }: ArrivalRowProp
         </Text>
       </View>
       <Text style={styles.minutes}>
-        {formatArrivalMinutes(arrival.minutes, t)}
+        {formatArrivalMinutes(arrival.minutes, t, i18n.language)}
       </Text>
     </View>
   );

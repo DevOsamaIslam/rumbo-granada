@@ -230,7 +230,7 @@
 |---|------|--------|-------|
 | 14.1 | Add theme preference (light / dark / system) to settings store | ✅ | `theme: ThemePreference` + `setTheme` in `src/store/settings.ts`; persists in MMKV via zustand-persist, defaults to `system` |
 | 14.2 | Create dark Paper theme and apply app-wide based on preference | ✅ | `src/constants/themes.ts` builds `lightTheme`/`darkTheme` from `LIGHT_COLORS`/`DARK_COLORS`; `Providers` resolves the preference + `useColorScheme()` and updates the status bar. App theme is **separate from map style**; map tiles are unchanged |
-| 14.3 | Add theme selector in Settings screen | ✅ | "Tema" card with `Automático` / `Claro` / `Nocturno` radio rows |
+| 14.3 | Add theme selector in Settings screen | ✅ | "Tema" card with toggles: `Seguir el tema del sistema` and `Modo oscuro` (disabled while following the system) |
 | 14.4 | Audit screens/components for hardcoded colors | ✅ | All screens/components migrated to `useAppColors()` + `useThemedStyles()`; hardcoded hex/rgba replaced with palette tokens. Data-driven route badge colors and the dedicated map styles stay literal by design |
 | 14.5 | Unit tests for theme switching + typecheck + lint | ✅ | `src/constants/themes.test.ts` (resolution + theme tokens) and Settings theme-selection tests; typecheck + lint clean; full suite 239 passed / 7 pre-existing `useBusTracking` failures |
 
@@ -241,11 +241,11 @@
 ### Phase 15: Arabic & RTL Support
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 15.1 | Add Arabic locale (`locales/ar`) with all app strings | ⬜ | Full translation coverage |
-| 15.2 | Enable RTL layout direction when Arabic is active | ⬜ | `I18nManager.allowRTL` / layout direction handling |
-| 15.3 | Make custom components RTL-aware | ⬜ | Row directions, icon alignment, padding/margin logical properties |
-| 15.4 | Locale-aware number/date formatting for Arabic | ⬜ | Arrivals, timestamps |
-| 15.5 | Add Arabic option to language selector in Settings + RTL smoke tests | ⬜ | Typecheck + lint |
+| 15.1 | Add Arabic locale (`locales/ar`) with all app strings | ✅ | 139 keys incl. Arabic plural categories (`_zero/_one/_two/_few/_many/_other`); coverage test asserts every en key exists in `ar` and `es` |
+| 15.2 | Enable RTL layout direction when Arabic is active | ✅ | `src/utils/rtl.ts` (`isRtlLanguage`, `applyLayoutDirection`) calls `I18nManager.allowRTL(true)` + `forceRTL`. Applied on startup and on language change, with a restart prompt (`DevSettings.reload` in dev). Verified on device: header/tab bar mirrored |
+| 15.3 | Make custom components RTL-aware | ✅ | Logical styles (`end`, `marginEnd`, `marginStart`) replace left/right; `flexDirection: 'row'` rows mirror automatically. Device-verified on Settings |
+| 15.4 | Locale-aware number/date formatting for Arabic | ✅ | `src/utils/format.ts` maps `ar` → `ar-EG` for Arabic-Indic digits; arrivals countdown, updated-at timestamps and counts use it |
+| 15.5 | Add Arabic option to language selector in Settings + RTL smoke tests | ✅ | Language selector is now a modal list (Español / English / العربية); the bottom tab bar labels are localized via `t()` (`map`/`lines`/`stops`/`favorites`/`settings`); `rtl.test.ts` + `format.test.ts` + Arabic device-detection/coverage tests; typecheck + lint + suite green (7 pre-existing `useBusTracking` failures) |
 
 **Depends on:** 1–12
 
@@ -338,5 +338,5 @@ graph TD
 ---
 
 *Last updated: 2026-11-17*
-*Next task: Phase 15 (Arabic & RTL Support)*
+*Next task: Phase 16 (Favorites Screen Cleanup)*
 **Blocks:** Milestone 2

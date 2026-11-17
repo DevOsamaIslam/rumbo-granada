@@ -5,14 +5,20 @@ import { getLocales } from 'expo-localization';
 // the translations
 import enTranslation from '../locales/en/translation.json';
 import esTranslation from '../locales/es/translation.json';
+import arTranslation from '../locales/ar/translation.json';
+
+export type AppLanguage = 'es' | 'en' | 'ar';
 
 /**
- * Device language: `'es'` when the device is set to Spanish, `'en'` otherwise.
+ * Device language: `'es'` for Spanish, `'ar'` for Arabic, otherwise `'en'`.
  * Used as the initial language when the user has never chosen one in settings.
  */
-export function getDeviceLanguage(): 'es' | 'en' {
+export function getDeviceLanguage(): AppLanguage {
   try {
-    return getLocales()[0]?.languageCode === 'es' ? 'es' : 'en';
+    const code = getLocales()[0]?.languageCode;
+    if (code === 'es') return 'es';
+    if (code === 'ar') return 'ar';
+    return 'en';
   } catch {
     return 'en';
   }
@@ -31,6 +37,9 @@ i18n
       },
       es: {
         translation: esTranslation,
+      },
+      ar: {
+        translation: arTranslation,
       },
     },
     debug: __DEV__,

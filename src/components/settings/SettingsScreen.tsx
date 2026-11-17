@@ -1,17 +1,17 @@
-import type { ComponentProps, ReactNode } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState, type ComponentProps, type ReactNode } from 'react';
+import { Alert, DevSettings, Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Switch } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { useTranslation } from 'react-i18next';
-import i18n from '@/i18n';
+import i18n, { type AppLanguage } from '@/i18n';
 import { useSettingsStore } from '@/store/settings';
-import { useAppColors, useThemedStyles, type ThemePreference } from '@/constants/themes';
+import { useAppColors, useThemedStyles } from '@/constants/themes';
 import type { AppColors } from '@/constants/colors';
+import { applyLayoutDirection } from '@/utils/rtl';
 import { hapticTap } from '@/utils/haptics';
 
-type Language = 'es' | 'en';
-type MapStyle = 'standard' | 'dark';
+type Language = AppLanguage;
 type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 /** Brand mark shown in the footer, matching the app header. */
@@ -20,17 +20,7 @@ const LOGO = require('../../../assets/logo.png');
 const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
   { value: 'es', label: 'spanish' },
   { value: 'en', label: 'english' },
-];
-
-const MAP_STYLE_OPTIONS: { value: MapStyle; label: string }[] = [
-  { value: 'standard', label: 'mapStyleStandard' },
-  { value: 'dark', label: 'mapStyleDark' },
-];
-
-const THEME_OPTIONS: { value: ThemePreference; label: string; icon: IconName }[] = [
-  { value: 'system', label: 'themeSystem', icon: 'theme-light-dark' },
-  { value: 'light', label: 'themeLight', icon: 'white-balance-sunny' },
-  { value: 'dark', label: 'themeDark', icon: 'weather-night' },
+  { value: 'ar', label: 'arabic' },
 ];
 
 /** Notification threshold bounds, in minutes. */
@@ -67,37 +57,80 @@ function IconBadge({ name }: { name: IconName }) {
   );
 }
 
-interface OptionRowProps {
-  icon: IconName;
-  label: string;
-  selected: boolean;
-  last?: boolean;
-  onPress: () => void;
+interface LanguageSelectorProps {
+  value: Language;
+  onChange: (language: Language) => void;
 }
 
-/** Single-choice row: the radio mark mirrors the accessibility state. */
-function OptionRow({ icon, label, selected, last, onPress }: OptionRowProps) {
-  const styles = useThemedStyles(createStyles);
+/**
+ * Language picker. The row shows the current language and opens a modal list so
+ * the settings card stays compact; choosing a language applies it immediately.
+ */
+function LanguageSelector({ value, onChange }: LanguageSelectorProps) {
+  const { t } = useTranslation();
   const colors = useAppColors();
+  const styles = useThemedStyles(createStyles);
+  const [open, setOpen] = useState(false);
+  const current =
+    LANGUAGE_OPTIONS.find((option) => option.value === value) ?? LANGUAGE_OPTIONS[0];
+
   return (
-    <Pressable
-      style={[styles.row, last && styles.lastRow]}
-      onPress={() => {
-        void hapticTap();
-        onPress();
-      }}
-      accessibilityLabel={label}
-      accessibilityRole="radio"
-      accessibilityState={{ selected }}
-    >
-      <IconBadge name={icon} />
-      <Text style={styles.rowLabel}>{label}</Text>
-      <MaterialCommunityIcons
-        name={selected ? 'radiobox-marked' : 'radiobox-blank'}
-        size={22}
-        color={selected ? colors.primary : colors.outline}
-      />
-    </Pressable>
+    <View>
+      <Pressable
+        style={[styles.row, styles.lastRow]}
+        onPress={() => {
+          void hapticTap();
+          setOpen(true);
+        }}
+        accessibilityRole="button"
+        accessibilityLabel={`${t('language')}: ${t(current.label)}`}
+      >
+        <IconBadge name="translate" />
+        <Text style={styles.rowLabel}>{t(current.label)}</Text>
+        <MaterialCommunityIcons name="chevron-down" size={22} color={colors.outline} />
+      </Pressable>
+
+      <Modal
+        visible={open}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOpen(false)}
+      >
+        <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
+          <Pressable style={styles.sheet} onPress={() => {}}>
+            <Text style={styles.sheetTitle} accessibilityRole="header">
+              {t('selectLanguage')}
+            </Text>
+            {LANGUAGE_OPTIONS.map((option, index) => {
+              const selected = option.value === value;
+              return (
+                <Pressable
+                  key={option.value}
+                  style={[
+                    styles.sheetRow,
+                    index === LANGUAGE_OPTIONS.length - 1 && styles.lastRow,
+                  ]}
+                  onPress={() => {
+                    setOpen(false);
+                    onChange(option.value);
+                  }}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected }}
+                  accessibilityLabel={t(option.label)}
+                >
+                  <Text style={styles.rowLabel}>{t(option.label)}</Text>
+                  <MaterialCommunityIcons
+                    name={selected ? 'radiobox-marked' : 'radiobox-blank'}
+                    size={22}
+                    color={selected ? colors.primary : colors.outline}
+                  />
+                </Pressable>
+              );
+            })}
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </View>
   );
 }
 
@@ -106,6 +139,7 @@ interface ToggleRowProps {
   title: string;
   value: boolean;
   last?: boolean;
+  disabled?: boolean;
   onPress: () => void;
 }
 
@@ -114,19 +148,21 @@ interface ToggleRowProps {
  * role), while the visible switch is decorative so screen readers announce one
  * control instead of two.
  */
-function ToggleRow({ icon, title, value, last, onPress }: ToggleRowProps) {
+function ToggleRow({ icon, title, value, last, disabled = false, onPress }: ToggleRowProps) {
   const styles = useThemedStyles(createStyles);
   const colors = useAppColors();
   return (
     <Pressable
-      style={[styles.row, last && styles.lastRow]}
+      style={[styles.row, last && styles.lastRow, disabled && styles.disabledRow]}
       onPress={() => {
+        if (disabled) return;
         void hapticTap();
         onPress();
       }}
       accessibilityLabel={title}
       accessibilityRole="switch"
-      accessibilityState={{ checked: value }}
+      accessibilityState={{ checked: value, disabled }}
+      disabled={disabled}
     >
       <IconBadge name={icon} />
       <Text style={styles.rowLabel}>{title}</Text>
@@ -137,6 +173,7 @@ function ToggleRow({ icon, title, value, last, onPress }: ToggleRowProps) {
       >
         <Switch
           value={value}
+          disabled={disabled}
           color={colors.primary}
           trackColor={{ false: colors.outlineVariant, true: colors.primary }}
         />
@@ -235,6 +272,19 @@ export function SettingsScreen() {
   const styles = useThemedStyles(createStyles);
   const version = Constants.expoConfig?.version;
 
+  const handleLanguageChange = (value: Language) => {
+    setLanguage(value);
+    i18n.changeLanguage(value);
+    // RTL is a native layout direction: when it flips, ask for a restart.
+    const { changed } = applyLayoutDirection(value);
+    if (changed) {
+      Alert.alert(t('restartRequiredTitle'), t('restartRequiredMessage'), [
+        { text: t('ok'), style: 'cancel' },
+        { text: t('restart'), onPress: () => DevSettings?.reload?.() },
+      ]);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -250,45 +300,34 @@ export function SettingsScreen() {
         </View>
 
         <Section title={t('language')} description={t('selectLanguageDescription')}>
-          {LANGUAGE_OPTIONS.map((option, index) => (
-            <OptionRow
-              key={option.value}
-              icon="translate"
-              label={t(option.label)}
-              selected={language === option.value}
-              last={index === LANGUAGE_OPTIONS.length - 1}
-              onPress={() => {
-                setLanguage(option.value);
-                i18n.changeLanguage(option.value);
-              }}
-            />
-          ))}
+          <LanguageSelector value={language} onChange={handleLanguageChange} />
         </Section>
 
         <Section title={t('mapStyle')} description={t('mapStyleDescription')}>
-          {MAP_STYLE_OPTIONS.map((option, index) => (
-            <OptionRow
-              key={option.value}
-              icon={option.value === 'dark' ? 'theme-light-dark' : 'map-outline'}
-              label={t(option.label)}
-              selected={mapStyle === option.value}
-              last={index === MAP_STYLE_OPTIONS.length - 1}
-              onPress={() => setMapStyle(option.value)}
-            />
-          ))}
+          <ToggleRow
+            icon="map-outline"
+            title={t('darkMap')}
+            value={mapStyle === 'dark'}
+            last
+            onPress={() => setMapStyle(mapStyle === 'dark' ? 'standard' : 'dark')}
+          />
         </Section>
 
         <Section title={t('theme')} description={t('themeDescription')}>
-          {THEME_OPTIONS.map((option, index) => (
-            <OptionRow
-              key={option.value}
-              icon={option.icon}
-              label={t(option.label)}
-              selected={theme === option.value}
-              last={index === THEME_OPTIONS.length - 1}
-              onPress={() => setTheme(option.value)}
-            />
-          ))}
+          <ToggleRow
+            icon="theme-light-dark"
+            title={t('followSystemTheme')}
+            value={theme === 'system'}
+            onPress={() => setTheme(theme === 'system' ? 'light' : 'system')}
+          />
+          <ToggleRow
+            icon="weather-night"
+            title={t('darkMode')}
+            value={theme === 'dark'}
+            last
+            disabled={theme === 'system'}
+            onPress={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          />
         </Section>
 
         <Section title={t('preferences')}>
@@ -399,6 +438,38 @@ const createStyles = (colors: AppColors) =>
   },
   lastRow: {
     borderBottomWidth: 0,
+  },
+  disabledRow: {
+    opacity: 0.5,
+  },
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  sheet: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.outlineVariant,
+    padding: 16,
+    gap: 4,
+  },
+  sheetTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.onSurface,
+    marginBottom: 8,
+  },
+  sheetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.outlineVariant,
   },
   rowText: {
     flex: 1,

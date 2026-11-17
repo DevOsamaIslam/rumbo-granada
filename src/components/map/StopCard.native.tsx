@@ -74,7 +74,7 @@ const createStyles = (colors: AppColors) =>
   closeButton: {
     position: "absolute",
     top: 8,
-    right: 12,
+    end: 12,
     zIndex: 100,
   },
   closeIcon: {

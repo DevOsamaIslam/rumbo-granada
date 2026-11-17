@@ -294,7 +294,7 @@ const createStyles = (colors: AppColors) =>
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginEnd: 12,
   },
   badgeText: {
     color: colors.onPrimary,

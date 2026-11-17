@@ -2,6 +2,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import { useAppColors, useThemedStyles } from '@/constants/themes';
 import type { AppColors } from '@/constants/colors';
+import { formatNumber } from '@/utils/format';
+import i18n from '@/i18n';
 import { getBadgeBackgroundColor } from '@/utils/colors';
 import { useTranslation } from 'react-i18next';
 import type { Route, Stop } from '@/types/gtfs';
@@ -52,7 +54,7 @@ export function StopInfoHeader({
         />
       </View>
 
-      <Text style={styles.sectionTitle}>{t('linesCount', { ns: 'translation', total: routes.length })}</Text>
+      <Text style={styles.sectionTitle}>{t('linesCount', { ns: 'translation', total: formatNumber(routes.length, i18n.language) })}</Text>
       <View style={styles.routeRow}>
         {routes.length === 0 ? (
           <Text style={styles.noRoutes}>{t('noLinesRegistered', { ns: 'translation' })}</Text>

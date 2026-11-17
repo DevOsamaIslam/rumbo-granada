@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { createSafeMMKV } from '@/services/mmkv';
-import { getDeviceLanguage } from '@/i18n';
+import { getDeviceLanguage, type AppLanguage } from '@/i18n';
 import type { ThemePreference } from '@/constants/themes';
 
 interface SettingsState {
@@ -9,7 +9,7 @@ interface SettingsState {
   mapStyle: 'standard' | 'dark';
   autoFollowUser: boolean;
   showBusLabels: boolean;
-  language: 'es' | 'en';
+  language: AppLanguage;
   /**
    * App appearance preference. Separate from `mapStyle`: this controls the UI
    * chrome theme, while `mapStyle` controls the map tiles.
@@ -19,7 +19,7 @@ interface SettingsState {
   setMapStyle: (style: 'standard' | 'dark') => void;
   setAutoFollowUser: (enabled: boolean) => void;
   setShowBusLabels: (enabled: boolean) => void;
-  setLanguage: (lang: 'es' | 'en') => void;
+  setLanguage: (lang: AppLanguage) => void;
   setTheme: (theme: ThemePreference) => void;
   loadFromStorage: () => void;
 }

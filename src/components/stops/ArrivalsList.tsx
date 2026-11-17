@@ -3,6 +3,8 @@ import { FlatList, StyleSheet, View } from 'react-native';
 import { ArrivalRow } from './ArrivalRow';
 import { useThemedStyles } from '@/constants/themes';
 import type { AppColors } from '@/constants/colors';
+import { formatNumber } from '@/utils/format';
+import i18n from '@/i18n';
 import { useTranslation } from 'react-i18next';
 import { SkeletonListItem } from '@/components/common/Skeleton';
 import type { Arrival } from '@/types/api';
@@ -24,13 +26,16 @@ export interface ArrivalsListProps {
 function formatLastUpdated(
   timestamp: number | null | undefined,
   t: TFunction,
+  language: string = 'es',
 ): string | null {
   if (!timestamp) return null;
   const seconds = Math.max(0, Math.round((Date.now() - timestamp) / 1000));
   if (seconds < 10) return t('updatedNow');
-  if (seconds < 60) return t('updatedSecondsAgo', { seconds });
+  if (seconds < 60) {
+    return t('updatedSecondsAgo', { seconds: formatNumber(seconds, language) });
+  }
   const minutes = Math.round(seconds / 60);
-  return t('updatedMinutesAgo', { minutes });
+  return t('updatedMinutesAgo', { minutes: formatNumber(minutes, language) });
 }
 
 export function ArrivalsList({
@@ -45,7 +50,7 @@ export function ArrivalsList({
 }: ArrivalsListProps) {
   const { t } = useTranslation();
   const styles = useThemedStyles(createStyles);
-  const updatedAt = formatLastUpdated(lastUpdated, t);
+  const updatedAt = formatLastUpdated(lastUpdated, t, i18n.language);
   const header = updatedAt ? (
     <Text style={styles.updatedAt}>{updatedAt}</Text>
   ) : null;

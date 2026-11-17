@@ -77,7 +77,7 @@ const createStyles = (colors: AppColors) =>
   controlsContainer: {
     position: 'absolute',
     bottom: 100,
-    right: 16,
+    end: 16,
     zIndex: 100,
   },
   controlGroup: {

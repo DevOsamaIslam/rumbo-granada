@@ -1,9 +1,11 @@
 import { Tabs } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAppColors } from '@/constants/themes';
 
 export default function TabLayout() {
   const colors = useAppColors();
+  const { t } = useTranslation();
   return (
     <Tabs
       screenOptions={{
@@ -20,7 +22,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Map',
+          title: t('map'),
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="map-marker-radius" color={color as string} size={size} />
           ),
@@ -29,7 +31,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="lines"
         options={{
-          title: 'Lines',
+          title: t('lines'),
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="bus" color={color as string} size={size} />
           ),
@@ -38,7 +40,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="stops"
         options={{
-          title: 'Stops',
+          title: t('stops'),
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="map-marker-radius" color={color as string} size={size} />
           ),
@@ -47,7 +49,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="favorites"
         options={{
-          title: 'Favorites',
+          title: t('favorites'),
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="star" color={color as string} size={size} />
           ),
@@ -56,7 +58,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
+          title: t('settings'),
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="cog" color={color as string} size={size} />
           ),

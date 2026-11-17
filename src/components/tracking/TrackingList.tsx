@@ -94,7 +94,7 @@ const createStyles = (colors: AppColors) =>
     borderBottomColor: colors.outlineVariant,
   },
   icon: {
-    marginRight: 10,
+    marginEnd: 10,
   },
   info: {
     flex: 1,

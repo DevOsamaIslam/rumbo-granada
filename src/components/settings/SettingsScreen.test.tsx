@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 import i18n from '@/i18n';
 
 type SettingsValues = {
-  language: 'es' | 'en';
+  language: 'es' | 'en' | 'ar';
   mapStyle: 'standard' | 'dark';
   notificationThresholdMinutes: number;
   autoFollowUser: boolean;
@@ -73,21 +74,20 @@ describe('SettingsScreen', () => {
   });
 
   it('renders the settings sections', async () => {
-    const { getByText } = await render(<SettingsScreen />);
+    const { getByText, getByLabelText } = await render(<SettingsScreen />);
     expect(getByText('Configuración')).toBeOnTheScreen();
     expect(getByText('Personaliza tu experiencia')).toBeOnTheScreen();
     expect(getByText('Idioma')).toBeOnTheScreen();
+    // The picker shows the current language; the other options live in its modal.
     expect(getByText('Español')).toBeOnTheScreen();
-    expect(getByText('Inglés')).toBeOnTheScreen();
+    expect(getByLabelText('Idioma: Español')).toBeOnTheScreen();
     expect(getByText('Estilo del mapa')).toBeOnTheScreen();
     expect(getByText('Elige la apariencia del mapa')).toBeOnTheScreen();
-    expect(getByText('Estándar')).toBeOnTheScreen();
-    expect(getByText('Oscuro')).toBeOnTheScreen();
+    expect(getByText('Mapa oscuro')).toBeOnTheScreen();
     expect(getByText('Tema')).toBeOnTheScreen();
     expect(getByText('Elige la apariencia de la aplicación')).toBeOnTheScreen();
-    expect(getByText('Automático')).toBeOnTheScreen();
-    expect(getByText('Claro')).toBeOnTheScreen();
-    expect(getByText('Nocturno')).toBeOnTheScreen();
+    expect(getByText('Seguir el tema del sistema')).toBeOnTheScreen();
+    expect(getByText('Modo oscuro')).toBeOnTheScreen();
     expect(getByText('Preferencias')).toBeOnTheScreen();
     expect(getByText('Seguir mi ubicación automáticamente')).toBeOnTheScreen();
     expect(getByText('Mostrar etiquetas de autobuses')).toBeOnTheScreen();
@@ -104,32 +104,46 @@ describe('SettingsScreen', () => {
     expect(getByText('v1.0.0')).toBeOnTheScreen();
   });
 
-  it('changes the language', async () => {
+  it('changes the language from the picker modal', async () => {
     const { getByLabelText } = await render(<SettingsScreen />);
-    fireEvent.press(getByLabelText('Inglés'));
+    await fireEvent.press(getByLabelText('Idioma: Español'));
+    await fireEvent.press(getByLabelText('Inglés'));
     expect(setLanguageMock).toHaveBeenCalledWith('en');
     expect(state.language).toBe('en');
   });
 
-  it('changes the map style', async () => {
+  it('selects Arabic and requests a restart to apply RTL', async () => {
+    const alertSpy = vi.spyOn(Alert, 'alert');
     const { getByLabelText } = await render(<SettingsScreen />);
-    fireEvent.press(getByLabelText('Oscuro'));
+    await fireEvent.press(getByLabelText('Idioma: Español'));
+    await fireEvent.press(getByLabelText('Árabe'));
+    expect(setLanguageMock).toHaveBeenCalledWith('ar');
+    expect(state.language).toBe('ar');
+    // RTL flips the native layout direction, so the screen asks for a restart.
+    expect(alertSpy).toHaveBeenCalled();
+  });
+
+  it('toggles the dark map', async () => {
+    const { getByLabelText } = await render(<SettingsScreen />);
+    fireEvent.press(getByLabelText('Mapa oscuro'));
     expect(setMapStyleMock).toHaveBeenCalledWith('dark');
     expect(state.mapStyle).toBe('dark');
   });
 
-  it('changes the app theme preference', async () => {
+  it('toggles dark mode when the system theme is not followed', async () => {
+    state.theme = 'light';
     const { getByLabelText } = await render(<SettingsScreen />);
-    fireEvent.press(getByLabelText('Nocturno'));
+    fireEvent.press(getByLabelText('Modo oscuro'));
     expect(setThemeMock).toHaveBeenCalledWith('dark');
     expect(state.theme).toBe('dark');
   });
 
-  it('selects the system theme', async () => {
+  it('toggles following the system theme', async () => {
     const { getByLabelText } = await render(<SettingsScreen />);
-    fireEvent.press(getByLabelText('Automático'));
-    expect(setThemeMock).toHaveBeenCalledWith('system');
-    expect(state.theme).toBe('system');
+    // Initially "system": switching it off pins the light theme.
+    fireEvent.press(getByLabelText('Seguir el tema del sistema'));
+    expect(setThemeMock).toHaveBeenCalledWith('light');
+    expect(state.theme).toBe('light');
   });
 
   it('toggles auto-follow user position', async () => {

@@ -216,7 +216,7 @@ const createStyles = (colors: AppColors) =>
   stopCode: {
     fontSize: 12,
     color: colors.onSurfaceVariant,
-    marginLeft: 4,
+    marginStart: 4,
   },
   favoriteButton: {
     alignItems: 'flex-end',

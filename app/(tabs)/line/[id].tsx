@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next';
 import { TrackStopButton } from '@/components/tracking';
 import { useAppColors, useThemedStyles } from '@/constants/themes';
 import type { AppColors } from '@/constants/colors';
+import { formatNumber } from '@/utils/format';
+import i18n from '@/i18n';
 import { Route, Stop } from '@/types/gtfs';
 
 export default function LineDetailScreen() {
@@ -117,7 +119,7 @@ export default function LineDetailScreen() {
         <Text style={styles.mapButtonText}>{t('showOnMap', { ns: 'translation' })}</Text>
       </Pressable>
 
-      <Text style={styles.sectionTitle}>{t('stopsCount', { ns: 'translation', total: stops.length })}</Text>
+      <Text style={styles.sectionTitle}>{t('stopsCount', { ns: 'translation', total: formatNumber(stops.length, i18n.language) })}</Text>
       {stops.map((stop, index) => (
         <Pressable
           key={`${stop.stop_id}-${index}`}

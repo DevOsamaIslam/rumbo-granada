@@ -8,6 +8,7 @@ import { useFavoritesStore } from '@/store/favorites';
 import { useTrackingStore } from '@/store/tracking';
 import { useSettingsStore } from '@/store/settings';
 import i18n from '@/i18n';
+import { applyLayoutDirection } from '@/utils/rtl';
 import { useEffect } from 'react';
 
 // Initialize MMKV storage
@@ -25,6 +26,9 @@ export default function RootLayout() {
     // who never chose a language gets the device language automatically.
     const storedLanguage = useSettingsStore.getState().language;
     i18n.changeLanguage(storedLanguage);
+    // Make sure the native layout direction matches the stored language. If it
+    // does not, the forced direction is applied on the next cold start.
+    applyLayoutDirection(storedLanguage);
   }, []);
 
   return (
