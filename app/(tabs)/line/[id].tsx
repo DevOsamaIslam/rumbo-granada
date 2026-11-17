@@ -120,6 +120,9 @@ export default function LineDetailScreen() {
       </Pressable>
 
       <Text style={styles.sectionTitle}>{t('stopsCount', { ns: 'translation', total: formatNumber(stops.length, i18n.language) })}</Text>
+      {stops.length === 0 && (
+        <Text style={styles.emptyText}>{t('noStopData', { ns: 'translation' })}</Text>
+      )}
       {stops.map((stop, index) => (
         <Pressable
           key={`${stop.stop_id}-${index}`}
@@ -239,5 +242,10 @@ const createStyles = (colors: AppColors) =>
     flex: 1,
     fontSize: 15,
     color: colors.onSurface,
+  },
+  emptyText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.onSurfaceVariant,
   },
 });

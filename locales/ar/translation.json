@@ -90,6 +90,7 @@
   "searchLinesPlaceholder": "ابحث عن الخطوط...",
   "lineTitle": "الخط {{line}}",
   "stopsCount": "المحطات ({{total}})",
+  "noStopData": "لا توجد بيانات مواعيد لهذا الخط بعد. ستظهر المحطات عندما يحدّث المشغّل البيانات.",
   "stopAccessibilityLabel": "محطة {{name}}",
   "stopAccessibility": "محطة {{stopName}}",
   "notificationChannelArrivals": "وصول الحافلات",

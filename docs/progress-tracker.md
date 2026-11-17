@@ -279,11 +279,11 @@
 ### Phase 18: Production Build & Store Release
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 18.1 | Configure production build profiles (EAS) | ⬜ | `eas build --profile production`; app signing, version codes/build numbers |
-| 18.2 | Store listings: Play Store & App Store | ⬜ | Descriptions, keywords, categories, privacy policy & terms URLs |
-| 18.3 | Screenshots & assets for all required device sizes | ⬜ | |
-| 18.4 | Internal testing track / TestFlight validation | ⬜ | Test on real devices before submission |
-| 18.5 | Submit for review & production release | ⬜ | Play Console + App Store Connect |
+| 18.1 | Configure production build profiles (EAS) | ✅ | `eas.json`: `cli.appVersionSource: "remote"`, `production` = `environment: production` + `autoIncrement: true` + `android.buildType: app-bundle`; `preview` = internal APK; `submit.production.android` = `track: internal`, `releaseStatus: draft`. `app.config.ts` seeds `android.versionCode: 1` / `ios.buildNumber: "1"`, adds `ITSAppUsesNonExemptEncryption: false` and `ar` in `supportedLocales`; `app.json` version synced to 1.0.0. npm scripts `build:preview` / `build:production` / `submit:production` |
+| 18.2 | Store listings: Play Store & App Store | ✅ | Single source `docs/store/listing.json` (es+en) rendered by `npm run store-assets` into `play-store-listing.md` / `app-store-listing.md`; `src/storeAssets.test.ts` enforces name ≤30, subtitle ≤30, short ≤80, full ≤4000, keywords ≤100, promo ≤170. Privacy policy + terms drafted in `docs/store/`. Contact email and privacy/terms URLs are TODO placeholders |
+| 18.3 | Screenshots & assets for all required device sizes | 🔄 | Play: icon 512 (alpha, ≤1 MB), feature graphic 1024x500, 6 phone shots per locale (es/en) at 1080x1920 9:16, generated from device captures by `scripts/generate-store-assets.js`. **iOS screenshots blocked** (no macOS/Xcode); App Store needs 6.9"/6.5" iPhone (iPad 13" only while `ios.supportsTablet` stays true) |
+| 18.4 | Internal testing track / TestFlight validation | 🔄 | Local `./gradlew assembleRelease` succeeded (7m 17s), installed on the OPPO CPH2747 and smoke-tested with no dev server: map pins, Lines, the new "no timetable data" note on F6, and live arrivals (2/14/24 min) all render; `versionName=1.0.0`, `versionCode=1`, no FATAL exceptions in logcat. EAS internal track needs an Expo login + `eas init`; TestFlight needs an Apple Developer account |
+| 18.5 | Submit for review & production release | ⏸️ | Blocked on external credentials: Expo/EAS project id, Play Console app + service account key, App Store Connect app (`ascAppId`) + API key, published privacy/terms URLs. Runbook with exact commands in `docs/store/README.md` |
 
 **Depends on:** 13–17
 
@@ -339,5 +339,5 @@ graph TD
 ---
 
 *Last updated: 2026-11-17*
-*Next task: Phase 18 (Production Build & Store Release)*
+*Next task: Phase 18.3 iOS screenshots (needs macOS) → 18.5 store submissions (needs store credentials)*
 **Blocks:** Milestone 2

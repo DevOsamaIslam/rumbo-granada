@@ -90,6 +90,7 @@
   "searchLinesPlaceholder": "Buscar l\u00edneas...",
   "lineTitle": "L\u00ednea {{line}}",
   "stopsCount": "Paradas ({{total}})",
+  "noStopData": "Todavía no hay horarios para esta línea. Las paradas aparecerán cuando el operador actualice los datos.",
   "stopAccessibilityLabel": "Parada {{name}}",
   "stopAccessibility": "Parada {{stopName}}",
   "notificationChannelArrivals": "Llegadas de autob\u00fas",

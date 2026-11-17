@@ -1,0 +1,102 @@
+{
+  "$comment": "Store-bound copy. `npm run store-assets` renders the Play/App Store listing markdown from this file and `src/storeAssets.test.ts` enforces the store limits (name <= 30, Play short description <= 80, full description <= 4000, Apple keywords <= 100, promotional text <= 170).",
+  "app": {
+    "bundleId": "com.rumbo.granada.app",
+    "marketingVersion": "1.0.0",
+    "playCategory": "Maps & Navigation",
+    "appStorePrimaryCategory": "Navigation",
+    "appStoreSecondaryCategory": "Travel",
+    "contentRating": "Everyone / PEGI 3 (no ads, no in-app purchases, no user-generated content)",
+    "price": "Free"
+  },
+  "contact": {
+    "email": "TODO-contact@example.com",
+    "supportUrl": "TODO: https://<host>/rumbo-granada/support",
+    "privacyPolicyUrl": "TODO: https://<host>/rumbo-granada/privacy",
+    "termsUrl": "TODO: https://<host>/rumbo-granada/terms"
+  },
+  "locales": {
+    "es": {
+      "appName": "Rumbo Granada",
+      "subtitle": "Bus urbano de Granada",
+      "shortDescription": "Llegadas en tiempo real, paradas y líneas del bus urbano de Granada.",
+      "promotionalText": "Añade tus paradas favoritas, sigue tu autobús en el mapa y recibe un aviso cuando esté llegando.",
+      "keywords": [
+        "bus",
+        "Granada",
+        "autobús",
+        "transporte",
+        "horarios",
+        "llegadas",
+        "paradas",
+        "líneas",
+        "tiempo real"
+      ],
+      "releaseNotes": "Primera versión: mapa con paradas y líneas, llegadas en tiempo real, favoritos con etiquetas, seguimiento del autobús con avisos, modo oscuro y soporte de árabe (RTL).",
+      "fullDescription": [
+        "Rumbo Granada te dice cuándo llega el próximo autobús urbano de Granada, sin abrir el navegador ni pelearte con la web del operador.",
+        "",
+        "LLEGADAS EN TIEMPO REAL",
+        "Consulta las próximas llegadas a cualquier parada con una cuenta atrás que se actualiza sola. La app usa los horarios oficiales (GTFS) cuando la información en directo no está disponible, para que nunca te quedes sin referencia.",
+        "",
+        "MAPA CON PARADAS Y LÍNEAS",
+        "Un mapa ligero, basado en OpenStreetMap, que solo carga las paradas que tienes delante: se mueve con fluidez y no gasta datos de más. Toca una parada para ver sus líneas, o dibuja una línea completa para seguir su recorrido.",
+        "",
+        "FAVORITOS CON ETIQUETAS",
+        "Guarda tus paradas y líneas habituales con el nombre que tú quieras (\"casa\", \"trabajo\", \"facultad\") y deslízalas para quitarlas.",
+        "",
+        "SIGUE TU AUTOBÚS",
+        "Activa el seguimiento de un autobús hacia tu parada y recibe una notificación en el móvil cuando esté llegando. La app respeta el umbral de minutos que configures y sigue funcionando con la pantalla apagada.",
+        "",
+        "HECHO A TU MEDIDA",
+        "Modo claro y oscuro, español, inglés y árabe (con diseño de derecha a izquierda), y ajustes para controlar el mapa y los avisos.",
+        "",
+        "SIN REGISTRO, SIN PUBLICIDAD",
+        "No hay cuentas ni anuncios. Tus favoritos y ajustes se guardan en tu propio dispositivo.",
+        "",
+        "Aviso: Rumbo Granada es un proyecto independiente y no está afiliado al operador de autobuses. Los datos proceden de los servicios públicos de información del transporte de Granada."
+      ]
+    },
+    "en": {
+      "appName": "Rumbo Granada",
+      "subtitle": "Granada city buses",
+      "shortDescription": "Real-time arrivals, stops and routes for Granada city buses.",
+      "promotionalText": "Save your favourite stops, follow your bus on the map and get notified when it is about to arrive.",
+      "keywords": [
+        "bus",
+        "Granada",
+        "transit",
+        "schedule",
+        "arrivals",
+        "stops",
+        "routes",
+        "real time",
+        "live"
+      ],
+      "releaseNotes": "First release: map with stops and routes, real-time arrivals, favourites with labels, bus tracking with alerts, dark mode and Arabic (RTL) support.",
+      "fullDescription": [
+        "Rumbo Granada tells you when the next Granada city bus is coming, without opening a browser or wrestling with the operator's website.",
+        "",
+        "REAL-TIME ARRIVALS",
+        "Check the next arrivals at any stop with a countdown that refreshes itself. When live data is unavailable the app falls back to the official timetable (GTFS), so you always have a reference.",
+        "",
+        "MAP WITH STOPS AND ROUTES",
+        "A light OpenStreetMap-based map that only loads the stops in front of you: it pans smoothly and uses less data. Tap a stop to see the lines serving it, or draw a whole route to follow its path.",
+        "",
+        "FAVOURITES WITH LABELS",
+        "Save the stops and lines you use every day under the name you prefer (\"home\", \"work\", \"campus\") and swipe to remove them.",
+        "",
+        "FOLLOW YOUR BUS",
+        "Track a bus towards your stop and get a notification on your phone when it is about to arrive. The app honours the minute threshold you configure and keeps working with the screen off.",
+        "",
+        "MADE FOR YOU",
+        "Light and dark mode, Spanish, English and Arabic (with right-to-left layout), plus settings to control the map and alerts.",
+        "",
+        "NO SIGN-UP, NO ADS",
+        "There are no accounts and no advertising. Your favourites and settings stay on your own device.",
+        "",
+        "Please note: Rumbo Granada is an independent project and is not affiliated with the bus operator. Data comes from Granada's public transport information services."
+      ]
+    }
+  }
+}

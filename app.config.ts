@@ -13,10 +13,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.rumbo.granada.app',
+    // Seeds the remote build number the first time EAS Build reads it; from
+    // then on `autoIncrement` in eas.json owns this value.
+    buildNumber: '1',
     infoPlist: {
       NSLocationWhenInUseUsageDescription: 'This app uses your location to show nearby bus stops and track buses in Rumbo Granada',
       NSLocationAlwaysAndWhenInUseUsageDescription: 'This app uses your location to show nearby bus stops and track buses in Rumbo Granada in the background.',
       UIBackgroundModes: ['location', 'fetch', 'remote-notification'],
+      // The app only performs standard HTTPS requests (no custom crypto), so it
+      // is exempt from the US export-compliance documentation requirement.
+      ITSAppUsesNonExemptEncryption: false,
     },
   },
   android: {
@@ -27,6 +33,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: '#95071A',
     },
     package: 'com.rumbo.granada.app',
+    // Seeds the remote versionCode (see `ios.buildNumber`).
+    versionCode: 1,
     permissions: [
       'ACCESS_FINE_LOCATION',
       'ACCESS_COARSE_LOCATION',
@@ -69,7 +77,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-localization',
       {
-        supportedLocales: ['es', 'en'],
+        // es/en/ar are the locales shipped in `locales/` (Phase 15).
+        supportedLocales: ['es', 'en', 'ar'],
       },
     ],
   ],

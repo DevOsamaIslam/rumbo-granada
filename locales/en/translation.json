@@ -90,6 +90,7 @@
   "searchLinesPlaceholder": "Search lines...",
   "lineTitle": "Line {{line}}",
   "stopsCount": "Stops ({{total}})",
+  "noStopData": "There is no timetable data for this line yet. Stops will appear once the operator updates the feed.",
   "stopAccessibilityLabel": "Stop {{name}}",
   "stopAccessibility": "Stop {{stopName}}",
   "notificationChannelArrivals": "Bus arrivals",
