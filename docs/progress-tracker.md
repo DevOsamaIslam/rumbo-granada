@@ -266,11 +266,11 @@
 ### Phase 17: Dynamic Stops in Map Viewport
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 17.1 | Compute stops inside the current map viewport (visible region) | ⬜ | Spatial filter over GTFS stop index |
-| 17.2 | Render only viewport stops; add/remove markers as the map pans/zooms | ⬜ | Throttled `onRegionChange` |
-| 17.3 | Animate new stops entering the viewport on pan | ⬜ | Fade/scale-in entrance animation for added markers |
-| 17.4 | Performance guards: throttle region events, cap marker count | ⬜ | Reuse/augment existing clustering |
-| 17.5 | Unit tests for viewport filter + animation logic + typecheck + lint | ⬜ | |
+| 17.1 | Compute stops inside the current map viewport (visible region) | ✅ | `src/utils/viewport.ts`: `toViewportBounds` (MapLibre `[west,south,east,north]`), `expandBounds`, `boundsFromRegion` (Mercator fallback from camera + screen size), `filterStopsInViewport` |
+| 17.2 | Render only viewport stops; add/remove markers as the map pans/zooms | ✅ | `MapView.native.tsx` keeps a `viewportBounds` state fed by `onRegionIsChanging` (throttled 150 ms) + `onRegionDidChange`; only stops inside are mounted. Device-verified: 21–246 of 692 stops mounted while panning/zooming |
+| 17.3 | Animate new stops entering the viewport on pan | ✅ | `useMarkerEntrance` hook (200 ms fade + scale-in, native driver) used by `StopMarker`, so every marker animates once when it mounts |
+| 17.4 | Performance guards: throttle region events, cap marker count | ✅ | Older-edge throttle (`isRegionUpdateDue`, 150 ms, no MMKV write while moving), 35% padding margin to avoid edge popping, `MAX_VIEWPORT_STOPS = 300` with grid down-sampling that keeps the stop nearest the centre per cell |
+| 17.5 | Unit tests for viewport filter + animation logic + typecheck + lint | ✅ | `src/utils/viewport.test.ts` (20 tests), `useMarkerEntrance.test.tsx` (3), `MapView.viewport.test.tsx` (2); typecheck + lint clean; full suite 299 passed |
 
 **Depends on:** 3, 4
 
@@ -339,5 +339,5 @@ graph TD
 ---
 
 *Last updated: 2026-11-17*
-*Next task: Phase 16 (Favorites Screen Cleanup)*
+*Next task: Phase 18 (Production Build & Store Release)*
 **Blocks:** Milestone 2

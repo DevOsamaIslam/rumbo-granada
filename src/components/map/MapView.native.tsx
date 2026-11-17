@@ -1,7 +1,7 @@
 // Native map view built on MapLibre (OpenStreetMap tiles) — no Google Maps.
 // On web, `./MapView.tsx` resolves instead of this file.
 import React, { useRef, useEffect, useCallback, useMemo, useState } from "react";
-import { NativeSyntheticEvent, StyleSheet, View } from "react-native";
+import { NativeSyntheticEvent, StyleSheet, View, useWindowDimensions } from "react-native";
 import {
   Map,
   Camera,
@@ -16,6 +16,16 @@ import { useLocation } from "@/hooks/useLocation";
 import { gtfsService } from "@/services/gtfs";
 import { Storage } from "@/services/storage";
 import { CONFIG } from "@/constants/config";
+import {
+  MAX_VIEWPORT_STOPS,
+  REGION_THROTTLE_MS,
+  boundsFromRegion,
+  filterStopsInViewport,
+  isRegionUpdateDue,
+  toViewportBounds,
+  type LngLatBounds,
+  type ViewportBounds,
+} from "@/utils/viewport";
 import { StopMarker } from "./StopMarker.native";
 import { BusMarker } from "./BusMarker.native";
 import { RoutePolyline } from "./RoutePolyline.native";
@@ -384,7 +394,46 @@ export function MapViewComponent({
     return gtfsService.getStop(focusStopId) ?? null;
   }, [focusStopId]);
 
-  const stopsToShow = useMemo(() => (focusedStop ? [focusedStop] : stops), [focusedStop, stops]);
+  const [region, setRegion] = useState<MapRegion>(() => {
+    try {
+      const savedRegion = Storage.getItem(STORAGE_KEY_MAP_REGION);
+      if (savedRegion) {
+        const parsed = JSON.parse(savedRegion) as MapRegion;
+        if (
+          typeof parsed.latitude === "number" &&
+          typeof parsed.longitude === "number" &&
+          typeof parsed.zoomLevel === "number"
+        ) {
+          return parsed;
+        }
+      }
+    } catch (error) {
+      console.warn("Failed to load persisted map region:", error);
+    }
+    return initialRegion ?? DEFAULT_REGION;
+  });
+  // Visible viewport reported by MapLibre, used to decide which stop markers
+  // are mounted. `null` until the map reports its first region; the camera
+  // region keeps a fallback so the first frame doesn't mount every stop.
+  const [viewportBounds, setViewportBounds] = useState<ViewportBounds | null>(null);
+  const lastViewportUpdateRef = useRef(0);
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const effectiveViewport = useMemo(
+    () =>
+      viewportBounds ??
+      boundsFromRegion(region, { width: windowWidth, height: windowHeight }),
+    [viewportBounds, region, windowWidth, windowHeight],
+  );
+
+  const stopsToShow = useMemo(() => {
+    if (focusedStop) return [focusedStop];
+    // Only mount the stops inside the visible area (plus a margin) — the map
+    // adds/removes markers as the viewport moves instead of holding every
+    // GTFS stop in memory as a native annotation.
+    return filterStopsInViewport(stops, effectiveViewport, {
+      maxStops: MAX_VIEWPORT_STOPS,
+    });
+  }, [focusedStop, stops, effectiveViewport]);
 
   // Load every GTFS stop so all stop markers render on the map (when no line is selected and no single stop is focused).
   useEffect(() => {
@@ -410,24 +459,6 @@ export function MapViewComponent({
     }
     return routes.filter((route) => routeIds.has(route.route_id));
   }, [stopsToShow, routes]);
-  const [region, setRegion] = useState<MapRegion>(() => {
-    try {
-      const savedRegion = Storage.getItem(STORAGE_KEY_MAP_REGION);
-      if (savedRegion) {
-        const parsed = JSON.parse(savedRegion) as MapRegion;
-        if (
-          typeof parsed.latitude === "number" &&
-          typeof parsed.longitude === "number" &&
-          typeof parsed.zoomLevel === "number"
-        ) {
-          return parsed;
-        }
-      }
-    } catch (error) {
-      console.warn("Failed to load persisted map region:", error);
-    }
-    return initialRegion ?? DEFAULT_REGION;
-  });
   const [followMode, setFollowMode] = useState(followUserLocation || autoFollowUser);
   // Sync follow mode with the "auto-follow my location" settings toggle while
   // the map is open. Skipped on mount so an explicit `followUserLocation` prop
@@ -461,7 +492,7 @@ export function MapViewComponent({
 
   const handleRegionChange = useCallback(
     (event: NativeSyntheticEvent<ViewStateChangeEvent>) => {
-      const { center, zoom } = event.nativeEvent;
+      const { center, zoom, bounds } = event.nativeEvent;
       // MapLibre LngLat is [longitude, latitude]
       const nextRegion: MapRegion = clampRegion({
         longitude: center[0],
@@ -469,10 +500,32 @@ export function MapViewComponent({
         zoomLevel: zoom,
       });
       setRegion(nextRegion);
+      if (bounds) {
+        setViewportBounds(toViewportBounds(bounds as LngLatBounds));
+      }
       Storage.setItem(STORAGE_KEY_MAP_REGION, JSON.stringify(nextRegion));
       onRegionChange?.(nextRegion);
     },
     [onRegionChange],
+  );
+
+  // While the map is being dragged/pinched, refresh the viewport (so markers
+  // enter/leave as it moves) but throttle it and skip persisting the region —
+  // `onRegionDidChange` writes the final position once the gesture ends.
+  const handleRegionIsChanging = useCallback(
+    (event: NativeSyntheticEvent<ViewStateChangeEvent>) => {
+      const now = Date.now();
+      if (!isRegionUpdateDue(lastViewportUpdateRef.current, now, REGION_THROTTLE_MS)) {
+        return;
+      }
+      lastViewportUpdateRef.current = now;
+
+      const { bounds } = event.nativeEvent;
+      if (bounds) {
+        setViewportBounds(toViewportBounds(bounds as LngLatBounds));
+      }
+    },
+    [],
   );
 
   const handleZoomIn = useCallback(() => {
@@ -505,6 +558,7 @@ export function MapViewComponent({
       <Map
         style={StyleSheet.absoluteFill}
         mapStyle={mapStyle === "dark" ? OSM_DARK_STYLE : OSM_STANDARD_STYLE}
+        onRegionIsChanging={handleRegionIsChanging}
         onRegionDidChange={handleRegionChange}
         attribution={true}
       >

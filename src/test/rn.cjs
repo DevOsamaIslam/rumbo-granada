@@ -145,7 +145,17 @@ module.exports = {
     View: host("Animated.View"),
     Text: host("Animated.Text"),
     Value: class Value {
-      setValue() {}
+      constructor(value = 0) {
+        this._value = value;
+      }
+      setValue(value) {
+        this._value = value;
+      }
+      // Mirrors React Native's internal accessor so tests can assert the
+      // current animated value without running the animation loop.
+      __getValue() {
+        return this._value;
+      }
       addListener() {
         return { remove: () => {} };
       }

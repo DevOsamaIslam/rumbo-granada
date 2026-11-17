@@ -1,7 +1,8 @@
 import React from "react";
 import { Marker } from "@maplibre/maplibre-react-native";
 import { Route, Stop } from "@/types/gtfs";
-import { StyleSheet, View, Image, Text } from "react-native";
+import { Animated, StyleSheet, View, Image, Text } from "react-native";
+import { useMarkerEntrance } from "./useMarkerEntrance";
 
 // Teardrop brand pin used as the stop marker icon when zoomed out.
 const STOP_ICON = require("../../../assets/map-pin.png");
@@ -29,6 +30,8 @@ interface StopMarkerProps {
   routes?: Route[];
   /** Current map zoom level, used to size the marker dynamically. */
   zoomLevel?: number;
+  /** Fade/scale the marker in on mount (markers entering the viewport). */
+  animateIn?: boolean;
   onPress?: (stop: Stop) => void;
 }
 
@@ -37,8 +40,10 @@ export function StopMarker({
   stop,
   routes = [],
   zoomLevel = 14,
+  animateIn = true,
   onPress,
 }: StopMarkerProps) {
+  const entrance = useMarkerEntrance(animateIn);
   const isCloseUp = zoomLevel >= STOP_CIRCLE_ZOOM;
   const lineRoutes = routes.filter((r) => r.route_color);
 
@@ -52,7 +57,13 @@ export function StopMarker({
       anchor="center"
       onPress={() => onPress?.(stop)}
     >
-      <View style={[styles.annotation, { width: iconSize, height: iconSize }]}>
+      <Animated.View
+        style={[
+          styles.annotation,
+          { width: iconSize, height: iconSize },
+          entrance,
+        ]}
+      >
         {/* Close-up: show one colored circle per line serving the stop. */}
         {isCloseUp && lineRoutes.length > 0 ? (
           lineRoutes.map((route, index) => {
@@ -85,7 +96,7 @@ export function StopMarker({
           // Zoomed out: show the app logo icon.
           <Image source={STOP_ICON} style={[styles.markerIcon, { width: iconSize, height: iconSize }]} />
         )}
-      </View>
+      </Animated.View>
     </Marker>
   );
 }

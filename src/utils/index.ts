@@ -7,6 +7,21 @@ export {
   getBadgeTextColor,
   getBadgeBackgroundColor,
 } from './colors';
-export { calculateBounds, getBoundsCenter, calculateZoomLevel, isPointInBounds, clusterMarkers, getClusterCenter } from './map';
+export {
+  calculateBounds,
+  getBoundsCenter,
+  calculateZoomLevel,
+  isPointInBounds,
+  clusterMarkers,
+  getClusterCenter,
+} from './map';
+export {
+  boundsFromRegion,
+  expandBounds,
+  filterStopsInViewport,
+  isRegionUpdateDue,
+  isStopInBounds,
+  toViewportBounds,
+} from './viewport';
 export { formatTime as formatTimeDate, formatDate, formatDateTime, formatRelativeTime, isToday, isTomorrow, getDayName, parseTimeString, timeToMinutes, minutesToTime } from './date';
 export * from './notifications';
