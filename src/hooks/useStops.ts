@@ -1,5 +1,5 @@
 // Stops Hook
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { Stop, StopTime } from '@/types/gtfs';
 import { gtfsService } from '@/services/gtfs';
 
@@ -72,6 +72,12 @@ export function useStops() {
         stop.stop_code?.toLowerCase().includes(lowerQuery)
     );
   }, [stops]);
+
+  // Automatically load stops on mount
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadAllStops();
+  }, [loadAllStops]);
 
   return {
     stops,

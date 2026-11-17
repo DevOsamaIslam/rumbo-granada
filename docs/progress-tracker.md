@@ -215,11 +215,11 @@
 ### Phase 13: Stops Screen & Tab
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 13.1 | Add Stops screen (`app/(tabs)/stops.tsx`) and tab item beside Lines | ⬜ | Icon + label; follows Lines tab pattern |
-| 13.2 | Add SearchBar to Stops screen (same UX as Lines) | ⬜ | Reuse `SearchBar` component |
-| 13.3 | Implement stop search by code or name | ⬜ | Accent/case-insensitive match on `stop_id`/`stop_code` and `stop_name` |
-| 13.4 | Wire search results list to Stop Detail navigation | ⬜ | Reuse existing stop list item components |
-| 13.5 | Unit tests + typecheck + lint | ⬜ | Follow Lines screen test patterns |
+| 13.1 | Add Stops screen (`app/(tabs)/stops.tsx`) and tab item beside Lines | ✅ | Icon + label; follows Lines tab pattern |
+| 13.2 | Add SearchBar to Stops screen (same UX as Lines) | ✅ | Reuse `SearchBar` component |
+| 13.3 | Implement stop search by code or name | ✅ | Accent/case-insensitive match on `stop_id`/`stop_code` and `stop_name` |
+| 13.4 | Wire search results list to Stop Detail navigation | ✅ | Reuse existing stop list item components |
+| 13.5 | Unit tests + typecheck + lint | ✅ | Follow Lines screen test patterns |
 
 **Depends on:** 2, 3, 5, 6
 

@@ -7,7 +7,7 @@
   "settings": "Settings",
   "language": "Language",
   "english": "English",
-  "spanish": "Español",
+  "spanish": "Espa\u00f1ol",
   "logout": "Logout",
   "selectLanguage": "Select Language",
   "loading": "Loading...",
@@ -90,7 +90,7 @@
   "arrivesIn_one": "Arrives in {{list}} minute.",
   "arrivesIn_other": "Arrives in {{list}} minutes.",
   "arrivalsIn": "Arrive in {{list}} minutes.",
-  "trackingTitle": "Line {{line}} → {{stop}}",
+  "trackingTitle": "Line {{line}} \u2192 {{stop}}",
   "and": "and",
   "stopNotFound": "Stop not found",
   "loadingStop": "Loading stop",
@@ -110,5 +110,7 @@
   "saveStop": "Save stop",
   "label": "Label",
   "stopLabel": "Stop label",
-  "remove": "Remove"
+  "remove": "Remove",
+  "searchStopsPlaceholder": "Search stops...",
+  "noStopsFound": "No stops found"
 }

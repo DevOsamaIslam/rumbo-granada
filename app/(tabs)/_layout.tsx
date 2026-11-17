@@ -35,6 +35,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="stops"
+        options={{
+          title: 'Stops',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="map-marker-radius" color={color as string} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="favorites"
         options={{
           title: 'Favorites',
