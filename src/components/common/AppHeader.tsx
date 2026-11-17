@@ -10,13 +10,14 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Switch } from 'react-native-paper';
 import { useBusTracking } from '@/hooks/useBusTracking';
 import { formatTrackingBody } from '@/services/notifications';
 import { useTranslation } from 'react-i18next';
 import { useAppColors, useThemedStyles } from '@/constants/themes';
 import type { AppColors } from '@/constants/colors';
 import { CONFIG } from '@/constants/config';
-import type { ArrivalPrediction } from '@/types/tracking';
+import type { ArrivalPrediction, TrackedPair } from '@/types/tracking';
 
 const LOGO = require('../../../assets/logo.png');
 
@@ -47,14 +48,18 @@ export function computePredictionMinutes(
  * While a bus tracking is active, the live icon is replaced by a compact chip
  * showing the tracked line, its stop and the countdown — the same content as
  * the persistent notification. Tapping it opens a card with the tracking
- * details and a cancel button. With no active tracking the grey icon is inert.
+ * details and a cancel button. With no active tracking, tapping the live icon
+ * opens a dropdown of recent trackings that can be toggled back on.
  */
 export function AppHeader() {
   const {
     trackedPairs,
+    recentPairs,
     arrivals,
     startTracking,
     stopTracking,
+    addTrackedPair,
+    toggleTracking,
     removeTrackedPair,
   } = useBusTracking();
   const { t } = useTranslation();
@@ -70,6 +75,7 @@ export function AppHeader() {
   const styles = useThemedStyles(createStyles);
 
   const [cardVisible, setCardVisible] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
   const [summary, setSummary] = useState('');
   // Stable Animated.Value for the live dot pulse (useState so it is created once).
   const [pulse] = useState(() => new Animated.Value(1));
@@ -136,6 +142,36 @@ export function AppHeader() {
     setCardVisible(true);
   }, [pair]);
 
+  const openMenu = useCallback(() => setMenuVisible(true), []);
+
+  /** Re-enable a recent tracking, or stop it if it is the active one. */
+  const handleRecentToggle = useCallback(
+    (recent: TrackedPair) => {
+      const active = trackedPairs.find(
+        (tracked) =>
+          tracked.enabled &&
+          tracked.routeId === recent.routeId &&
+          tracked.stopId === recent.stopId,
+      );
+      if (active) {
+        toggleTracking(active.id);
+      } else {
+        addTrackedPair({
+          routeId: recent.routeId,
+          routeShortName: recent.routeShortName,
+          stopId: recent.stopId,
+          stopCode: recent.stopCode,
+          stopName: recent.stopName,
+          label: recent.label,
+          thresholdMinutes: recent.thresholdMinutes,
+          enabled: true,
+        });
+      }
+      setMenuVisible(false);
+    },
+    [trackedPairs, toggleTracking, addTrackedPair],
+  );
+
   return (
     <View
       style={[
@@ -147,15 +183,13 @@ export function AppHeader() {
 
       <Pressable
         style={[styles.liveButton, isActive && styles.liveChip]}
-        onPress={isActive ? openCard : undefined}
-        disabled={!isActive}
-        accessibilityRole={isActive ? 'button' : 'text'}
+        onPress={isActive ? openCard : openMenu}
+        accessibilityRole='button'
         accessibilityLabel={
           isActive
             ? t('viewTracking', { ns: 'translation' })
-            : t('noTracking', { ns: 'translation' })
+            : t('recentTrackings', { ns: 'translation' })
         }
-        accessibilityState={{ disabled: !isActive }}
         hitSlop={8}
       >
         {isActive && pair ? (
@@ -216,6 +250,76 @@ export function AppHeader() {
               </>
             ) : null}
           </View>
+        </Pressable>
+      </Modal>
+
+      <Modal
+        visible={menuVisible}
+        transparent
+        animationType='fade'
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <Pressable
+          style={[styles.menuScrim, { paddingTop: insets.top + 60 }]}
+          onPress={() => setMenuVisible(false)}
+          accessibilityLabel={t('close', { ns: 'translation' })}
+        >
+          <Pressable style={styles.menu} onPress={() => {}}>
+            <Text style={styles.menuTitle}>
+              {t('recentTrackings', { ns: 'translation' })}
+            </Text>
+            {recentPairs.length === 0 ? (
+              <Text style={styles.menuEmpty}>
+                {t('noRecentTrackings', { ns: 'translation' })}
+              </Text>
+            ) : (
+              recentPairs.map((recent) => {
+                const active = trackedPairs.some(
+                  (tracked) =>
+                    tracked.enabled &&
+                    tracked.routeId === recent.routeId &&
+                    tracked.stopId === recent.stopId,
+                );
+                const title = t('trackingTitle', {
+                  ns: 'translation',
+                  line: recent.routeShortName,
+                  stop: recent.stopName,
+                });
+                return (
+                  <Pressable
+                    key={`${recent.routeId}-${recent.stopId}`}
+                    style={styles.menuRow}
+                    onPress={() => handleRecentToggle(recent)}
+                    accessibilityRole='switch'
+                    accessibilityState={{ checked: active }}
+                    accessibilityLabel={title}
+                  >
+                    <View style={styles.menuInfo}>
+                      <Text style={styles.menuRowTitle} numberOfLines={2}>
+                        {title}
+                      </Text>
+                      {recent.label && recent.label !== recent.stopName ? (
+                        <Text style={styles.menuRowLabel} numberOfLines={1}>
+                          {recent.label}
+                        </Text>
+                      ) : null}
+                    </View>
+                    <View
+                      pointerEvents='none'
+                      accessibilityElementsHidden
+                      importantForAccessibility='no-hide-descendants'
+                    >
+                      <Switch
+                        value={active}
+                        color={colors.primary}
+                        trackColor={{ false: colors.outlineVariant, true: colors.primary }}
+                      />
+                    </View>
+                  </Pressable>
+                );
+              })
+            )}
+          </Pressable>
         </Pressable>
       </Modal>
     </View>
@@ -318,5 +422,53 @@ const createStyles = (colors: AppColors) =>
   cancelButtonText: {
     color: colors.error,
     fontWeight: '600',
+  },
+  menuScrim: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    alignItems: 'flex-end',
+    paddingHorizontal: 16,
+  },
+  menu: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.outlineVariant,
+    padding: 16,
+    gap: 4,
+  },
+  menuTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.onSurface,
+    marginBottom: 6,
+  },
+  menuEmpty: {
+    fontSize: 14,
+    color: colors.onSurfaceVariant,
+    paddingVertical: 8,
+  },
+  menuRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.outlineVariant,
+  },
+  menuInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  menuRowTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.onSurface,
+  },
+  menuRowLabel: {
+    fontSize: 12,
+    color: colors.outline,
   },
 });

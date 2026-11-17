@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { createSafeMMKV } from '@/services/mmkv';
+import { MAX_RECENT_TRACKINGS, mergeRecentTrackings } from '@/utils/recentTrackings';
 
 interface TrackedPair {
   id: string;
@@ -17,6 +18,11 @@ interface TrackedPair {
 
 interface TrackingState {
   trackedPairs: TrackedPair[];
+  /**
+   * Persisted history of tracked targets (newest first). Kept after tracking
+   * stops so Favorites and the header can offer a quick "track again" toggle.
+   */
+  recentPairs: TrackedPair[];
   addTrackedPair: (pair: Omit<TrackedPair, 'id' | 'createdAt'>) => void;
   removeTrackedPair: (id: string) => void;
   updateTrackedPair: (id: string, updates: Partial<TrackedPair>) => void;
@@ -41,15 +47,23 @@ const mmkvStorage = {
 
 export const useTrackingStore = create<TrackingState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       trackedPairs: [],
+      recentPairs: [],
       // One tracking at a time: adding a new pair replaces any existing one.
       addTrackedPair: (pair) =>
-        set(() => ({
-          trackedPairs: [
-            { ...pair, id: `${pair.routeId}-${pair.stopId}-${Date.now()}`, createdAt: Date.now() },
-          ],
-        })),
+        set((state) => {
+          const createdAt = Date.now();
+          const tracked: TrackedPair = {
+            ...pair,
+            id: `${pair.routeId}-${pair.stopId}-${createdAt}`,
+            createdAt,
+          };
+          return {
+            trackedPairs: [tracked],
+            recentPairs: mergeRecentTrackings(state.recentPairs, tracked),
+          };
+        }),
       removeTrackedPair: (id) =>
         set((state) => ({
           trackedPairs: state.trackedPairs.filter((p) => p.id !== id),
@@ -67,7 +81,12 @@ export const useTrackingStore = create<TrackingState>()(
           ),
         })),
       loadFromStorage: () => {
-        // Persist handles loading automatically
+        // Seed the history from a tracked pair persisted before `recentPairs`
+        // existed, so the new Favorites tab is not empty after an upgrade.
+        const { trackedPairs, recentPairs } = get();
+        if (recentPairs.length === 0 && trackedPairs.length > 0) {
+          set({ recentPairs: trackedPairs.slice(0, MAX_RECENT_TRACKINGS) });
+        }
       },
     }),
     {

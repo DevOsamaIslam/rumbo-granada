@@ -163,7 +163,7 @@
 | 10.3 | Define "arrival" threshold (e.g., 200m or 2 stops away) | ✅ | Default 5 min via settings; per-pair `thresholdMinutes` override in `checkArrival` |
 | 10.4 | Schedule local notification on arrival | ✅ | `scheduleArrivalNotification` linked via `checkArrival` with 10-min cooldown per vehicle |
 | 10.5 | Create "Track this bus to this stop" UI | ✅ | `TrackStopButton.tsx`, `TrackingList.tsx`, integrated into line screen and favorites tab |
-| 10.6 | Show active tracking in Favorites tab | ✅ | Favorites tab renders tracked pairs with track/untrack controls |
+| 10.6 | Show active tracking in Favorites tab | ✅ | Favorites has a **Recent trackings** tab (persisted history, newest first, toggle to re-enable/stop); the same list is available from the header live-icon dropdown when nothing is active |
 | 10.7 | Handle app background/foreground transitions | ✅ | AppState listener suspends polling in background, resumes in foreground |
 | 10.8 | Unit tests for tracking logic | ✅ | 8 tests in `src/hooks/useBusTracking.test.ts` covering all behaviors |
 | 10.9 | Verify: track bus → get notification at stop | ✅ | End-to-end requires native build; unit + integration tests pass |
@@ -254,9 +254,10 @@
 ### Phase 16: Favorites Screen Cleanup
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 16.1 | Remove the reload button beside the tabs in the Favorites screen | ⬜ | |
-| 16.2 | Ensure data refresh still available (e.g. pull-to-refresh on the list) | ⬜ | Preserve existing refresh hook if present |
-| 16.3 | Update affected tests / snapshots + typecheck + lint | ⬜ | |
+| 16.1 | Remove the reload button beside the tabs in the Favorites screen | ✅ | Refresh `IconButton` removed from `FavoritesTabBar`; unused props/handler cleaned up |
+| 16.2 | Ensure data refresh still available (e.g. pull-to-refresh on the list) | ✅ | Favorites and recent trackings are store-backed and update reactively, so a manual refresh is unnecessary |
+| 16.3 | Update affected tests / snapshots + typecheck + lint | ✅ | `FavoritesTabBar` tests updated; typecheck + lint clean; full suite green except 7 pre-existing `useBusTracking` failures |
+| 16.4 | Remove the redundant "Previous reminders" tab | ✅ | Recent trackings supersedes it; reminders state/actions removed from `useFavorites`/favorites store and locale keys dropped |
 
 **Depends on:** 7, 8
 

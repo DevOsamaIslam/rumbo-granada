@@ -173,6 +173,7 @@ export function useBusTracking() {
 
   const {
     trackedPairs,
+    recentPairs,
     toggleTracking: storeToggleTracking,
     addTrackedPair: storeAddTrackedPair,
     removeTrackedPair: storeRemoveTrackedPair,
@@ -421,6 +422,7 @@ export function useBusTracking() {
 
   return {
     trackedPairs,
+    recentPairs,
     busPositions,
     arrivals,
     isTracking,

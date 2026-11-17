@@ -1,31 +1,34 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { IconButton } from 'react-native-paper';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useThemedStyles } from '@/constants/themes';
 import type { AppColors } from '@/constants/colors';
 
-export type FavoritesTab = 'favoriteLines' | 'favoriteStops' | 'previousReminders';
+export type FavoritesTab =
+  | 'favoriteLines'
+  | 'favoriteStops'
+  | 'recentTrackings';
 
 export interface FavoritesTabBarProps {
   tab: FavoritesTab;
   onTabChange: (tab: FavoritesTab) => void;
-  onRefresh: () => void;
-  refreshing: boolean;
 }
 
 /** Tab switcher for the favorites screen. */
 export function FavoritesTabBar({
   tab,
   onTabChange,
-  onRefresh,
-  refreshing,
 }: FavoritesTabBarProps) {
   const { t } = useTranslation();
   const styles = useThemedStyles(createStyles);
 
   return (
     <View style={styles.toolbar}>
-      <View style={styles.tabs}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.tabsScroll}
+        contentContainerStyle={styles.tabs}
+      >
         <TabButton
           label={t('lines', { ns: 'translation' })}
           active={tab === 'favoriteLines'}
@@ -37,19 +40,11 @@ export function FavoritesTabBar({
           onPress={() => onTabChange('favoriteStops')}
         />
         <TabButton
-          label={t('previousReminders', { ns: 'translation' })}
-          active={tab === 'previousReminders'}
-          onPress={() => onTabChange('previousReminders')}
+          label={t('recentTrackings', { ns: 'translation' })}
+          active={tab === 'recentTrackings'}
+          onPress={() => onTabChange('recentTrackings')}
         />
-      </View>
-      <View style={styles.toolbarActions}>
-        <IconButton
-          icon='refresh'
-          onPress={onRefresh}
-          accessibilityLabel={t('refresh', { ns: 'translation' })}
-          disabled={refreshing}
-        />
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -87,6 +82,9 @@ const createStyles = (colors: AppColors) =>
     justifyContent: 'space-between',
     paddingHorizontal: 8,
   },
+  tabsScroll: {
+    flexShrink: 1,
+  },
   tabs: {
     flexDirection: 'row',
     gap: 4,
@@ -106,8 +104,5 @@ const createStyles = (colors: AppColors) =>
   tabTextActive: {
     color: colors.onPrimaryContainer,
     fontWeight: '600',
-  },
-  toolbarActions: {
-    flexDirection: 'row',
   },
 });

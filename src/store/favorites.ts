@@ -19,28 +19,15 @@ interface FavoriteStop {
   lon: number;
 }
 
-interface Reminder {
-  id: string;
-  stopId: string;
-  stopName: string;
-  label?: string;
-  minutes?: number;
-  createdAt: number;
-}
-
 interface FavoritesState {
   favoriteBuses: FavoriteBus[];
   favoriteStops: FavoriteStop[];
-  reminders: Reminder[];
   addFavoriteBus: (bus: FavoriteBus) => void;
   removeFavoriteBus: (routeId: string) => void;
   updateBusLabel: (routeId: string, label: string) => void;
   addFavoriteStop: (stop: FavoriteStop) => void;
   removeFavoriteStop: (stopId: string) => void;
   updateStopLabel: (stopId: string, label: string) => void;
-  addReminder: (reminder: Omit<Reminder, 'id' | 'createdAt'>) => void;
-  removeReminder: (reminderId: string) => void;
-  clearOldReminders: () => void;
   loadFromStorage: () => void;
 }
 
@@ -59,22 +46,16 @@ const mmkvStorage = {
   },
 };
 
-function keepLatestReminders(state: FavoritesState) {
-  const sorted = [...state.reminders].sort((a, b) => b.createdAt - a.createdAt);
-  return { reminders: sorted.slice(0, 3) };
-}
-
 function initialState() {
   return {
     favoriteBuses: [],
     favoriteStops: [],
-    reminders: [],
   };
 }
 
 export const useFavoritesStore = create<FavoritesState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       ...initialState(),
 
       addFavoriteBus: (bus: FavoriteBus) =>
@@ -114,28 +95,6 @@ export const useFavoritesStore = create<FavoritesState>()(
             s.stopId === stopId ? { ...s, label } : s
           ),
         })),
-
-      addReminder: (reminder: Omit<Reminder, 'id' | 'createdAt'>) =>
-        set((state) => {
-          const newReminder: Reminder = {
-            id: `${reminder.stopId}-${Date.now()}`,
-            stopId: reminder.stopId,
-            stopName: reminder.stopName,
-            label: reminder.label,
-            minutes: reminder.minutes,
-            createdAt: Date.now(),
-          };
-          const updated = [...state.reminders, newReminder];
-          return keepLatestReminders({ ...state, reminders: updated });
-        }),
-
-      removeReminder: (reminderId: string) =>
-        set((state) => ({
-          reminders: state.reminders.filter((r) => r.id !== reminderId),
-        })),
-
-      clearOldReminders: () =>
-        set(() => keepLatestReminders({ ...get(), reminders: [] })),
 
       loadFromStorage: () => {
         // Persist handles loading automatically

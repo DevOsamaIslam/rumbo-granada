@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
-import { IconButton } from 'react-native-paper';
-import { FavoritesTabBar } from '@/components/favorites/FavoritesTabBar';
+import { IconButton, Switch } from 'react-native-paper';
+import { FavoritesTabBar, type FavoritesTab } from '@/components/favorites/FavoritesTabBar';
 import { AddStopLabelModal } from '@/components/favorites';
 import { useRouter } from 'expo-router';
 import { useFavorites } from '@/hooks/useFavorites';
+import { useBusTracking } from '@/hooks/useBusTracking';
 import { useTranslation } from 'react-i18next';
 import { hapticTap } from '@/utils/haptics';
+import type { TrackedPair } from '@/types/tracking';
 
 import { useAppColors, useThemedStyles } from '@/constants/themes';
 import type { AppColors } from '@/constants/colors';
@@ -16,10 +18,6 @@ export default function FavoritesScreen() {
   const {
     favoriteBuses,
     favoriteStops,
-    reminders,
-    addReminder,
-    removeReminder,
-    clearOldReminders,
     isBusFavorite,
     isStopFavorite,
     toggleFavoriteBus,
@@ -27,14 +25,12 @@ export default function FavoritesScreen() {
     updateBusLabel,
     updateStopLabel,
   } = useFavorites();
+  const { recentPairs, trackedPairs, addTrackedPair, toggleTracking } = useBusTracking();
   const { t } = useTranslation();
   const colors = useAppColors();
   const styles = useThemedStyles(createStyles);
 
-  const [tab, setTab] = useState<'favoriteLines' | 'favoriteStops' | 'previousReminders'>(
-    'favoriteLines'
-  );
-  const [refreshing, setRefreshing] = useState(false);
+  const [tab, setTab] = useState<FavoritesTab>('favoriteLines');
 
   const [labelModal, setLabelModal] = useState<{
     type: 'bus' | 'stop';
@@ -43,13 +39,6 @@ export default function FavoritesScreen() {
     itemName: string;
     title: string;
   } | null>(null);
-
-  const handleRefresh = () => {
-    void hapticTap();
-    clearOldReminders();
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 400);
-  };
 
   const handleBusPress = (bus: (typeof favoriteBuses)[number]) => {
     void hapticTap();
@@ -93,12 +82,28 @@ export default function FavoritesScreen() {
     setLabelModal(null);
   };
 
-  const handleRepeatReminder = (reminder: (typeof reminders)[number]) => {
-    addReminder({
-      stopId: reminder.stopId,
-      stopName: reminder.stopName,
-      label: reminder.label,
-      minutes: reminder.minutes,
+  /** Re-enable a recent tracking, or stop it if it is the active one. */
+  const handleRecentToggle = (recent: TrackedPair) => {
+    void hapticTap();
+    const active = trackedPairs.find(
+      (pair) =>
+        pair.enabled &&
+        pair.routeId === recent.routeId &&
+        pair.stopId === recent.stopId,
+    );
+    if (active) {
+      toggleTracking(active.id);
+      return;
+    }
+    addTrackedPair({
+      routeId: recent.routeId,
+      routeShortName: recent.routeShortName,
+      stopId: recent.stopId,
+      stopCode: recent.stopCode,
+      stopName: recent.stopName,
+      label: recent.label,
+      thresholdMinutes: recent.thresholdMinutes,
+      enabled: true,
     });
   };
 
@@ -107,8 +112,6 @@ export default function FavoritesScreen() {
       <FavoritesTabBar
         tab={tab}
         onTabChange={setTab}
-        onRefresh={handleRefresh}
-        refreshing={refreshing}
       />
 
       <View style={styles.content}>
@@ -210,41 +213,59 @@ export default function FavoritesScreen() {
               contentContainerStyle={styles.listContent}
             />
           ))}
-      </View>
 
-        {tab === 'previousReminders' &&
-          (reminders.length === 0 ? (
-            <Text style={styles.emptyMessage}>{t('noReminders', { ns: 'translation' })}</Text>
+        {tab === 'recentTrackings' &&
+          (recentPairs.length === 0 ? (
+            <Text style={styles.emptyMessage}>
+              {t('noRecentTrackings', { ns: 'translation' })}
+            </Text>
           ) : (
             <FlatList
-              data={reminders}
-              keyExtractor={(reminder) => reminder.id}
-              renderItem={({ item }) => (
-                <Pressable style={styles.item} onPress={() => handleRepeatReminder(item)}>
-                  <View style={[styles.badgeBackground, { backgroundColor: colors.primary }]}>
-                    <Text style={styles.badgeText}>{item.minutes ? `${item.minutes}m` : '⏰'}</Text>
-                  </View>
-                  <View style={styles.stopInfo}>
-                    <Text style={styles.stopName}>{item.stopName}</Text>
-                    {item.label && <Text style={styles.stopLabel}>Label: {item.label}</Text>}
-                  </View>
-                  <View style={styles.favoriteArea}>
-                    <IconButton
-                      icon='alarm'
-                      onPress={() => handleRepeatReminder(item)}
-                      accessibilityLabel='Repeat reminder'
-                    />
-                    <IconButton
-                      icon='delete'
-                      onPress={() => removeReminder(item.id)}
-                      accessibilityLabel='Remove reminder'
-                    />
-                  </View>
-                </Pressable>
-              )}
+              data={recentPairs}
+              keyExtractor={(pair) => `${pair.routeId}-${pair.stopId}`}
+              renderItem={({ item }) => {
+                const active = trackedPairs.some(
+                  (pair) =>
+                    pair.enabled &&
+                    pair.routeId === item.routeId &&
+                    pair.stopId === item.stopId,
+                );
+                const title = t('trackingTitle', {
+                  ns: 'translation',
+                  line: item.routeShortName,
+                  stop: item.stopName,
+                });
+                return (
+                  <Pressable
+                    style={styles.item}
+                    onPress={() => handleRecentToggle(item)}
+                    accessibilityRole='switch'
+                    accessibilityState={{ checked: active }}
+                    accessibilityLabel={title}
+                  >
+                    <View style={[styles.badgeBackground, { backgroundColor: colors.primary }]}>
+                      <Text style={styles.badgeText}>{item.routeShortName}</Text>
+                    </View>
+                    <View style={styles.stopInfo}>
+                      <Text style={styles.stopName}>{title}</Text>
+                      {item.label && item.label !== item.stopName ? (
+                        <Text style={styles.stopLabel}>{item.label}</Text>
+                      ) : null}
+                    </View>
+                    <View style={styles.favoriteArea} pointerEvents='none'>
+                      <Switch
+                        value={active}
+                        color={colors.primary}
+                        trackColor={{ false: colors.outlineVariant, true: colors.primary }}
+                      />
+                    </View>
+                  </Pressable>
+                );
+              }}
               contentContainerStyle={styles.listContent}
             />
           ))}
+      </View>
 
       <AddStopLabelModal
         visible={labelModal !== null}
@@ -274,7 +295,7 @@ const createStyles = (colors: AppColors) =>
     textAlign: 'center',
     padding: 24,
   },
-  // Unified item style - same for buses, stops and reminders, only the badge icon differs
+  // Unified item style - same for buses, stops and recent trackings, only the badge icon differs
   item: {
     backgroundColor: colors.surface,
     padding: 12,

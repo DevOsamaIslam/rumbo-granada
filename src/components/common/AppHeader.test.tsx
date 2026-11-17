@@ -53,9 +53,12 @@ const makePrediction = (
 const mockStore = (overrides: Record<string, unknown> = {}) => {
   mockedUseBusTracking.mockReturnValue({
     trackedPairs: [],
+    recentPairs: [],
     arrivals: new Map(),
     startTracking: vi.fn(),
     stopTracking: vi.fn(),
+    addTrackedPair: vi.fn(),
+    toggleTracking: vi.fn(),
     removeTrackedPair: vi.fn(),
     ...overrides,
   } as any);
@@ -94,22 +97,46 @@ describe('AppHeader', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders the logo and a grey live icon when nothing is tracked', async () => {
+  it('renders the logo and a live icon when nothing is tracked', async () => {
     mockStore();
 
     await render(<AppHeader />);
 
     expect(screen.getByLabelText('Granabus')).toBeOnTheScreen();
-    expect(screen.getByLabelText('Sin seguimiento activo')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Seguimientos recientes')).toBeOnTheScreen();
   });
 
-  it('does not open the card when the live icon is inactive', async () => {
+  it('opens the recent trackings dropdown instead of the tracking card', async () => {
     mockStore();
 
     await render(<AppHeader />);
 
-    fireEvent.press(screen.getByLabelText('Sin seguimiento activo'));
+    await fireEvent.press(screen.getByLabelText('Seguimientos recientes'));
+
+    expect(screen.getByText('Aún no hay seguimientos recientes')).toBeOnTheScreen();
     expect(screen.queryByText('Seguimiento activo')).toBeNull();
+  });
+
+  it('lists recent trackings and starts one when pressed', async () => {
+    const addTrackedPair = vi.fn();
+    mockStore({
+      recentPairs: [makePair({ id: 'recent-1' })],
+      addTrackedPair,
+    });
+
+    await render(<AppHeader />);
+
+    await fireEvent.press(screen.getByLabelText('Seguimientos recientes'));
+    await fireEvent.press(screen.getByLabelText('Línea 33 → Gran Vía'));
+
+    expect(addTrackedPair).toHaveBeenCalledWith(
+      expect.objectContaining({
+        routeId: 'r1',
+        stopId: 'uuid-1',
+        stopName: 'Gran Vía',
+        enabled: true,
+      }),
+    );
   });
 
   it('shows the line, stop and minutes in place of the icon when tracking is active', async () => {
