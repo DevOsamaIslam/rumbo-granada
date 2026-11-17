@@ -1,7 +1,8 @@
 import React from "react";
 import { Marker } from "@maplibre/maplibre-react-native";
 import { View, StyleSheet, Text } from "react-native";
-import { COLORS } from "@/constants/colors";
+import { useAppColors, useThemedStyles } from "@/constants/themes";
+import type { AppColors } from "@/constants/colors";
 
 interface BusMarkerProps {
   lngLat: [number, number];
@@ -16,6 +17,8 @@ interface BusMarkerProps {
 }
 
 function BusMarkerImpl({ lngLat, heading = 0, label, onPress }: BusMarkerProps) {
+  const colors = useAppColors();
+  const styles = useThemedStyles(createStyles);
   return (
     <Marker
       lngLat={lngLat}
@@ -34,8 +37,8 @@ function BusMarkerImpl({ lngLat, heading = 0, label, onPress }: BusMarkerProps) 
           ▲
         </Text>
         {label ? (
-          <View style={styles.labelPill}>
-            <Text style={styles.labelText}>{label}</Text>
+          <View style={[styles.labelPill, { backgroundColor: colors.primary }]}>
+            <Text style={[styles.labelText, { color: colors.onPrimary }]}>{label}</Text>
           </View>
         ) : null}
       </View>
@@ -47,7 +50,8 @@ function BusMarkerImpl({ lngLat, heading = 0, label, onPress }: BusMarkerProps) 
 // every bus annotation.
 export const BusMarker = React.memo(BusMarkerImpl);
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   busMarker: {
     width: 32,
     justifyContent: "center",
@@ -55,11 +59,10 @@ const styles = StyleSheet.create({
   },
   busIcon: {
     fontSize: 24,
-    color: COLORS.primary,
+    color: colors.primary,
     fontWeight: "bold",
   },
   labelPill: {
-    backgroundColor: COLORS.primary,
     borderRadius: 6,
     paddingHorizontal: 5,
     paddingVertical: 1,
@@ -68,7 +71,6 @@ const styles = StyleSheet.create({
   labelText: {
     fontSize: 10,
     fontWeight: "600",
-    color: "#FFFFFF",
   },
 });
 

@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { COLORS } from '@/constants/colors';
+import { useAppColors, useThemedStyles } from '@/constants/themes';
+import type { AppColors } from '@/constants/colors';
 import { formatCountdown } from '@/utils/gtfs';
 import { getBadgeBackgroundColor, getBadgeTextColor } from '@/utils/colors';
 import { useTranslation } from 'react-i18next';
@@ -22,7 +23,9 @@ export function formatArrivalMinutes(minutes: number, t: TFunction): string {
 
 export function ArrivalRow({ arrival, lineColor, lineTextColor }: ArrivalRowProps) {
   const { t } = useTranslation();
-  const badgeColor = getBadgeBackgroundColor(lineColor, COLORS.primary);
+  const colors = useAppColors();
+  const styles = useThemedStyles(createStyles);
+  const badgeColor = getBadgeBackgroundColor(lineColor, colors.primary);
   // Many routes ship without `route_text_color`; derive a legible one so the line
   // code stays readable on light backgrounds.
   const badgeTextColor = getBadgeTextColor(badgeColor, lineTextColor);
@@ -46,7 +49,8 @@ export function ArrivalRow({ arrival, lineColor, lineTextColor }: ArrivalRowProp
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -54,7 +58,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: COLORS.outlineVariant,
+    borderBottomColor: colors.outlineVariant,
   },
   badge: {
     minWidth: 44,
@@ -74,11 +78,11 @@ const styles = StyleSheet.create({
   },
   destination: {
     fontSize: 15,
-    color: COLORS.onSurface,
+    color: colors.onSurface,
   },
   minutes: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.primary,
+    color: colors.primary,
   },
 });

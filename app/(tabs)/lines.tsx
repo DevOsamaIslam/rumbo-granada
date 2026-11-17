@@ -9,6 +9,8 @@ import { filterLines } from '@/utils/gtfs';
 import { Route } from '@/types/gtfs';
 import { useTranslation } from 'react-i18next';
 import { hapticTap } from '@/utils/haptics';
+import { useThemedStyles } from '@/constants/themes';
+import type { AppColors } from '@/constants/colors';
 
 export default function LinesScreen() {
   const router = useRouter();
@@ -17,6 +19,7 @@ export default function LinesScreen() {
   const { routes, isLoading, error, loadLines } = useLines();
   const { isBusFavorite, toggleFavoriteBus } = useFavorites();
   const {t} = useTranslation();
+  const styles = useThemedStyles(createStyles);
 
   const filtered = filterLines(routes, query);
 
@@ -75,9 +78,11 @@ export default function LinesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -94,6 +99,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '600',
+    color: colors.onBackground,
   },
   searchBar: {
     flex: 1,

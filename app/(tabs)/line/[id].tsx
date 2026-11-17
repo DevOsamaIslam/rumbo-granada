@@ -6,7 +6,8 @@ import { gtfsService } from '@/services/gtfs';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useTranslation } from 'react-i18next';
 import { TrackStopButton } from '@/components/tracking';
-import { COLORS } from '@/constants/colors';
+import { useAppColors, useThemedStyles } from '@/constants/themes';
+import type { AppColors } from '@/constants/colors';
 import { Route, Stop } from '@/types/gtfs';
 
 export default function LineDetailScreen() {
@@ -17,6 +18,8 @@ export default function LineDetailScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const { isBusFavorite, toggleFavoriteBus } = useFavorites();
   const { t } = useTranslation();
+  const colors = useAppColors();
+  const styles = useThemedStyles(createStyles);
 
   useEffect(() => {
     let cancelled = false;
@@ -89,7 +92,7 @@ export default function LineDetailScreen() {
       contentContainerStyle={styles.content}
     >
       <View style={styles.header}>
-        <View style={[styles.badge, { backgroundColor: route.route_color ? `#${route.route_color}` : COLORS.primary }]}>
+        <View style={[styles.badge, { backgroundColor: route.route_color ? `#${route.route_color}` : colors.primary }]}>
           <Text style={styles.badgeText}>{route.route_short_name}</Text>
         </View>
         <View style={styles.headerInfo}>
@@ -106,7 +109,7 @@ export default function LineDetailScreen() {
       </View>
 
       <Pressable
-        style={[styles.mapButton, { backgroundColor: COLORS.secondary }]}
+        style={[styles.mapButton, { backgroundColor: colors.secondary }]}
         onPress={handleShowOnMap}
         accessibilityRole="button"
         accessibilityLabel={t('showOnMap', { ns: 'translation' })}
@@ -140,9 +143,11 @@ export default function LineDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   centered: {
     alignItems: 'center',
@@ -179,13 +184,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '600',
+    color: colors.onBackground,
   },
   subtitle: {
     fontSize: 14,
-    color: COLORS.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   errorText: {
-    color: COLORS.error,
+    color: colors.error,
     fontSize: 15,
   },
   mapButton: {
@@ -195,7 +201,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   mapButtonText: {
-    color: COLORS.onSecondary,
+    color: colors.onSecondary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -203,6 +209,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 12,
+    color: colors.onBackground,
   },
   stopRow: {
     flexDirection: 'row',
@@ -210,18 +217,18 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.outlineVariant,
+    borderBottomColor: colors.outlineVariant,
   },
   stopNumber: {
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: COLORS.tertiary,
+    backgroundColor: colors.tertiary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   stopNumberText: {
-    color: COLORS.onTertiary,
+    color: colors.onTertiary,
     fontSize: 13,
     fontWeight: '700',
     textAlign: 'center',
@@ -229,6 +236,6 @@ const styles = StyleSheet.create({
   stopName: {
     flex: 1,
     fontSize: 15,
-    color: COLORS.onSurface,
+    color: colors.onSurface,
   },
 });

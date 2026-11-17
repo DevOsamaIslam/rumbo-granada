@@ -8,7 +8,8 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { useTranslation } from 'react-i18next';
 import { hapticTap } from '@/utils/haptics';
 
-import { COLORS } from '@/constants/colors';
+import { useAppColors, useThemedStyles } from '@/constants/themes';
+import type { AppColors } from '@/constants/colors';
 
 export default function FavoritesScreen() {
   const router = useRouter();
@@ -27,6 +28,8 @@ export default function FavoritesScreen() {
     updateStopLabel,
   } = useFavorites();
   const { t } = useTranslation();
+  const colors = useAppColors();
+  const styles = useThemedStyles(createStyles);
 
   const [tab, setTab] = useState<'favoriteLines' | 'favoriteStops' | 'previousReminders'>(
     'favoriteLines'
@@ -123,7 +126,7 @@ export default function FavoritesScreen() {
                   <View
                     style={[
                       styles.badgeBackground,
-                      { backgroundColor: item.routeColor ? `#${item.routeColor}` : COLORS.primary },
+                      { backgroundColor: item.routeColor ? `#${item.routeColor}` : colors.primary },
                     ]}
                   >
                     <Text style={styles.badgeText}>{item.routeShortName}</Text>
@@ -173,7 +176,7 @@ export default function FavoritesScreen() {
               keyExtractor={(stop) => stop.stopId}
               renderItem={({ item }) => (
                 <Pressable style={styles.item} onPress={() => handleStopPress(item)}>
-                  <View style={[styles.badgeBackground, { backgroundColor: COLORS.primary }]}>
+                  <View style={[styles.badgeBackground, { backgroundColor: colors.primary }]}>
                     <Text style={styles.badgeText}>&#9733;</Text>
                   </View>
                   <View style={styles.stopInfo}>
@@ -218,7 +221,7 @@ export default function FavoritesScreen() {
               keyExtractor={(reminder) => reminder.id}
               renderItem={({ item }) => (
                 <Pressable style={styles.item} onPress={() => handleRepeatReminder(item)}>
-                  <View style={[styles.badgeBackground, { backgroundColor: COLORS.primary }]}>
+                  <View style={[styles.badgeBackground, { backgroundColor: colors.primary }]}>
                     <Text style={styles.badgeText}>{item.minutes ? `${item.minutes}m` : '⏰'}</Text>
                   </View>
                   <View style={styles.stopInfo}>
@@ -255,30 +258,32 @@ export default function FavoritesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
   },
   emptyMessage: {
-    color: '#79747E',
+    color: colors.onSurfaceVariant,
     fontSize: 16,
     textAlign: 'center',
     padding: 24,
   },
   // Unified item style - same for buses, stops and reminders, only the badge icon differs
   item: {
-    backgroundColor: '#FFF',
+    backgroundColor: colors.surface,
     padding: 12,
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
@@ -292,7 +297,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   badgeText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -302,11 +307,11 @@ const styles = StyleSheet.create({
   busName: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.onSurface,
+    color: colors.onSurface,
   },
   busRoutes: {
     fontSize: 12,
-    color: COLORS.outline,
+    color: colors.outline,
     marginTop: 2,
   },
   listContent: {
@@ -322,11 +327,11 @@ const styles = StyleSheet.create({
   stopName: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.onSurface,
+    color: colors.onSurface,
   },
   stopLabel: {
     fontSize: 12,
-    color: COLORS.outline,
+    color: colors.outline,
     marginTop: 2,
   },
 });

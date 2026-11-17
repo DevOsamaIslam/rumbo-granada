@@ -7,7 +7,8 @@ import { AddStopLabelModal } from '@/components/favorites';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useStopArrivals } from '@/hooks/useStopArrivals';
 import { gtfsService } from '@/services/gtfs';
-import { COLORS } from '@/constants/colors';
+import { useThemedStyles } from '@/constants/themes';
+import type { AppColors } from '@/constants/colors';
 import { getBadgeBackgroundColor } from '@/utils/colors';
 import type { Route, Stop } from '@/types/gtfs';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +17,7 @@ import { StopLinesTab, StopTabBar, type StopTab } from '@/components/stops/StopD
 export default function StopDetailScreen() {
   const router = useRouter();
   const { t } = useTranslation();
+  const styles = useThemedStyles(createStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
   const stopId = typeof id === 'string' ? id : '';
 
@@ -233,10 +235,11 @@ export default function StopDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
   centered: { alignItems: 'center', justifyContent: 'center', padding: 24 },
   listContainer: { flex: 1 },
-  errorText: { fontSize: 15, color: COLORS.error },
-  mutedText: { fontSize: 14, color: COLORS.outline, textAlign: 'center' },
+  errorText: { fontSize: 15, color: colors.error },
+  mutedText: { fontSize: 14, color: colors.outline, textAlign: 'center' },
 });

@@ -2,7 +2,8 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import { TrackStopButton } from '@/components/tracking';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '@/constants/colors';
+import { useAppColors, useThemedStyles } from '@/constants/themes';
+import type { AppColors } from '@/constants/colors';
 import type { Route, Stop } from '@/types/gtfs';
 
 export type StopTab = 'arrivals' | 'lines';
@@ -24,6 +25,7 @@ export function StopTabBar({
   onShowOnMap,
 }: StopTabBarProps) {
   const { t } = useTranslation();
+  const styles = useThemedStyles(createStyles);
 
   return (
     <View style={styles.toolbar}>
@@ -65,6 +67,7 @@ function TabButton({
   active: boolean;
   onPress: () => void;
 }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <Pressable
       style={[styles.tab, active && styles.tabActive]}
@@ -89,6 +92,8 @@ export interface StopLinesTabProps {
 /** The lines serving the stop, each opening its line detail screen. */
 export function StopLinesTab({ routes, stop, onPress }: StopLinesTabProps) {
   const { t } = useTranslation();
+  const colors = useAppColors();
+  const styles = useThemedStyles(createStyles);
 
   return (
     <ScrollView contentContainerStyle={styles.infoContent}>
@@ -109,7 +114,7 @@ export function StopLinesTab({ routes, stop, onPress }: StopLinesTabProps) {
                 {
                   backgroundColor: route.route_color
                     ? `#${route.route_color}`
-                    : COLORS.primary,
+                    : colors.primary,
                 },
               ]}
             >
@@ -134,7 +139,8 @@ export function StopLinesTab({ routes, stop, onPress }: StopLinesTabProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   toolbar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -151,14 +157,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   tabActive: {
-    backgroundColor: COLORS.primaryContainer,
+    backgroundColor: colors.primaryContainer,
   },
   tabText: {
     fontSize: 14,
-    color: COLORS.outline,
+    color: colors.outline,
   },
   tabTextActive: {
-    color: COLORS.onPrimaryContainer,
+    color: colors.onPrimaryContainer,
     fontWeight: '600',
   },
   toolbarActions: {
@@ -175,7 +181,7 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: COLORS.outlineVariant,
+    borderBottomColor: colors.outlineVariant,
   },
   routeBadge: {
     minWidth: 44,
@@ -186,18 +192,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   routeBadgeText: {
-    color: COLORS.onPrimary,
+    color: colors.onPrimary,
     fontSize: 14,
     fontWeight: '700',
   },
   routeLongName: {
     flex: 1,
     fontSize: 15,
-    color: COLORS.onSurface,
+    color: colors.onSurface,
   },
   mutedText: {
     fontSize: 14,
-    color: COLORS.outline,
+    color: colors.outline,
     textAlign: 'center',
   },
 });

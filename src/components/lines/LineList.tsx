@@ -3,6 +3,8 @@ import { Route } from '@/types/gtfs';
 import { useTranslation } from 'react-i18next';
 import { LineItem } from './LineItem';
 import { SkeletonListItem } from '@/components/common/Skeleton';
+import { useThemedStyles } from '@/constants/themes';
+import type { AppColors } from '@/constants/colors';
 
 interface LineListProps {
   routes: Route[];
@@ -28,6 +30,7 @@ export function LineList({
   emptyMessage,
 }: LineListProps) {
   const { t } = useTranslation();
+  const styles = useThemedStyles(createStyles);
 
   if (isLoading) {
     return (
@@ -79,7 +82,8 @@ export function LineList({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   skeletonContainer: {
     padding: 8,
   },
@@ -95,21 +99,21 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 1,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: colors.outlineVariant,
   },
   errorText: {
-    color: '#B00020',
+    color: colors.error,
     fontSize: 15,
     fontWeight: '600',
   },
   errorDetail: {
-    color: '#B00020',
+    color: colors.error,
     fontSize: 13,
     textAlign: 'center',
     marginTop: 8,
   },
   emptyText: {
-    color: '#79747E',
+    color: colors.onSurfaceVariant,
     fontSize: 15,
   },
 });

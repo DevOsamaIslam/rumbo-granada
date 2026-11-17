@@ -8,6 +8,7 @@ type SettingsValues = {
   notificationThresholdMinutes: number;
   autoFollowUser: boolean;
   showBusLabels: boolean;
+  theme: 'light' | 'dark' | 'system';
 };
 
 const state: SettingsValues = {
@@ -16,6 +17,7 @@ const state: SettingsValues = {
   notificationThresholdMinutes: 5,
   autoFollowUser: true,
   showBusLabels: true,
+  theme: 'system',
 };
 
 const setLanguageMock = vi.fn((value: SettingsValues['language']) => {
@@ -33,6 +35,9 @@ const setAutoFollowUserMock = vi.fn((value: boolean) => {
 const setShowBusLabelsMock = vi.fn((value: boolean) => {
   state.showBusLabels = value;
 });
+const setThemeMock = vi.fn((value: SettingsValues['theme']) => {
+  state.theme = value;
+});
 
 vi.mock('@/store/settings', () => ({
   useSettingsStore: vi.fn(() => ({
@@ -42,6 +47,7 @@ vi.mock('@/store/settings', () => ({
     setNotificationThreshold: setNotificationThresholdMock,
     setAutoFollowUser: setAutoFollowUserMock,
     setShowBusLabels: setShowBusLabelsMock,
+    setTheme: setThemeMock,
   })),
 }));
 
@@ -58,6 +64,7 @@ describe('SettingsScreen', () => {
       notificationThresholdMinutes: 5,
       autoFollowUser: true,
       showBusLabels: true,
+      theme: 'system',
     });
     vi.clearAllMocks();
     // The "changes the language" test switches the global i18n language;
@@ -76,6 +83,11 @@ describe('SettingsScreen', () => {
     expect(getByText('Elige la apariencia del mapa')).toBeOnTheScreen();
     expect(getByText('Estándar')).toBeOnTheScreen();
     expect(getByText('Oscuro')).toBeOnTheScreen();
+    expect(getByText('Tema')).toBeOnTheScreen();
+    expect(getByText('Elige la apariencia de la aplicación')).toBeOnTheScreen();
+    expect(getByText('Automático')).toBeOnTheScreen();
+    expect(getByText('Claro')).toBeOnTheScreen();
+    expect(getByText('Nocturno')).toBeOnTheScreen();
     expect(getByText('Preferencias')).toBeOnTheScreen();
     expect(getByText('Seguir mi ubicación automáticamente')).toBeOnTheScreen();
     expect(getByText('Mostrar etiquetas de autobuses')).toBeOnTheScreen();
@@ -104,6 +116,20 @@ describe('SettingsScreen', () => {
     fireEvent.press(getByLabelText('Oscuro'));
     expect(setMapStyleMock).toHaveBeenCalledWith('dark');
     expect(state.mapStyle).toBe('dark');
+  });
+
+  it('changes the app theme preference', async () => {
+    const { getByLabelText } = await render(<SettingsScreen />);
+    fireEvent.press(getByLabelText('Nocturno'));
+    expect(setThemeMock).toHaveBeenCalledWith('dark');
+    expect(state.theme).toBe('dark');
+  });
+
+  it('selects the system theme', async () => {
+    const { getByLabelText } = await render(<SettingsScreen />);
+    fireEvent.press(getByLabelText('Automático'));
+    expect(setThemeMock).toHaveBeenCalledWith('system');
+    expect(state.theme).toBe('system');
   });
 
   it('toggles auto-follow user position', async () => {

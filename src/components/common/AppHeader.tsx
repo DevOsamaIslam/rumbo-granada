@@ -13,14 +13,12 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useBusTracking } from '@/hooks/useBusTracking';
 import { formatTrackingBody } from '@/services/notifications';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '@/constants/colors';
+import { useAppColors, useThemedStyles } from '@/constants/themes';
+import type { AppColors } from '@/constants/colors';
 import { CONFIG } from '@/constants/config';
 import type { ArrivalPrediction } from '@/types/tracking';
 
 const LOGO = require('../../../assets/logo.png');
-
-/** Live status icon color: inverse on-surface on the inverse-primary header. */
-const LIVE_ICON_COLOR = COLORS.inverseOnSurface;
 
 /** Refresh cadence of the header countdown; matches the arrival check loop. */
 const SUMMARY_REFRESH_MS = CONFIG.NOTIFICATION_CHECK_INTERVAL_MS;
@@ -68,6 +66,8 @@ export function AppHeader() {
   // Pad below the system status bar so the header never sits under the
   // clock / notification / battery icons.
   const insets = useSafeAreaInsets();
+  const colors = useAppColors();
+  const styles = useThemedStyles(createStyles);
 
   const [cardVisible, setCardVisible] = useState(false);
   const [summary, setSummary] = useState('');
@@ -178,7 +178,7 @@ export function AppHeader() {
           <MaterialCommunityIcons
             name='broadcast'
             size={26}
-            color={LIVE_ICON_COLOR}
+            color={colors.onPrimaryContainer}
           />
         )}
       </Pressable>
@@ -222,16 +222,17 @@ export function AppHeader() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: COLORS.inversePrimary,
+    backgroundColor: colors.inversePrimary,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: COLORS.inverseSurface,
+    borderBottomColor: colors.inverseSurface,
   },
   logo: {
     width: 36,
@@ -252,13 +253,13 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    backgroundColor: 'rgba(74, 0, 16, 0.10)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
   },
   liveDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: COLORS.onPrimaryContainer,
+    backgroundColor: colors.onPrimaryContainer,
   },
   liveText: {
     flexShrink: 1,
@@ -266,11 +267,11 @@ const styles = StyleSheet.create({
   liveTitle: {
     fontSize: 12,
     fontWeight: '700',
-    color: COLORS.onPrimaryContainer,
+    color: colors.onPrimaryContainer,
   },
   liveSummary: {
     fontSize: 11,
-    color: COLORS.onPrimaryContainer,
+    color: colors.onPrimaryContainer,
   },
   scrim: {
     flex: 1,
@@ -282,7 +283,7 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 360,
-    backgroundColor: COLORS.surface,
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 20,
     gap: 8,
@@ -290,20 +291,20 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: COLORS.onSurface,
+    color: colors.onSurface,
   },
   cardLine: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.primary,
+    color: colors.primary,
   },
   cardBody: {
     fontSize: 14,
-    color: COLORS.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: COLORS.outlineVariant,
+    backgroundColor: colors.outlineVariant,
     marginVertical: 8,
   },
   cancelButton: {
@@ -312,10 +313,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: COLORS.errorContainer,
+    backgroundColor: colors.errorContainer,
   },
   cancelButtonText: {
-    color: COLORS.error,
+    color: colors.error,
     fontWeight: '600',
   },
 });

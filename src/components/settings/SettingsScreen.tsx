@@ -6,7 +6,8 @@ import Constants from 'expo-constants';
 import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
 import { useSettingsStore } from '@/store/settings';
-import { COLORS } from '@/constants/colors';
+import { useAppColors, useThemedStyles, type ThemePreference } from '@/constants/themes';
+import type { AppColors } from '@/constants/colors';
 import { hapticTap } from '@/utils/haptics';
 
 type Language = 'es' | 'en';
@@ -16,11 +17,6 @@ type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 /** Brand mark shown in the footer, matching the app header. */
 const LOGO = require('../../../assets/logo.png');
 
-/** Cards sit on the warm app background, so they use the plain surface white. */
-const CARD_BACKGROUND = '#FFFFFF';
-/** Soft brand-red wash behind each row icon. */
-const ICON_BADGE_BACKGROUND = 'rgba(160, 0, 32, 0.08)';
-
 const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
   { value: 'es', label: 'spanish' },
   { value: 'en', label: 'english' },
@@ -29,6 +25,12 @@ const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
 const MAP_STYLE_OPTIONS: { value: MapStyle; label: string }[] = [
   { value: 'standard', label: 'mapStyleStandard' },
   { value: 'dark', label: 'mapStyleDark' },
+];
+
+const THEME_OPTIONS: { value: ThemePreference; label: string; icon: IconName }[] = [
+  { value: 'system', label: 'themeSystem', icon: 'theme-light-dark' },
+  { value: 'light', label: 'themeLight', icon: 'white-balance-sunny' },
+  { value: 'dark', label: 'themeDark', icon: 'weather-night' },
 ];
 
 /** Notification threshold bounds, in minutes. */
@@ -43,6 +45,7 @@ interface SectionProps {
 
 /** Grouped settings card with an uppercase section label and a hint line. */
 function Section({ title, description, children }: SectionProps) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle} accessibilityRole="header">
@@ -55,9 +58,11 @@ function Section({ title, description, children }: SectionProps) {
 }
 
 function IconBadge({ name }: { name: IconName }) {
+  const styles = useThemedStyles(createStyles);
+  const colors = useAppColors();
   return (
     <View style={styles.iconBadge}>
-      <MaterialCommunityIcons name={name} size={18} color={COLORS.primary} />
+      <MaterialCommunityIcons name={name} size={18} color={colors.primary} />
     </View>
   );
 }
@@ -72,6 +77,8 @@ interface OptionRowProps {
 
 /** Single-choice row: the radio mark mirrors the accessibility state. */
 function OptionRow({ icon, label, selected, last, onPress }: OptionRowProps) {
+  const styles = useThemedStyles(createStyles);
+  const colors = useAppColors();
   return (
     <Pressable
       style={[styles.row, last && styles.lastRow]}
@@ -88,7 +95,7 @@ function OptionRow({ icon, label, selected, last, onPress }: OptionRowProps) {
       <MaterialCommunityIcons
         name={selected ? 'radiobox-marked' : 'radiobox-blank'}
         size={22}
-        color={selected ? COLORS.primary : COLORS.outline}
+        color={selected ? colors.primary : colors.outline}
       />
     </Pressable>
   );
@@ -108,6 +115,8 @@ interface ToggleRowProps {
  * control instead of two.
  */
 function ToggleRow({ icon, title, value, last, onPress }: ToggleRowProps) {
+  const styles = useThemedStyles(createStyles);
+  const colors = useAppColors();
   return (
     <Pressable
       style={[styles.row, last && styles.lastRow]}
@@ -128,8 +137,8 @@ function ToggleRow({ icon, title, value, last, onPress }: ToggleRowProps) {
       >
         <Switch
           value={value}
-          color={COLORS.primary}
-          trackColor={{ false: COLORS.outlineVariant, true: COLORS.primary }}
+          color={colors.primary}
+          trackColor={{ false: colors.outlineVariant, true: colors.primary }}
         />
       </View>
     </Pressable>
@@ -158,6 +167,8 @@ function StepperRow({
   onDecrease,
   onIncrease,
 }: StepperRowProps) {
+  const styles = useThemedStyles(createStyles);
+  const colors = useAppColors();
   return (
     <View style={[styles.row, styles.lastRow]}>
       <IconBadge name={icon} />
@@ -176,7 +187,7 @@ function StepperRow({
           accessibilityLabel={decreaseLabel}
           hitSlop={8}
         >
-          <MaterialCommunityIcons name="minus" size={18} color={COLORS.primary} />
+          <MaterialCommunityIcons name="minus" size={18} color={colors.primary} />
         </Pressable>
         <Text style={styles.stepperValue}>{value}</Text>
         <Pressable
@@ -189,7 +200,7 @@ function StepperRow({
           accessibilityLabel={increaseLabel}
           hitSlop={8}
         >
-          <MaterialCommunityIcons name="plus" size={18} color={COLORS.primary} />
+          <MaterialCommunityIcons name="plus" size={18} color={colors.primary} />
         </Pressable>
       </View>
     </View>
@@ -217,8 +228,11 @@ export function SettingsScreen() {
     setAutoFollowUser,
     showBusLabels,
     setShowBusLabels,
+    theme,
+    setTheme,
   } = useSettingsStore();
   const { t } = useTranslation();
+  const styles = useThemedStyles(createStyles);
   const version = Constants.expoConfig?.version;
 
   return (
@@ -260,6 +274,19 @@ export function SettingsScreen() {
               selected={mapStyle === option.value}
               last={index === MAP_STYLE_OPTIONS.length - 1}
               onPress={() => setMapStyle(option.value)}
+            />
+          ))}
+        </Section>
+
+        <Section title={t('theme')} description={t('themeDescription')}>
+          {THEME_OPTIONS.map((option, index) => (
+            <OptionRow
+              key={option.value}
+              icon={option.icon}
+              label={t(option.label)}
+              selected={theme === option.value}
+              last={index === THEME_OPTIONS.length - 1}
+              onPress={() => setTheme(option.value)}
             />
           ))}
         </Section>
@@ -308,10 +335,11 @@ export function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: colors.background,
   },
   content: {
     paddingHorizontal: 20,
@@ -327,16 +355,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 1.4,
     textTransform: 'uppercase',
-    color: COLORS.primary,
+    color: colors.primary,
   },
   title: {
     fontSize: 30,
     fontWeight: '700',
-    color: COLORS.onSurface,
+    color: colors.onSurface,
   },
   subtitle: {
     fontSize: 14,
-    color: COLORS.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   section: {
     gap: 8,
@@ -346,18 +374,18 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
-    color: COLORS.outline,
+    color: colors.outline,
   },
   sectionDescription: {
     fontSize: 13,
-    color: COLORS.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     marginTop: -2,
   },
   card: {
-    backgroundColor: CARD_BACKGROUND,
+    backgroundColor: colors.surface,
     borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: COLORS.outlineVariant,
+    borderColor: colors.outlineVariant,
     overflow: 'hidden',
   },
   row: {
@@ -367,7 +395,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: COLORS.outlineVariant,
+    borderBottomColor: colors.outlineVariant,
   },
   lastRow: {
     borderBottomWidth: 0,
@@ -380,11 +408,11 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontWeight: '500',
-    color: COLORS.onSurface,
+    color: colors.onSurface,
   },
   rowHint: {
     fontSize: 12,
-    color: COLORS.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   iconBadge: {
     width: 32,
@@ -392,7 +420,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: ICON_BADGE_BACKGROUND,
+    backgroundColor: `${colors.primary}14`,
   },
   stepper: {
     flexDirection: 'row',
@@ -400,8 +428,8 @@ const styles = StyleSheet.create({
     gap: 4,
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: COLORS.outlineVariant,
-    backgroundColor: COLORS.surface,
+    borderColor: colors.outlineVariant,
+    backgroundColor: colors.surface,
     paddingHorizontal: 4,
   },
   stepButton: {
@@ -416,7 +444,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.primary,
+    color: colors.primary,
   },
   footer: {
     alignItems: 'center',
@@ -432,15 +460,15 @@ const styles = StyleSheet.create({
   footerName: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   footerTagline: {
     fontSize: 12,
-    color: COLORS.outline,
+    color: colors.outline,
   },
   footerVersion: {
     fontSize: 11,
-    color: COLORS.outline,
+    color: colors.outline,
   },
-});
+  });
 

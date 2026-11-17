@@ -3,7 +3,8 @@ import { Divider, Switch } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useBusTracking } from '@/hooks/useBusTracking';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '@/constants/colors';
+import { useAppColors, useThemedStyles } from '@/constants/themes';
+import type { AppColors } from '@/constants/colors';
 import { hapticTap } from '@/utils/haptics';
 
 /**
@@ -15,6 +16,8 @@ import { hapticTap } from '@/utils/haptics';
 export function TrackingList() {
   const { trackedPairs, toggleTracking, removeTrackedPair } = useBusTracking();
   const { t } = useTranslation();
+  const colors = useAppColors();
+  const styles = useThemedStyles(createStyles);
 
   if (trackedPairs.length === 0) return null;
 
@@ -40,7 +43,7 @@ export function TrackingList() {
             <MaterialCommunityIcons
               name="bell-ring"
               size={18}
-              color={COLORS.error}
+              color={colors.error}
               style={styles.icon}
             />
             <View style={styles.info}>
@@ -53,8 +56,8 @@ export function TrackingList() {
               value={item.enabled}
               onValueChange={() => toggleTracking(item.id)}
               trackColor={{
-                false: COLORS.outlineVariant,
-                true: COLORS.primary,
+                false: colors.outlineVariant,
+                true: colors.primary,
               }}
             />
           </Pressable>
@@ -65,18 +68,19 @@ export function TrackingList() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   container: {
     marginTop: 20,
   },
   divider: {
     marginVertical: 12,
-    borderColor: COLORS.outlineVariant,
+    borderColor: colors.outlineVariant,
   },
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: COLORS.onSurface,
+    color: colors.onSurface,
     marginHorizontal: 16,
     marginBottom: 8,
   },
@@ -87,7 +91,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.outlineVariant,
+    borderBottomColor: colors.outlineVariant,
   },
   icon: {
     marginRight: 10,
@@ -97,11 +101,11 @@ const styles = StyleSheet.create({
   },
   route: {
     fontSize: 15,
-    color: COLORS.onSurface,
+    color: colors.onSurface,
   },
   label: {
     fontSize: 12,
-    color: COLORS.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
   },
   listContent: {
     paddingBottom: 24,

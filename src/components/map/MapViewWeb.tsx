@@ -1,5 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
+import { useThemedStyles } from '@/constants/themes';
+import type { AppColors } from '@/constants/colors';
 
 import type { Region } from './types';
 
@@ -9,6 +11,7 @@ interface MapWebFallbackProps {
 
 export const MapWebFallback = ({ initialRegion }: MapWebFallbackProps) => {
   void initialRegion;
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.map}>
       <View style={styles.fallbackContainer}>
@@ -21,18 +24,19 @@ export const MapWebFallback = ({ initialRegion }: MapWebFallbackProps) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   map: { flex: 1 },
   fallbackContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.surfaceVariant,
     padding: 20,
   },
   fallbackText: {
     fontSize: 16,
-    color: '#666',
+    color: colors.onSurfaceVariant,
     textAlign: 'center',
     lineHeight: 24,
   },

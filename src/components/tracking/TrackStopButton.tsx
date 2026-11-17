@@ -2,7 +2,8 @@ import { Alert, Pressable, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useBusTracking } from '@/hooks/useBusTracking';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '@/constants/colors';
+import { useAppColors, useThemedStyles } from '@/constants/themes';
+import type { AppColors } from '@/constants/colors';
 import { hapticTap, hapticSuccess } from '@/utils/haptics';
 
 export interface TrackStopButtonProps {
@@ -39,6 +40,8 @@ export function TrackStopButton({
     trackedPairs,
   } = useBusTracking();
   const { t } = useTranslation();
+  const colors = useAppColors();
+  const styles = useThemedStyles(createStyles);
   const pair = trackedPairs.find(
     (p) => p.routeId === routeId && p.stopId === stopId,
   );
@@ -101,13 +104,14 @@ export function TrackStopButton({
       <MaterialCommunityIcons
         name={isActive ? 'bell-ring' : 'bell-outline'}
         size={24}
-        color={isActive ? COLORS.error : COLORS.primary}
+        color={isActive ? colors.error : colors.primary}
       />
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   button: {
     paddingHorizontal: 8,
     paddingVertical: 8,

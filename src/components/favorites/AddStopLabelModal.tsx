@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
 import { Button, IconButton, Text, TextInput } from 'react-native-paper';
-import { COLORS } from '@/constants/colors';
+import { useAppColors, useThemedStyles } from '@/constants/themes';
+import type { AppColors } from '@/constants/colors';
 import { useTranslation } from 'react-i18next';
 
 export interface AddStopLabelModalProps {
@@ -35,6 +36,8 @@ export function AddStopLabelModal({
   onRemove,
 }: AddStopLabelModalProps) {
   const { t } = useTranslation();
+  const colors = useAppColors();
+  const styles = useThemedStyles(createStyles);
   const resolvedTitle = title ?? t('saveStop');
   const [draft, setDraft] = useState({
     source: initialLabel,
@@ -84,15 +87,15 @@ export function AddStopLabelModal({
 
           <View style={styles.actions}>
             {onRemove && (
-              <Button mode='text' textColor={COLORS.error} onPress={onRemove}>
+              <Button mode='text' textColor={colors.error} onPress={onRemove}>
                 {t('remove')}
               </Button>
             )}
             <View style={styles.actionSpacer} />
-            <Button mode='outlined' color={COLORS.secondary} onPress={onCancel}>
+            <Button mode='outlined' color={colors.secondary} onPress={onCancel}>
               {t('cancel')}
             </Button>
-            <Button mode='contained' color={COLORS.secondary} onPress={handleConfirm}>
+            <Button mode='contained' color={colors.secondary} onPress={handleConfirm}>
               {t('save')}
             </Button>
           </View>
@@ -102,7 +105,8 @@ export function AddStopLabelModal({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
@@ -110,7 +114,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   sheet: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 16,
     gap: 12,
@@ -123,14 +127,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: COLORS.onSurface,
+    color: colors.onSurface,
   },
   stopName: {
     fontSize: 14,
-    color: COLORS.outline,
+    color: colors.outline,
   },
   input: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: colors.surface,
   },
   actions: {
     flexDirection: 'row',

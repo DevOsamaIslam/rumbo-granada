@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Pressable, FlatList, Platform } from 'react-native';
+import { View, Text, StyleSheet, Pressable, FlatList, RefreshControl } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
@@ -9,15 +9,18 @@ import { useTranslation } from 'react-i18next';
 import { hapticTap } from '@/utils/haptics';
 import { Stop } from '@/types/gtfs';
 import { FavoriteStop } from '@/types/favorites';
-import { RefreshControl } from 'react-native';
+import { useAppColors, useThemedStyles } from '@/constants/themes';
+import type { AppColors } from '@/constants/colors';
 
 export default function StopsScreen() {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
-  const { stops, isLoading, error, loadAllStops } = useStops();
+  const { stops, loadAllStops } = useStops();
   const { isStopFavorite, toggleFavoriteStop } = useFavorites();
   const { t } = useTranslation();
+  const colors = useAppColors();
+  const styles = useThemedStyles(createStyles);
 
   // Automatically load stops on mount
   useStops(); // This triggers the useEffect
@@ -119,7 +122,7 @@ export default function StopsScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            tintColor="#6200EE"
+            tintColor={colors.primary}
             title={t('refreshing', { ns: 'translation' })}
           />
         }
@@ -132,9 +135,11 @@ export default function StopsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -151,6 +156,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '600',
+    color: colors.onBackground,
   },
   searchBar: {
     flex: 1,
@@ -163,7 +169,7 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 1,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: colors.outlineVariant,
   },
   emptyContainer: {
     flex: 1,
@@ -172,7 +178,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   emptyText: {
-    color: '#79747E',
+    color: colors.onSurfaceVariant,
     fontSize: 15,
   },
   listItem: {
@@ -181,7 +187,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     gap: 12,
-    backgroundColor: Platform.select({ ios: '#fff', android: '#F5F5F5', default: '#fff' }),
+    backgroundColor: colors.surface,
     marginBottom: 8,
   },
   badge: {
@@ -191,12 +197,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 8,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: colors.surfaceVariant,
   },
   badgeText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#212121',
+    color: colors.onSurface,
   },
   info: {
     flex: 1,
@@ -205,11 +211,11 @@ const styles = StyleSheet.create({
   stopName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#212121',
+    color: colors.onSurface,
   },
   stopCode: {
     fontSize: 12,
-    color: '#666666',
+    color: colors.onSurfaceVariant,
     marginLeft: 4,
   },
   favoriteButton: {

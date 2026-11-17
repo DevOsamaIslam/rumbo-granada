@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { IconButton } from 'react-native-paper';
-import { COLORS } from '@/constants/colors';
+import { useAppColors, useThemedStyles } from '@/constants/themes';
+import type { AppColors } from '@/constants/colors';
 import { getBadgeBackgroundColor } from '@/utils/colors';
 import { useTranslation } from 'react-i18next';
 import type { Route, Stop } from '@/types/gtfs';
@@ -24,6 +25,8 @@ export function StopInfoHeader({
   onPressRoute,
 }: StopInfoHeaderProps) {
   const { t } = useTranslation();
+  const colors = useAppColors();
+  const styles = useThemedStyles(createStyles);
 
   return (
     <View style={styles.container}>
@@ -55,7 +58,7 @@ export function StopInfoHeader({
           <Text style={styles.noRoutes}>{t('noLinesRegistered', { ns: 'translation' })}</Text>
         ) : (
           routes.map((route) => {
-            const color = getBadgeBackgroundColor(route.route_color, COLORS.primary);
+            const color = getBadgeBackgroundColor(route.route_color, colors.primary);
             return (
               <Pressable
                 key={route.route_id}
@@ -76,12 +79,13 @@ export function StopInfoHeader({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   container: {
     padding: 16,
     gap: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: COLORS.outlineVariant,
+    borderBottomColor: colors.outlineVariant,
   },
   titleRow: {
     flexDirection: 'row',
@@ -95,21 +99,21 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 20,
     fontWeight: '600',
-    color: COLORS.onSurface,
+    color: colors.onSurface,
   },
   meta: {
     fontSize: 12,
-    color: COLORS.outline,
+    color: colors.outline,
   },
   favoriteLabel: {
     fontSize: 13,
-    color: COLORS.tertiary,
+    color: colors.tertiary,
     fontWeight: '600',
   },
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     marginTop: 8,
   },
   routeRow: {
@@ -133,6 +137,6 @@ const styles = StyleSheet.create({
   },
   noRoutes: {
     fontSize: 13,
-    color: COLORS.outline,
+    color: colors.outline,
   },
 });

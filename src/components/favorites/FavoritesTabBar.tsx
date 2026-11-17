@@ -1,7 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '@/constants/colors';
+import { useThemedStyles } from '@/constants/themes';
+import type { AppColors } from '@/constants/colors';
 
 export type FavoritesTab = 'favoriteLines' | 'favoriteStops' | 'previousReminders';
 
@@ -20,6 +21,7 @@ export function FavoritesTabBar({
   refreshing,
 }: FavoritesTabBarProps) {
   const { t } = useTranslation();
+  const styles = useThemedStyles(createStyles);
 
   return (
     <View style={styles.toolbar}>
@@ -61,6 +63,7 @@ function TabButton({
   active: boolean;
   onPress: () => void;
 }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <Pressable
       style={[styles.tab, active && styles.tabActive]}
@@ -76,7 +79,8 @@ function TabButton({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   toolbar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -93,14 +97,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   tabActive: {
-    backgroundColor: COLORS.primaryContainer,
+    backgroundColor: colors.primaryContainer,
   },
   tabText: {
     fontSize: 14,
-    color: COLORS.outline,
+    color: colors.outline,
   },
   tabTextActive: {
-    color: COLORS.onPrimaryContainer,
+    color: colors.onPrimaryContainer,
     fontWeight: '600',
   },
   toolbarActions: {

@@ -1,7 +1,8 @@
 import React from "react";
 import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { IconButton } from "react-native-paper";
-import { COLORS } from "@/constants/colors";
+import { useAppColors, useThemedStyles } from "@/constants/themes";
+import type { AppColors } from "@/constants/colors";
 import { useTranslation } from "react-i18next";
 import { getBadgeBackgroundColor, getBadgeTextColor } from "@/utils/colors";
 import type { Route, Stop } from "@/types/gtfs";
@@ -20,6 +21,8 @@ export function StopCard({
   onPressRoute,
 }: StopCardProps) {
   const { t } = useTranslation();
+  const colors = useAppColors();
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.closeButton} onPress={onClose} accessibilityLabel={t('closeStopCard', { ns: 'translation' })}>
@@ -38,7 +41,7 @@ export function StopCard({
             <Text style={styles.noRoutes}>{t('noLinesRegistered', { ns: 'translation' })}</Text>
           ) : (
             routes.map((route) => {
-              const color = getBadgeBackgroundColor(route.route_color, COLORS.primary);
+              const color = getBadgeBackgroundColor(route.route_color, colors.primary);
               const textColor = getBadgeTextColor(color, route.route_text_color);
               return (
                 <TouchableOpacity
@@ -60,7 +63,8 @@ export function StopCard({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "flex-start",
@@ -74,13 +78,13 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
   closeIcon: {
-    color: COLORS.onSurface,
+    color: colors.onSurface,
   },
   card: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,
-    shadowColor: "#000",
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
@@ -96,16 +100,16 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     fontWeight: "600",
-    color: COLORS.onSurface,
+    color: colors.onSurface,
   },
   code: {
     fontSize: 12,
-    color: COLORS.outline,
+    color: colors.outline,
   },
   sectionTitle: {
     fontSize: 13,
     fontWeight: "600",
-    color: COLORS.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     marginBottom: 8,
   },
   routeRow: {
@@ -128,7 +132,7 @@ const styles = StyleSheet.create({
   },
   noRoutes: {
     fontSize: 13,
-    color: COLORS.outline,
+    color: colors.outline,
   },
 });
 

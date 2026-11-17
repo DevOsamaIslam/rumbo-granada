@@ -1,7 +1,8 @@
 import { Text } from 'react-native-paper';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { ArrivalRow } from './ArrivalRow';
-import { COLORS } from '@/constants/colors';
+import { useThemedStyles } from '@/constants/themes';
+import type { AppColors } from '@/constants/colors';
 import { useTranslation } from 'react-i18next';
 import { SkeletonListItem } from '@/components/common/Skeleton';
 import type { Arrival } from '@/types/api';
@@ -43,6 +44,7 @@ export function ArrivalsList({
   lastUpdated = null,
 }: ArrivalsListProps) {
   const { t } = useTranslation();
+  const styles = useThemedStyles(createStyles);
   const updatedAt = formatLastUpdated(lastUpdated, t);
   const header = updatedAt ? (
     <Text style={styles.updatedAt}>{updatedAt}</Text>
@@ -98,7 +100,8 @@ export function ArrivalsList({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   centered: {
     flex: 1,
     alignItems: 'center',
@@ -114,23 +117,23 @@ const styles = StyleSheet.create({
   },
   updatedAt: {
     fontSize: 12,
-    color: COLORS.outline,
+    color: colors.outline,
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
   emptyText: {
     fontSize: 15,
-    color: COLORS.outline,
+    color: colors.outline,
   },
   errorTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.error,
+    color: colors.error,
     textAlign: 'center',
   },
   errorDetail: {
     fontSize: 13,
-    color: COLORS.error,
+    color: colors.error,
     textAlign: 'center',
   },
 });

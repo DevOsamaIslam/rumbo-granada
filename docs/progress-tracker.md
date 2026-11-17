@@ -228,11 +228,11 @@
 ### Phase 14: Dark Mode (App Theme)
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 14.1 | Add theme preference (light / dark / system) to settings store | ⬜ | Persist in MMKV |
-| 14.2 | Create dark Paper theme and apply app-wide based on preference | ⬜ | App theme is **separate from map style**; map tiles unaffected |
-| 14.3 | Add theme selector in Settings screen | ⬜ | Segmented buttons or radio group |
-| 14.4 | Audit screens/components for hardcoded colors | ⬜ | Replace with theme tokens |
-| 14.5 | Unit tests for theme switching + typecheck + lint | ⬜ | |
+| 14.1 | Add theme preference (light / dark / system) to settings store | ✅ | `theme: ThemePreference` + `setTheme` in `src/store/settings.ts`; persists in MMKV via zustand-persist, defaults to `system` |
+| 14.2 | Create dark Paper theme and apply app-wide based on preference | ✅ | `src/constants/themes.ts` builds `lightTheme`/`darkTheme` from `LIGHT_COLORS`/`DARK_COLORS`; `Providers` resolves the preference + `useColorScheme()` and updates the status bar. App theme is **separate from map style**; map tiles are unchanged |
+| 14.3 | Add theme selector in Settings screen | ✅ | "Tema" card with `Automático` / `Claro` / `Nocturno` radio rows |
+| 14.4 | Audit screens/components for hardcoded colors | ✅ | All screens/components migrated to `useAppColors()` + `useThemedStyles()`; hardcoded hex/rgba replaced with palette tokens. Data-driven route badge colors and the dedicated map styles stay literal by design |
+| 14.5 | Unit tests for theme switching + typecheck + lint | ✅ | `src/constants/themes.test.ts` (resolution + theme tokens) and Settings theme-selection tests; typecheck + lint clean; full suite 239 passed / 7 pre-existing `useBusTracking` failures |
 
 **Depends on:** 2, 5
 
@@ -337,6 +337,6 @@ graph TD
 
 ---
 
-*Last updated: 2026-11-16*
-*Next task: Milestone 1 (MVP) is complete. Milestone 2 has been re-scoped (Phases 13–18). Next: Phase 13 (Stops Screen & Tab)*
+*Last updated: 2026-11-17*
+*Next task: Phase 15 (Arabic & RTL Support)*
 **Blocks:** Milestone 2

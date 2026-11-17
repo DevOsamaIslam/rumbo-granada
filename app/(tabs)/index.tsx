@@ -7,10 +7,13 @@ import { useLines } from '@/hooks/useLines';
 import { Stop } from '@/types/gtfs';
 import { gtfsService } from '@/services/gtfs';
 import type { Route } from '@/types/gtfs';
+import { useThemedStyles } from '@/constants/themes';
+import type { AppColors } from '@/constants/colors';
 
 export default function MapScreen() {
   const router = useRouter();
   const { loadLines } = useLines();
+  const styles = useThemedStyles(createStyles);
   const params = useLocalSearchParams<{
     lineId?: string;
     stopId?: string;
@@ -90,9 +93,11 @@ export default function MapScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   cardContainer: {
     position: 'absolute',

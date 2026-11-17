@@ -3,6 +3,8 @@ import { IconButton } from 'react-native-paper';
 import { Route } from '@/types/gtfs';
 import { getBadgeBackgroundColor, getBadgeTextColor } from '@/utils/colors';
 import { useTranslation } from 'react-i18next';
+import { useAppColors, useThemedStyles } from '@/constants/themes';
+import type { AppColors } from '@/constants/colors';
 
 interface LineItemProps {
   route: Route;
@@ -13,7 +15,9 @@ interface LineItemProps {
 
 export function LineItem({ route, isFavorite, onPress, onToggleFavorite }: LineItemProps) {
   const { t } = useTranslation();
-  const color = getBadgeBackgroundColor(route.route_color, '#6200EE');
+  const colors = useAppColors();
+  const styles = useThemedStyles(createStyles);
+  const color = getBadgeBackgroundColor(route.route_color, colors.primary);
   const textColor = getBadgeTextColor(color, route.route_text_color);
 
   return (
@@ -50,7 +54,8 @@ export function LineItem({ route, isFavorite, onPress, onToggleFavorite }: LineI
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -77,9 +82,10 @@ const styles = StyleSheet.create({
   shortName: {
     fontSize: 16,
     fontWeight: '600',
+    color: colors.onSurface,
   },
   longName: {
     fontSize: 13,
-    color: '#79747E',
+    color: colors.outline,
   },
 });

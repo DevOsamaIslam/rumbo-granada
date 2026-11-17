@@ -1,5 +1,6 @@
 import { StyleSheet, View, ViewStyle } from 'react-native';
-import { COLORS } from '@/constants/colors';
+import { useThemedStyles } from '@/constants/themes';
+import type { AppColors } from '@/constants/colors';
 
 /**
  * A loading skeleton shimmer displayed in place of content while data loads.
@@ -16,6 +17,7 @@ export function Skeleton({
   height?: number;
   style?: ViewStyle;
 }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View
       style={[
@@ -31,6 +33,7 @@ export function Skeleton({
  * A row of skeletons matching the shape of a list item (badge + two lines).
  */
 export function SkeletonListItem() {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.rowContainer}>
       <View style={styles.badgeSkeleton} />
@@ -42,9 +45,10 @@ export function SkeletonListItem() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   skeleton: {
-    backgroundColor: COLORS.surfaceVariant,
+    backgroundColor: colors.surfaceVariant,
     borderRadius: 8,
   },
   rowContainer: {
@@ -53,13 +57,13 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: COLORS.outlineVariant,
+    borderBottomColor: colors.outlineVariant,
   },
   badgeSkeleton: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: COLORS.surfaceVariant,
+    backgroundColor: colors.surfaceVariant,
   },
   textContainer: {
     flex: 1,
@@ -68,12 +72,12 @@ const styles = StyleSheet.create({
   lineSkeleton: {
     height: 16,
     borderRadius: 4,
-    backgroundColor: COLORS.surfaceVariant,
+    backgroundColor: colors.surfaceVariant,
   },
   lineSkeletonShort: {
     height: 16,
     width: '60%',
     borderRadius: 4,
-    backgroundColor: COLORS.surfaceVariant,
+    backgroundColor: colors.surfaceVariant,
   },
 });

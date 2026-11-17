@@ -2,7 +2,8 @@ import { Component, ReactNode, ErrorInfo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Button } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '@/constants/colors';
+import { useThemedStyles } from '@/constants/themes';
+import type { AppColors } from '@/constants/colors';
 
 interface Props {
   children: ReactNode;
@@ -12,6 +13,32 @@ interface Props {
 interface State {
   hasError: boolean;
   error?: Error;
+}
+
+interface FallbackProps {
+  error?: Error;
+  fallback?: ReactNode;
+  onRetry: () => void;
+}
+
+/**
+ * Themed fallback UI. A function component so it can read the theme via hooks
+ * and the current locale (a class component cannot call hooks).
+ */
+function ErrorFallback({ error, fallback, onRetry }: FallbackProps) {
+  const { t } = useTranslation();
+  const styles = useThemedStyles(createStyles);
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>{t('error', { ns: 'translation' })}</Text>
+      {error?.message && <Text style={styles.message}>{error.message}</Text>}
+      <Button onPress={onRetry} mode="contained">
+        {t('tryAgain', { ns: 'translation' })}
+      </Button>
+      {fallback}
+    </View>
+  );
 }
 
 /**
@@ -31,7 +58,6 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    // eslint-disable-next-line no-console
     console.error('[ErrorBoundary] Caught an error:', error, errorInfo);
   }
 
@@ -42,48 +68,33 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     const { hasError, error } = this.state;
     const { children, fallback } = this.props;
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { t } = useTranslation();
 
     if (hasError) {
-      return (
-        <View style={styles.container}>
-          <Text style={styles.title}>{t('error', { ns: 'translation' })}</Text>
-          {error?.message && (
-            <Text style={styles.message}>{error.message}</Text>
-          )}
-          <Button
-            onPress={this.reset}
-            mode="contained"
-          >
-            {t('tryAgain', { ns: 'translation' })}
-          </Button>
-          {fallback}
-        </View>
-      );
+      return <ErrorFallback error={error} fallback={fallback} onRetry={this.reset} />;
     }
 
     return children;
   }
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
-    backgroundColor: COLORS.background,
+    backgroundColor: colors.background,
   },
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: COLORS.error,
+    color: colors.error,
     marginBottom: 8,
   },
   message: {
     fontSize: 14,
-    color: COLORS.onSurfaceVariant,
+    color: colors.onSurfaceVariant,
     textAlign: 'center',
     marginBottom: 16,
   },
