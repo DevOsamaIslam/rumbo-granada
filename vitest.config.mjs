@@ -1,4 +1,8 @@
+import { fileURLToPath } from 'node:url';
+
 import { defineConfig } from 'vitest/config';
+
+const srcDir = fileURLToPath(new URL('./src', import.meta.url));
 
 export default defineConfig({
   test: {
@@ -36,9 +40,9 @@ export default defineConfig({
       // ESM `import ... from 'react-native'` is resolved by Vite, which would
       // otherwise parse RN 0.88's Flow-typed entry and fail. CJS `require()` is
       // handled by the Module._load patch in `src/test/rn-patch.cjs`.
-      'react-native': '/home/tovia/Projects/granabus/src/test/rn.cjs',
-      '@': '/home/tovia/Projects/granabus/src',
-      '~': '/home/tovia/Projects/granabus/src',
+      'react-native': fileURLToPath(new URL('./src/test/rn.cjs', import.meta.url)),
+      '@': srcDir,
+      '~': srcDir,
     },
   },
 });

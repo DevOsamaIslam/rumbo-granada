@@ -102,7 +102,7 @@ describe('AppHeader', () => {
 
     await render(<AppHeader />);
 
-    expect(screen.getByLabelText('Granabus')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Rumbo Granada')).toBeOnTheScreen();
     expect(screen.getByLabelText('Seguimientos recientes')).toBeOnTheScreen();
   });
 

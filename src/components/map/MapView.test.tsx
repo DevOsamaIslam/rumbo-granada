@@ -38,9 +38,22 @@ vi.mock('@/hooks/useStops', () => ({
   }),
 }));
 
-// Permission granted so the follow mode actually reaches the camera.
+// Permission granted so the follow mode actually reaches the camera. The map
+// waits for its first location fix before starting camera tracking, so the mock
+// delivers one synchronously.
 vi.mock('@/hooks/useLocation', () => ({
-  useLocation: () => ({ permission: 'granted' }),
+  useLocation: () => ({
+    permission: 'granted',
+    watchLocation: (callback: (location: unknown) => void) => {
+      callback({
+        latitude: 37.1773,
+        longitude: -3.5986,
+        accuracy: 5,
+        timestamp: 0,
+      });
+      return () => {};
+    },
+  }),
 }));
 
 // vitest hoists `vi.mock` to the top of the file, so the import of the

@@ -439,7 +439,15 @@ export function MapViewComponent({
     setFollowMode(autoFollowUser);
   }, [autoFollowUser]);
 
-  const { permission } = useLocation();
+  const { permission, watchLocation } = useLocation();
+  // MapLibre's native location component logs "Failed to obtain last location
+  // update" when camera tracking starts before it has a position. Wait for the
+  // first real fix before handing `trackUserLocation` to the camera.
+  const [hasUserFix, setHasUserFix] = useState(false);
+  useEffect(() => {
+    if (!showUserLocation || permission !== 'granted' || hasUserFix) return;
+    return watchLocation(() => setHasUserFix(true));
+  }, [showUserLocation, permission, hasUserFix, watchLocation]);
 
   useEffect(() => {
     loadLines();
@@ -509,7 +517,7 @@ export function MapViewComponent({
           minZoom={3}
           maxZoom={19}
           trackUserLocation={
-            followMode && permission === 'granted' ? 'default' : undefined
+            followMode && hasUserFix ? 'default' : undefined
           }
         />
         {showUserLocation && permission === 'granted' && <UserLocation />}

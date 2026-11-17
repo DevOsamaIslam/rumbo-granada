@@ -18,8 +18,12 @@ vi.mock('@/store/tracking', () => ({
   })),
 }));
 
+const settingsState = vi.hoisted(() => ({ notificationThresholdMinutes: 5 }));
+
 vi.mock('@/store/settings', () => ({
-  useSettingsStore: vi.fn(() => ({ notificationThresholdMinutes: 5 })),
+  // Return a stable object: the hook keeps the threshold in state synced from
+  // this value, so a fresh object per render would loop setState forever.
+  useSettingsStore: vi.fn(() => settingsState),
 }));
 
 vi.mock('@/services/liveApi', () => ({
@@ -146,7 +150,7 @@ describe('useBusTracking', () => {
   it('re-enabling a disabled tracking toggles it back on', async () => {
     trackedPairs.push(makePair({ enabled: false }));
     const { result } = await renderTrackingHook();
-    act(() => {
+    await act(async () => {
       result.current.toggleTracking('p1');
     });
     // Verifies store behavior: re-enabling calls storeToggleTracking (not remove).
@@ -204,7 +208,8 @@ describe('useBusTracking', () => {
     expect(scheduleArrivalNotification).toHaveBeenCalledTimes(1);
     vi.mocked(scheduleArrivalNotification).mockClear();
     result.current.checkArrival(pair, { ...base, vehicleId: 'v1', tripId: 't1' });
-    expect(scheduleArrivalNotification).toHaveBeenCalledTimes(1);
+    // Same pair + vehicle inside the cooldown window: no second alert.
+    expect(scheduleArrivalNotification).not.toHaveBeenCalled();
     vi.mocked(scheduleArrivalNotification).mockClear();
     result.current.checkArrival(pair, { ...base, vehicleId: 'v2', tripId: 't2' });
     expect(scheduleArrivalNotification).toHaveBeenCalledTimes(1);

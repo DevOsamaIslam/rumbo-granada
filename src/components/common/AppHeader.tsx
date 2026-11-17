@@ -179,7 +179,7 @@ export function AppHeader() {
         { paddingTop: insets.top + styles.header.paddingVertical },
       ]}
     >
-      <Image source={LOGO} style={styles.logo} accessibilityLabel='Granabus' />
+      <Image source={LOGO} style={styles.logo} accessibilityLabel='Rumbo Granada' />
 
       <Pressable
         style={[styles.liveButton, isActive && styles.liveChip]}
