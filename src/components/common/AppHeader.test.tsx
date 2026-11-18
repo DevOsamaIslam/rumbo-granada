@@ -97,49 +97,18 @@ describe('AppHeader', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders the logo and a live icon when nothing is tracked', async () => {
+  it('renders the brand name beside the logo and no live icon when nothing is tracked', async () => {
     mockStore();
 
     await render(<AppHeader />);
 
     expect(screen.getByLabelText('Rumbo Granada')).toBeOnTheScreen();
-    expect(screen.getByLabelText('Seguimientos recientes')).toBeOnTheScreen();
+    expect(screen.getByText('Rumbo')).toBeOnTheScreen();
+    // The idle broadcast icon and its recent-trackings dropdown are gone.
+    expect(screen.queryByLabelText('Seguimientos recientes')).toBeNull();
   });
 
-  it('opens the recent trackings dropdown instead of the tracking card', async () => {
-    mockStore();
-
-    await render(<AppHeader />);
-
-    await fireEvent.press(screen.getByLabelText('Seguimientos recientes'));
-
-    expect(screen.getByText('Aún no hay seguimientos recientes')).toBeOnTheScreen();
-    expect(screen.queryByText('Seguimiento activo')).toBeNull();
-  });
-
-  it('lists recent trackings and starts one when pressed', async () => {
-    const addTrackedPair = vi.fn();
-    mockStore({
-      recentPairs: [makePair({ id: 'recent-1' })],
-      addTrackedPair,
-    });
-
-    await render(<AppHeader />);
-
-    await fireEvent.press(screen.getByLabelText('Seguimientos recientes'));
-    await fireEvent.press(screen.getByLabelText('Línea 33 → Gran Vía'));
-
-    expect(addTrackedPair).toHaveBeenCalledWith(
-      expect.objectContaining({
-        routeId: 'r1',
-        stopId: 'uuid-1',
-        stopName: 'Gran Vía',
-        enabled: true,
-      }),
-    );
-  });
-
-  it('shows the line, stop and minutes in place of the icon when tracking is active', async () => {
+  it('shows the line, stop and minutes in the live chip when tracking is active', async () => {
     const now = Date.now();
     mockStore({
       trackedPairs: [makePair()],

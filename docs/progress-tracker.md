@@ -294,6 +294,8 @@
 | 19.2 | Show the stop code inside the circle and drop the subtext | ✅ | The badge renders `stop_code` (the number on the physical sign) via `getStopBadgeLabel()`, falling back to the first two letters when a stop has no code; the `(code)` subtext under the name is removed |
 | 19.3 | Replace the header label beside the search box with an icon | ✅ | Lines uses `bus`, Stops uses `bus-stop` (MaterialCommunityIcons, 32 pt, theme `primary`), centred in the space beside the search field; `accessibilityLabel` keeps the screen name for screen readers |
 | 19.4 | Locale keys for the new list states + tests | ✅ | `noStopsMatchSearch`, `failedToLoadStops`, `loadingStops` added to `en`/`es`/`ar`; `StopItem.test.tsx` (9) + `StopList.test.tsx` (5) cover badge label, favorite toggle and list states; typecheck + lint clean, full suite 331 passed; device-verified on the CPH2747 |
+| 19.5 | Brand wordmark beside the logo in the app header | ✅ | `AppHeader` now renders the logo and the `brandName` wordmark in a `brand` row (`src/components/common/AppHeader.tsx`); new `brandName` key ("Rumbo" / "رومبو") in `en`, `es` and `ar` |
+| 19.6 | Remove the idle live (broadcast) icon from the header | ✅ | The header no longer renders the `broadcast` button when nothing is tracked, so the right side stays empty; the recent-trackings dropdown lived only behind that icon and was removed with it (Favorites → "Seguimientos recientes" still lists recent pairs with re-enable switches). Unused `Switch`/`MaterialCommunityIcons`/`useAppColors` imports, menu state, `handleRecentToggle` and menu styles removed; `AppHeader.test.tsx` updated (11 tests) |
 
 **Depends on:** 2, 9
 
