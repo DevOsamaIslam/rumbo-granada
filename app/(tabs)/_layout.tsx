@@ -42,7 +42,7 @@ export default function TabLayout() {
         options={{
           title: t('stops'),
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="map-marker-radius" color={color as string} size={size} />
+            <MaterialCommunityIcons name="bus-stop" color={color as string} size={size} />
           ),
         }}
       />
