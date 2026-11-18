@@ -1,8 +1,9 @@
-import { View, Text, StyleSheet, Pressable, FlatList, RefreshControl } from 'react-native';
-import { IconButton } from 'react-native-paper';
+import { View, StyleSheet } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SearchBar } from '@/components/common';
+import { StopList } from '@/components/stops';
 import { useStops } from '@/hooks/useStops';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useTranslation } from 'react-i18next';
@@ -16,14 +17,12 @@ export default function StopsScreen() {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
-  const { stops, loadAllStops } = useStops();
+  // The hook loads every stop on mount, so the list fills without an extra call.
+  const { stops, isLoading, error, loadAllStops } = useStops();
   const { isStopFavorite, toggleFavoriteStop } = useFavorites();
   const { t } = useTranslation();
   const colors = useAppColors();
   const styles = useThemedStyles(createStyles);
-
-  // Automatically load stops on mount
-  useStops(); // This triggers the useEffect
 
   // Filter stops by query (accent/case-insensitive match on stop_id/stop_code/stop_name)
   const filtered = stops.filter((stop: Stop) => {
@@ -59,45 +58,17 @@ export default function StopsScreen() {
     toggleFavoriteStop(favoriteStop);
   };
 
-  const renderStop = ({ item }: { item: Stop }) => {
-    const stop = item;
-    const isFavorite = isStopFavorite(stop.stop_id);
-    return (
-      <Pressable
-        key={stop.stop_id}
-        style={styles.listItem}
-        onPress={() => handleStopPress(stop)}
-        accessibilityLabel={t('stopAccessibility', { stopName: stop.stop_name })}
-        accessibilityRole="button"
-      >
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{stop.stop_name.substring(0, 2).toUpperCase()}</Text>
-        </View>
-        <View style={styles.info}>
-          <Text style={styles.stopName}>{stop.stop_name}</Text>
-          {stop.stop_code && (
-            <Text style={styles.stopCode}>({stop.stop_code})</Text>
-          )}
-        </View>
-        <IconButton
-        icon={isFavorite ? 'star' : 'star-outline'}
-        onPress={(event) => {
-          // Toggle the favorite without also navigating to the stop page.
-          event.stopPropagation();
-          handleToggleFavorite(stop);
-        }}
-        hitSlop={{ top: 20, bottom: 20, left: 15, right: 15 }}
-        accessibilityLabel={isFavorite ? t('removeFromFavorites') : t('addToFavorites')}
-      />
-      </Pressable>
-    );
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>{t('stops', { ns: 'translation' })}</Text>
+        <View style={styles.iconContainer}>
+          <MaterialCommunityIcons
+            name="bus-stop"
+            size={32}
+            color={colors.primary}
+            accessibilityRole="image"
+            accessibilityLabel={t('stops', { ns: 'translation' })}
+          />
         </View>
         <SearchBar
           placeholder={t('searchStopsPlaceholder', { ns: 'translation' })}
@@ -106,30 +77,20 @@ export default function StopsScreen() {
           style={styles.searchBar}
         />
       </View>
-      <FlatList
-        data={filtered}
-        keyExtractor={(stop) => stop.stop_id}
-        renderItem={renderStop}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>{t('noStopsFound', { ns: 'translation' })}</Text>
-          </View>
+      <StopList
+        stops={filtered}
+        isLoading={isLoading}
+        error={error}
+        isFavorite={isStopFavorite}
+        onPress={handleStopPress}
+        onToggleFavorite={handleToggleFavorite}
+        onRefresh={handleRefresh}
+        refreshing={refreshing}
+        emptyMessage={
+          query
+            ? t('noStopsMatchSearch', { ns: 'translation' })
+            : t('noStopsFound', { ns: 'translation' })
         }
-        horizontal={false}
-        showsVerticalScrollIndicator={true}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={colors.primary}
-            title={t('refreshing', { ns: 'translation' })}
-          />
-        }
-        contentContainerStyle={styles.listContent}
-        initialNumToRender={15}
-        maxToRenderPerBatch={15}
-        windowSize={7}
       />
     </View>
   );
@@ -144,81 +105,21 @@ const createStyles = (colors: AppColors) =>
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: 16,
     marginBottom: 8,
-    gap: 12,
+    gap: 8,
   },
-  titleContainer: {
-    flexShrink: 1,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: colors.onBackground,
+  // Takes the leftover space beside the search box so the icon sits centred in
+  // it instead of hugging the screen edge.
+  iconContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   searchBar: {
-    flex: 1,
+    flex: 2,
     minWidth: 150,
     maxWidth: 300,
-  },
-  listContent: {
-    paddingVertical: 8,
-    paddingBottom: 24,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: colors.outlineVariant,
-  },
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  emptyText: {
-    color: colors.onSurfaceVariant,
-    fontSize: 15,
-  },
-  listItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
-    gap: 12,
-    backgroundColor: colors.surface,
-    marginBottom: 8,
-  },
-  badge: {
-    minWidth: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
-    backgroundColor: colors.surfaceVariant,
-  },
-  badgeText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.onSurface,
-  },
-  info: {
-    flex: 1,
-    gap: 2,
-  },
-  stopName: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.onSurface,
-  },
-  stopCode: {
-    fontSize: 12,
-    color: colors.onSurfaceVariant,
-    marginStart: 4,
-  },
-  favoriteButton: {
-    alignItems: 'flex-end',
   },
 });

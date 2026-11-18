@@ -50,6 +50,8 @@
   "favoriteBusLinesAndLabeledStops": "L\u00edneas favoritas y paradas etiquetadas",
   "busLines": "L\u00edneas de autob\u00fas",
   "noLinesMatchSearch": "No coinciden con tu b\u00fasqueda",
+  "noStopsMatchSearch": "Ninguna parada coincide con tu b\u00fasqueda",
+  "failedToLoadStops": "Error al cargar las paradas",
   "lineNotFound": "L\u00ednea no encontrada",
   "showOnMap": "Mostrar en mapa",
   "closeStopCard": "Cerrar tarjeta de parada",
@@ -128,6 +130,7 @@
   "remove": "Quitar",
   "searchStopsPlaceholder": "Buscar paradas...",
   "noStopsFound": "No hay paradas",
+  "loadingStops": "Cargando paradas",
   "restartRequiredTitle": "Reinicio necesario",
   "restartRequiredMessage": "Reinicia la aplicaci\u00f3n para aplicar por completo el dise\u00f1o de derecha a izquierda.",
   "restart": "Reiniciar"

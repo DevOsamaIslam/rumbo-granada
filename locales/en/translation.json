@@ -50,6 +50,8 @@
   "favoriteBusLinesAndLabeledStops": "Favorite bus lines and labeled stops",
   "busLines": "Bus Lines",
   "noLinesMatchSearch": "No lines match your search",
+  "noStopsMatchSearch": "No stops match your search",
+  "failedToLoadStops": "Failed to load stops",
   "lineNotFound": "Line not found",
   "showOnMap": "Show on Map",
   "closeStopCard": "Close stop card",
@@ -128,6 +130,7 @@
   "remove": "Remove",
   "searchStopsPlaceholder": "Search stops...",
   "noStopsFound": "No stops found",
+  "loadingStops": "Loading stops",
   "restartRequiredTitle": "Restart required",
   "restartRequiredMessage": "Please restart the app to fully apply the right-to-left layout.",
   "restart": "Restart"

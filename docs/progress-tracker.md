@@ -287,6 +287,16 @@
 
 **Depends on:** 13–17
 
+### Phase 19: Stops Screen Parity with Lines
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 19.1 | Redesign the Stops list to match the Lines list | ✅ | New `src/components/stops/StopItem.tsx` + `StopList.tsx` mirror `LineItem`/`LineList` (48 dp circle, single-line name, thin separators, skeleton loading, error and empty states, pull-to-refresh); the inline `FlatList` in `app/(tabs)/stops.tsx` is replaced by `<StopList />` |
+| 19.2 | Show the stop code inside the circle and drop the subtext | ✅ | The badge renders `stop_code` (the number on the physical sign) via `getStopBadgeLabel()`, falling back to the first two letters when a stop has no code; the `(code)` subtext under the name is removed |
+| 19.3 | Replace the header label beside the search box with an icon | ✅ | Lines uses `bus`, Stops uses `bus-stop` (MaterialCommunityIcons, 32 pt, theme `primary`), centred in the space beside the search field; `accessibilityLabel` keeps the screen name for screen readers |
+| 19.4 | Locale keys for the new list states + tests | ✅ | `noStopsMatchSearch`, `failedToLoadStops`, `loadingStops` added to `en`/`es`/`ar`; `StopItem.test.tsx` (9) + `StopList.test.tsx` (5) cover badge label, favorite toggle and list states; typecheck + lint clean, full suite 331 passed; device-verified on the CPH2747 |
+
+**Depends on:** 2, 9
+
 ---
 
 ## Dependency Graph

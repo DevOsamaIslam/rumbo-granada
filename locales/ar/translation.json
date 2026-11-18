@@ -50,6 +50,8 @@
   "favoriteBusLinesAndLabeledStops": "خطوط الحافلات والمحطات المُسمّاة المفضلة",
   "busLines": "خطوط الحافلات",
   "noLinesMatchSearch": "لا توجد خطوط تطابق بحثك",
+  "noStopsMatchSearch": "لا توجد محطات تطابق بحثك",
+  "failedToLoadStops": "تعذّر تحميل المحطات",
   "lineNotFound": "الخط غير موجود",
   "showOnMap": "عرض على الخريطة",
   "closeStopCard": "إغلاق بطاقة المحطة",
@@ -140,6 +142,7 @@
   "remove": "إزالة",
   "searchStopsPlaceholder": "ابحث عن المحطات...",
   "noStopsFound": "لا توجد محطات",
+  "loadingStops": "جارٍ تحميل المحطات",
   "restartRequiredTitle": "إعادة التشغيل مطلوبة",
   "restartRequiredMessage": "لتفعيل اتجاه الكتابة من اليمين إلى اليسار بالكامل، يرجى إعادة تشغيل التطبيق.",
   "restart": "إعادة التشغيل"

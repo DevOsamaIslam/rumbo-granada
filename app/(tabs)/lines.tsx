@@ -1,6 +1,7 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SearchBar } from '@/components/common';
 import { LineList } from '@/components/lines';
 import { useLines } from '@/hooks/useLines';
@@ -9,7 +10,7 @@ import { filterLines } from '@/utils/gtfs';
 import { Route } from '@/types/gtfs';
 import { useTranslation } from 'react-i18next';
 import { hapticTap } from '@/utils/haptics';
-import { useThemedStyles } from '@/constants/themes';
+import { useAppColors, useThemedStyles } from '@/constants/themes';
 import type { AppColors } from '@/constants/colors';
 
 export default function LinesScreen() {
@@ -19,6 +20,7 @@ export default function LinesScreen() {
   const { routes, isLoading, error, loadLines } = useLines();
   const { isBusFavorite, toggleFavoriteBus } = useFavorites();
   const {t} = useTranslation();
+  const colors = useAppColors();
   const styles = useThemedStyles(createStyles);
 
   const filtered = filterLines(routes, query);
@@ -49,8 +51,14 @@ export default function LinesScreen() {
   return (
     <View style={[styles.container]}>
       <View style={styles.header}>
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>{t('busLines', { ns: 'translation' })}</Text>
+        <View style={styles.iconContainer}>
+          <MaterialCommunityIcons
+            name="bus"
+            size={32}
+            color={colors.primary}
+            accessibilityRole="image"
+            accessibilityLabel={t('busLines', { ns: 'translation' })}
+          />
         </View>
         <SearchBar
           placeholder={t('searchLinesPlaceholder', { ns: 'translation' })}
@@ -87,22 +95,20 @@ const createStyles = (colors: AppColors) =>
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: 16,
     marginBottom: 8,
-    gap: 12,
+    gap: 8,
   },
-  titleContainer: {
-    flexShrink: 1,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: colors.onBackground,
+  // Takes the leftover space beside the search box so the icon sits centred in
+  // it instead of hugging the screen edge.
+  iconContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   searchBar: {
-    flex: 1,
+    flex: 2,
     minWidth: 150,
     maxWidth: 300,
   },
