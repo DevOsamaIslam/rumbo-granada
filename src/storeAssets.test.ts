@@ -4,9 +4,10 @@
 // listing copy from `docs/store/listing.json`. These assertions keep the
 // artefacts inside the stores' hard limits so a regeneration cannot silently
 // produce an upload that Play Console or App Store Connect will reject.
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import appConfig from '../app.config';
 
 const ROOT = process.cwd();
 
@@ -122,5 +123,74 @@ describe('store listing copy', () => {
     expect(eas.build.production.autoIncrement).toBe(true);
     expect(eas.build.production.android.buildType).toBe('app-bundle');
     expect(eas.submit.production.android.track).toBe('internal');
+  });
+});
+
+describe('app config release readiness', () => {
+  const config = appConfig({ config: {} as never });
+
+  it('keeps the marketing version in sync everywhere', () => {
+    const appJson = JSON.parse(readFileSync(join(ROOT, 'app.json'), 'utf8'));
+    expect(config.version).toBe(listing.app.marketingVersion);
+    expect(appJson.expo.version).toBe(config.version);
+  });
+
+  it('seeds the developer build numbers that EAS then auto-increments', () => {
+    expect(config.android?.versionCode).toBe(1);
+    expect(config.ios?.buildNumber).toBe('1');
+  });
+
+  it('declares the shipping identifiers and permissions', () => {
+    expect(config.ios?.bundleIdentifier).toBe(listing.app.bundleId);
+    expect(config.android?.package).toBe(listing.app.bundleId);
+
+    // Standard HTTPS only: no export-compliance paperwork per submission.
+    expect(config.ios?.infoPlist?.ITSAppUsesNonExemptEncryption).toBe(false);
+
+    // Background tracking needs these; the operator's data is public.
+    expect(config.android?.permissions).toEqual(
+      expect.arrayContaining(['ACCESS_FINE_LOCATION', 'ACCESS_BACKGROUND_LOCATION']),
+    );
+  });
+
+  it('ships the phone-only layout decision for iPad', () => {
+    // Flip only after tablet QA: `true` also requires 13" iPad screenshots.
+    expect(config.ios?.supportsTablet).toBe(false);
+  });
+
+  it('advertises every shipped locale', () => {
+    const localization = config.plugins?.find(
+      (plugin) => Array.isArray(plugin) && plugin[0] === 'expo-localization',
+    ) as unknown as [string, { supportedLocales: string[] }] | undefined;
+
+    expect(localization?.[1].supportedLocales).toEqual(
+      expect.arrayContaining(['es', 'en', 'ar']),
+    );
+  });
+});
+
+describe('App Store screenshots (pending macOS)', () => {
+  const sets = [
+    { dir: 'ios-6.9', width: 1320, height: 2868 },
+    { dir: 'ios-6.5', width: 1242, height: 2688 },
+  ];
+
+  it('uses App Store Connect pixel sizes when the captures exist', () => {
+    const root = join(ROOT, 'docs/store/screenshots/app-store');
+    if (!existsSync(root)) return; // no iOS captures yet; runbook covers it
+
+    for (const set of sets) {
+      const dir = join(root, set.dir);
+      if (!existsSync(dir)) continue;
+      const files = readdirSync(dir).filter((name) => name.endsWith('.png'));
+      expect(files.length).toBeGreaterThan(0);
+
+      for (const file of files) {
+        const header = pngHeader(join(root, set.dir, file));
+        expect(header.width, `${set.dir}/${file} width`).toBe(set.width);
+        expect(header.height, `${set.dir}/${file} height`).toBe(set.height);
+        expect(header.colorType, `${set.dir}/${file} alpha`).toBe(2);
+      }
+    }
   });
 });

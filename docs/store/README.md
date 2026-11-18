@@ -61,6 +61,24 @@ Nothing in this repo can run those commands yet: they need an Expo login and a
 linked EAS project (`eas init` writes `extra.eas.projectId`, which is
 intentionally absent from `app.config.ts`).
 
+Without an Expo account you can still prove the production artifact locally:
+
+```bash
+cd android && ./gradlew bundleRelease   # app/build/outputs/bundle/release/app-release.aab
+```
+
+Validated here: a 90.4 MB `.aab` containing `BundleConfig.pb` and
+`base/manifest`, signed with the local debug keystore (EAS replaces it with the
+upload key on the first production build).
+
+**Local Gradle needs a supported JDK.** This machine defaults to Java 27, which
+Gradle 9's Groovy cannot parse (`Unsupported class file major version 71`). Build
+with the installed JDK 21:
+
+```bash
+cd android && JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./gradlew assembleRelease bundleRelease
+```
+
 ## 2. Accounts and secrets checklist
 
 | Item | Needed for | How |
@@ -119,16 +137,24 @@ Keep raw captures out of the upload — only `play-phone/` is store-ready (Play
 rejects images whose longest side is more than twice the shortest side, which is
 why 1272x2772 device captures are re-framed to 9:16).
 
-**iOS screenshots are pending** (this machine has no macOS/Xcode). Required by
-App Store Connect:
+**iOS screenshots are still pending** (this machine has no macOS/Xcode). The
+pipeline is ready — drop captures into the raw folders and re-run the generator:
 
-- iPhone 6.9" — 1320x2868 or 1290x2796 (portrait)
-- iPhone 6.5" — 1284x2778 or 1242x2688
-- iPad 13" — required only while `ios.supportsTablet` is `true`
+```bash
+# captures from an iPhone/simulator in the app (same six screens)
+docs/store/screenshots/raw/ios-6.9/01-map.png   # 1320x2868 output
+docs/store/screenshots/raw/ios-6.5/01-map.png   # 1242x2688 output
+npm run store-assets                            # → docs/store/screenshots/app-store/<set>/
+```
 
-Decision needed: the app has not been laid out or tested for tablets. Either
-set `ios.supportsTablet: false` (drops the iPad screenshot requirement) or
-produce and verify tablet layouts.
+App Store Connect requirements with the current config (`ios.supportsTablet:
+false`, so no iPad set):
+
+- iPhone 6.9" — `raw/ios-6.9/` → 1320x2868
+- iPhone 6.5" — `raw/ios-6.5/` → 1242x2688
+
+`src/storeAssets.test.ts` validates those pixel sizes as soon as the folders
+exist, so the App Store assets cannot drift once captured.
 
 ## 5. Privacy declarations
 
@@ -162,8 +188,9 @@ replace `resources/gtfs/*.txt`, bump `CONFIG.GTFS_CACHE_VERSION` in
    `eas submit --platform android`.
 3. App Store Connect app + `ascAppId`, then `eas submit --platform ios`.
 4. Real privacy/terms URLs and a support email in `listing.json`.
-5. Spanish + English screenshots for iOS, or `ios.supportsTablet: false` plus an
-   iPhone 6.9" capture set.
+5. iPhone 6.9" + 6.5" captures for iOS (`raw/ios-6.9`, `raw/ios-6.5`), then
+   `npm run store-assets`. `ios.supportsTablet` is already `false`, so no iPad
+   set is required.
 6. Human review of the listing copy and the store review answers.
 
 

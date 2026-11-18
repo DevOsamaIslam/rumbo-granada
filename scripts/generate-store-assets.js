@@ -29,6 +29,17 @@ const PHONE_DIR = path.join(STORE_DIR, 'screenshots', 'play-phone');
 /** Locale folders that must exist for the store listing (es is the primary). */
 const REQUIRED_SCREENSHOT_LOCALES = ['es', 'en'];
 
+/**
+ * App Store Connect screenshot sets, in exact pixels. Raw captures are read
+ * from `docs/store/screenshots/raw/<dir>` and framed to the required size;
+ * producing them needs an iOS device or simulator (macOS).
+ */
+const IOS_SCREENSHOT_SETS = [
+  { dir: 'ios-6.9', width: 1320, height: 2868 },
+  { dir: 'ios-6.5', width: 1242, height: 2688 },
+];
+const APP_STORE_SHOTS_DIR = path.join(STORE_DIR, 'screenshots', 'app-store');
+
 /** Brand colours (match the app icons and splash background). */
 const BRAND_DARK = [0x95, 0x07, 0x1a];
 const BRAND = [0xae, 0x04, 0x20];
@@ -376,12 +387,50 @@ function main() {
     );
   }
 
+  // 4b. App Store screenshots at exact pixels, no alpha. Stays empty until iOS
+  //     captures exist in `raw/ios-6.9` / `raw/ios-6.5` (needs macOS).
+  const appStoreShots = [];
+  for (const set of IOS_SCREENSHOT_SETS) {
+    const dir = path.join(RAW_DIR, set.dir);
+    if (!fs.existsSync(dir)) continue;
+
+    const files = fs
+      .readdirSync(dir)
+      .filter((name) => name.toLowerCase().endsWith('.png'))
+      .sort();
+    for (const file of files) {
+      const raw = readPng(path.join(dir, file));
+      const canvas = brandCanvas(set.width, set.height);
+      const scale = Math.min(set.width / raw.width, set.height / raw.height);
+      const scaled = resize(raw, Math.round(raw.width * scale), Math.round(raw.height * scale));
+      composite(
+        canvas,
+        scaled,
+        Math.round((set.width - scaled.width) / 2),
+        Math.round((set.height - scaled.height) / 2),
+      );
+      const target = path.join(APP_STORE_SHOTS_DIR, set.dir, file);
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      appStoreShots.push(writePng(canvas, target));
+    }
+  }
+  if (appStoreShots.length === 0) {
+    console.warn('! no iOS captures yet (needs macOS) — skipping App Store screenshots');
+  }
+
   // 5. Listing documents rendered from listing.json.
   const listing = JSON.parse(fs.readFileSync(path.join(STORE_DIR, 'listing.json'), 'utf8'));
   const written = writeListings(listing);
 
   console.log('Store assets written:');
-  for (const item of [iconOut, appStoreOut, featureOut, ...screenshots, ...written]) {
+  for (const item of [
+    iconOut,
+    appStoreOut,
+    featureOut,
+    ...screenshots,
+    ...appStoreShots,
+    ...written,
+  ]) {
     console.log(`  ${path.relative(ROOT, item.file)}  ${(item.bytes / 1024).toFixed(1)} KB`);
   }
 }

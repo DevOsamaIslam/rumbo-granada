@@ -11,7 +11,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   assetBundlePatterns: ['**/*'],
   scheme: 'rumbo-granada',
   ios: {
-    supportsTablet: true,
+    // Phone-first app: tablet layouts have not been designed or tested, so ship
+    // in iPhone compatibility mode on iPad (also drops the App Store 13" iPad
+    // screenshot requirement). Flip to `true` only after tablet QA.
+    supportsTablet: false,
     bundleIdentifier: 'com.rumbo.granada.app',
     // Seeds the remote build number the first time EAS Build reads it; from
     // then on `autoIncrement` in eas.json owns this value.
