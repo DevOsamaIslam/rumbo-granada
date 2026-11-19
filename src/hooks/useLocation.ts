@@ -1,5 +1,6 @@
 // Location Hook
 import { useCallback, useEffect, useState } from 'react';
+import { Linking, Platform } from 'react-native';
 import * as Location from 'expo-location';
 
 export interface UserLocation {
@@ -19,6 +20,54 @@ export function useLocation() {
     setPermission(status);
     return status === 'granted';
   }, []);
+
+  /**
+   * Whether the device-level location switch is on. A granted permission is not
+   * enough: the user can turn location off at any time while the app keeps its
+   * permission, and then every fix silently fails.
+   */
+  const hasServicesEnabled = useCallback(async () => {
+    try {
+      return await Location.hasServicesEnabledAsync();
+    } catch {
+      return false;
+    }
+  }, []);
+
+  /**
+   * Gate for anything that needs a position fix (e.g. the map's follow button).
+   * Resolves `false` when location services are off or the permission is
+   * denied, so the caller can ask the user to turn location on.
+   */
+  const ensureLocationReady = useCallback(async () => {
+    if (!(await hasServicesEnabled())) return false;
+    return requestPermission();
+  }, [hasServicesEnabled, requestPermission]);
+
+  /**
+   * Opens the prompt/screen where location can be turned on. Android shows the
+   * system "turn on location" dialog; other platforms open the app's settings
+   * page. Resolves `true` once location is on (e.g. the user accepted the
+   * dialog). A dismissed Android dialog resolves `false` without opening
+   * anything else — the next press asks again.
+   */
+  const openLocationSettings = useCallback(async () => {
+    if (Platform.OS === 'android') {
+      try {
+        await Location.enableNetworkProviderAsync();
+        return await hasServicesEnabled();
+      } catch {
+        // The user dismissed the system dialog; do not nag them with settings.
+        return false;
+      }
+    }
+    try {
+      await Linking.openSettings();
+    } catch {
+      // Settings are unavailable (e.g. web); there is nothing else to offer.
+    }
+    return hasServicesEnabled();
+  }, [hasServicesEnabled]);
 
   const getCurrentLocation = useCallback(async (): Promise<UserLocation | null> => {
     try {
@@ -125,5 +174,8 @@ export function useLocation() {
     requestPermission,
     getCurrentLocation,
     watchLocation,
+    hasServicesEnabled,
+    ensureLocationReady,
+    openLocationSettings,
   };
 }

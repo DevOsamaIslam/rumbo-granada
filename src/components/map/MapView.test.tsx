@@ -3,8 +3,9 @@
 //   follow mode (camera trackUserLocation).
 // - "Mostrar etiquetas de autobuses" (showBusLabels) controls whether tracked
 //   bus markers render their label pill.
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, act } from '@testing-library/react-native';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, act, fireEvent, waitFor } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 
 /** Camera prop values that mean "the map follows the user". */
 const TRACKING_PROPS = { trackUserLocation: 'default' };
@@ -25,6 +26,9 @@ vi.mock('@/store/settings', () => ({
 const loadLinesMock = vi.fn();
 const loadAllStopsMock = vi.fn();
 const loadStopsForRouteMock = vi.fn();
+const ensureLocationReadyMock = vi.fn();
+const getCurrentLocationMock = vi.fn();
+const openLocationSettingsMock = vi.fn();
 
 vi.mock('@/hooks/useLines', () => ({
   useLines: () => ({ routes: [], loadLines: loadLinesMock }),
@@ -53,6 +57,9 @@ vi.mock('@/hooks/useLocation', () => ({
       });
       return () => {};
     },
+    ensureLocationReady: ensureLocationReadyMock,
+    getCurrentLocation: getCurrentLocationMock,
+    openLocationSettings: openLocationSettingsMock,
   }),
 }));
 
@@ -72,6 +79,14 @@ function getCameraPropsLog(): CameraPropsLog | undefined {
 /** Props of the most recently rendered Camera (logged by the setup mock). */
 const lastCameraProps = (): Record<string, unknown> => getCameraPropsLog()?.at(-1) ?? {};
 
+/** `easeTo` calls recorded by the setup Camera mock. */
+type EaseToOptions = { center?: [number, number]; duration?: number };
+
+function getEaseToLog(): EaseToOptions[] | undefined {
+  return (globalThis as { __MAP_CAMERA_EASE_TO__?: EaseToOptions[] })
+    .__MAP_CAMERA_EASE_TO__;
+}
+
 describe('MapView settings integration', () => {
   beforeEach(() => {
     settingsState.mapStyle = 'standard';
@@ -79,6 +94,16 @@ describe('MapView settings integration', () => {
     settingsState.showBusLabels = true;
     const log = getCameraPropsLog();
     if (log) log.length = 0;
+    const easeToLog = getEaseToLog();
+    if (easeToLog) easeToLog.length = 0;
+    ensureLocationReadyMock.mockReset().mockResolvedValue(true);
+    getCurrentLocationMock.mockReset().mockResolvedValue({
+      latitude: 37.1773,
+      longitude: -3.5986,
+      accuracy: 5,
+      timestamp: 0,
+    });
+    openLocationSettingsMock.mockReset().mockResolvedValue(true);
     vi.clearAllMocks();
   });
 
@@ -138,6 +163,76 @@ describe('MapView settings integration', () => {
         />,
       );
       expect(view.getByText('V-999')).toBeOnTheScreen();
+    });
+  });
+
+  describe('locate button and location availability', () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('asks to turn location on every time it is off', async () => {
+      settingsState.autoFollowUser = false;
+      ensureLocationReadyMock.mockResolvedValue(false);
+      const alertSpy = vi.spyOn(Alert, 'alert').mockImplementation(() => {});
+
+      const view = await render(<MapView />);
+      expect(lastCameraProps().trackUserLocation).toBeUndefined();
+
+      await fireEvent.press(view.getByLabelText('Activar seguimiento'));
+      await waitFor(() => expect(alertSpy).toHaveBeenCalledTimes(1));
+      expect(alertSpy.mock.calls[0][0]).toBe('Ubicación desactivada');
+      expect(alertSpy.mock.calls[0][1]).toMatch(/Activa la ubicación/);
+
+      // Nothing moved and no fix was requested while location stays off.
+      expect(lastCameraProps().trackUserLocation).toBeUndefined();
+      expect(getCurrentLocationMock).not.toHaveBeenCalled();
+      expect(getEaseToLog()?.length ?? 0).toBe(0);
+
+      // Pressing again asks again — there is no "don't show this again".
+      await fireEvent.press(view.getByLabelText('Activar seguimiento'));
+      await waitFor(() => expect(alertSpy).toHaveBeenCalledTimes(2));
+    });
+
+    it('animates the map to the user location when a fix is found', async () => {
+      settingsState.autoFollowUser = false;
+
+      const view = await render(<MapView />);
+      await fireEvent.press(view.getByLabelText('Activar seguimiento'));
+
+      await waitFor(() =>
+        expect(getEaseToLog()).toEqual([
+          { center: [-3.5986, 37.1773], duration: 800 },
+        ]),
+      );
+      expect(getCurrentLocationMock).toHaveBeenCalled();
+      expect(lastCameraProps()).toMatchObject(TRACKING_PROPS);
+    });
+
+    it('offers to open settings and follows once location is on', async () => {
+      settingsState.autoFollowUser = false;
+      ensureLocationReadyMock
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(true);
+      openLocationSettingsMock.mockResolvedValue(true);
+      const alertSpy = vi.spyOn(Alert, 'alert').mockImplementation(() => {});
+
+      const view = await render(<MapView />);
+      await fireEvent.press(view.getByLabelText('Activar seguimiento'));
+      await waitFor(() => expect(alertSpy).toHaveBeenCalledTimes(1));
+
+      type AlertButton = { text?: string; onPress?: () => void };
+      const buttons = (alertSpy.mock.calls[0][2] ?? []) as AlertButton[];
+      const openSettings = buttons.find((button) => button.text === 'Abrir ajustes');
+      expect(openSettings).toBeDefined();
+
+      await act(async () => {
+        openSettings?.onPress?.();
+      });
+
+      await waitFor(() => expect(openLocationSettingsMock).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(lastCameraProps()).toMatchObject(TRACKING_PROPS));
+      expect(getEaseToLog()?.length ?? 0).toBe(1);
     });
   });
 });

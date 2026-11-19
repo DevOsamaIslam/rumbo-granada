@@ -1,7 +1,7 @@
 // Native map view built on MapLibre (OpenStreetMap tiles) — no Google Maps.
 // On web, `./MapView.tsx` resolves instead of this file.
 import React, { useRef, useEffect, useCallback, useMemo, useState } from "react";
-import { NativeSyntheticEvent, StyleSheet, View, useWindowDimensions } from "react-native";
+import { Alert, NativeSyntheticEvent, StyleSheet, View, useWindowDimensions } from "react-native";
 import {
   Map,
   Camera,
@@ -10,6 +10,7 @@ import {
   type ViewStateChangeEvent,
 } from "@maplibre/maplibre-react-native";
 import type { StyleSpecification } from "@maplibre/maplibre-gl-style-spec";
+import { useTranslation } from "react-i18next";
 import { useLines } from "@/hooks/useLines";
 import { useStops } from "@/hooks/useStops";
 import { useLocation } from "@/hooks/useLocation";
@@ -386,6 +387,7 @@ export function MapViewComponent({
   const { routes, loadLines } = useLines();
   const { stops, loadStopsForRoute, loadAllStops } = useStops();
   const { mapStyle, autoFollowUser, showBusLabels } = useSettingsStore();
+  const { t } = useTranslation();
   const cameraRef = useRef<CameraRef>(null);
 
   // When focusStopId is set, only show that one stop's marker.
@@ -470,7 +472,7 @@ export function MapViewComponent({
     setFollowMode(autoFollowUser);
   }, [autoFollowUser]);
 
-  const { permission, watchLocation } = useLocation();
+  const { permission, watchLocation, ensureLocationReady, getCurrentLocation, openLocationSettings } = useLocation();
   // MapLibre's native location component logs "Failed to obtain last location
   // update" when camera tracking starts before it has a position. Wait for the
   // first real fix before handing `trackUserLocation` to the camera.
@@ -536,9 +538,54 @@ export function MapViewComponent({
     cameraRef.current?.zoomTo(region.zoomLevel - 1, { duration: 300 });
   }, [region.zoomLevel]);
 
-  const handleToggleFollow = useCallback(() => {
-    setFollowMode((prev) => !prev);
-  }, []);
+  /** Turns follow mode on, provided location is available. */
+  const enableFollowing = useCallback(async () => {
+    const ready = await ensureLocationReady();
+    if (!ready) return false;
+
+    // Animate the map to the user's position as soon as a fix is found, so the
+    // button visibly takes the user there instead of silently starting to
+    // follow (the camera then keeps tracking the location updates).
+    const fix = await getCurrentLocation();
+    if (fix) {
+      cameraRef.current?.easeTo({
+        center: [fix.longitude, fix.latitude],
+        duration: 800,
+      });
+    }
+    setFollowMode(true);
+    return true;
+  }, [ensureLocationReady, getCurrentLocation]);
+
+  const handleToggleFollow = useCallback(async () => {
+    if (followMode) {
+      setFollowMode(false);
+      return;
+    }
+
+    if (await enableFollowing()) return;
+
+    // Location is off (services disabled or permission denied). Ask the user to
+    // turn it on. The check runs on every press, so while location is still off
+    // the prompt reappears each time the button is tapped.
+    Alert.alert(
+      t('locationRequiredTitle', { ns: 'translation' }),
+      t('locationRequiredMessage', { ns: 'translation' }),
+      [
+        { text: t('cancel', { ns: 'translation' }), style: 'cancel' },
+        {
+          text: t('openSettings', { ns: 'translation' }),
+          onPress: () => {
+            // After the OS dialog/settings page, follow straight away when the
+            // user actually turned location on.
+            void openLocationSettings().then((enabled) => {
+              if (enabled) void enableFollowing();
+            });
+          },
+        },
+      ],
+    );
+  }, [enableFollowing, followMode, openLocationSettings, t]);
 
   // Centre the map on a stop when the caller asks for it (e.g. "Show on map"
   // from the stop detail screen). Only fires when the focused stop changes.

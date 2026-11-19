@@ -134,6 +134,7 @@ module.exports = {
   Linking: {
     openURL: () => Promise.resolve(),
     canOpenURL: () => Promise.resolve(true),
+    openSettings: () => Promise.resolve(),
   },
   Alert: { alert: () => {} },
   AppState: {

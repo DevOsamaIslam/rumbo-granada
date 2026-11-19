@@ -312,6 +312,18 @@
 
 ---
 
+### Phase 21: Location gate + animated recentring
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 21.1 | Ask to turn location on, every time it is off | ✅ | Pressing the map's locate button now checks the OS location switch (`hasServicesEnabledAsync`) and the foreground permission before enabling follow mode. When either is unavailable a localized alert offers Cancel / Open settings — with no "don't ask again", so it reappears on every press. `useLocation` gained `hasServicesEnabled`, `ensureLocationReady` and `openLocationSettings` (Android shows the system "turn on location" dialog via `enableNetworkProviderAsync`, elsewhere `Linking.openSettings()`) |
+| 21.2 | Animate the map to the user when a fix is found | ✅ | Once location is ready, `getCurrentLocation` returns a fix and the camera `easeTo`s its coordinates (800 ms) before follow mode starts; after enabling location from the prompt, following starts automatically |
+| 21.3 | Locale keys | ✅ | `locationRequiredTitle`, `locationRequiredMessage`, `openSettings` added to `en`, `es` and `ar` |
+| 21.4 | Tests, typecheck and lint | ✅ | New `src/hooks/useLocation.test.ts` (6 tests: readiness gate, off switch, denied permission, iOS/Android prompts, dismissed dialog) and 3 new `MapView.test.tsx` cases (prompt repeats on every press, animated move to the fix, open-settings then follow). The setup Camera mock now exposes `easeTo` so the animation target is asserted; full suite 342 passed; `tsc --noEmit` and ESLint clean |
+
+**Depends on:** 4
+
+---
+
 ## Dependency Graph
 
 ```mermaid

@@ -173,14 +173,29 @@ vi.mock("@maplibre/maplibre-react-native", () => {
     },
     Map: ({ children, ...props }: any) =>
       React.createElement(View, props, children),
-    Camera: ({ children, ...props }: any) => {
+    Camera: React.forwardRef(function Camera(
+      { children, ...props }: any,
+      ref: any,
+    ) {
       // Tests (e.g. MapView settings integration) assert on the camera props
       // to verify follow-mode behaviour; the log is opt-in, read via the
       // `__MAP_CAMERA_PROPS__` global.
       const log = ((globalThis as any).__MAP_CAMERA_PROPS__ ??= []);
       log.push(props);
+      // Expose the imperative API used by the map (animated recentring) so
+      // tests can assert where the camera was asked to go.
+      React.useImperativeHandle(ref, () => ({
+        easeTo: (options: unknown) => {
+          const calls = ((globalThis as any).__MAP_CAMERA_EASE_TO__ ??= []);
+          calls.push(options);
+        },
+        flyTo: () => {},
+        zoomTo: () => {},
+        setCamera: () => {},
+        getCamera: () => Promise.resolve(undefined),
+      }));
       return React.createElement(View, props, children);
-    },
+    }),
     Marker: ({ children, ...props }: any) =>
       React.createElement(View, props, children),
     RasterSource: ({ children, ...props }: any) =>

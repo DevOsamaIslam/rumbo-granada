@@ -39,7 +39,13 @@ vi.mock('@/hooks/useStops', () => ({
 }));
 
 vi.mock('@/hooks/useLocation', () => ({
-  useLocation: () => ({ permission: 'denied', watchLocation: vi.fn() }),
+  useLocation: () => ({
+    permission: 'denied',
+    watchLocation: vi.fn(),
+    ensureLocationReady: vi.fn(async () => false),
+    getCurrentLocation: vi.fn(async () => null),
+    openLocationSettings: vi.fn(async () => false),
+  }),
 }));
 
 vi.mock('@/services/gtfs', () => ({
