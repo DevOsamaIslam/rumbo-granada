@@ -1,62 +1,50 @@
 import React from "react";
-import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
+import { StyleSheet, View, Text } from "react-native";
 import { IconButton } from "react-native-paper";
 import { useAppColors, useThemedStyles } from "@/constants/themes";
 import type { AppColors } from "@/constants/colors";
 import { useTranslation } from "react-i18next";
-import { getBadgeBackgroundColor, getBadgeTextColor } from "@/utils/colors";
-import type { Route, Stop } from "@/types/gtfs";
+import type { Stop } from "@/types/gtfs";
 
 interface StopCardProps {
   stop: Stop;
-  routes: Route[];
+  /**
+   * Clears the focused stop and resets the map filter. Exposed as the card's
+   * cancel icon: while a stop is focused the map only shows that stop, so the
+   * card is the only way back to the unfiltered map.
+   */
   onClose: () => void;
-  onPressRoute: (route: Route) => void;
 }
 
-export function StopCard({
-  stop,
-  routes,
-  onClose,
-  onPressRoute,
-}: StopCardProps) {
+/**
+ * Overlay shown on the map while a single stop is focused. The lines serving
+ * the stop are already drawn on the map itself (the stop marker renders one
+ * coloured circle per line at the focus zoom), so the card only carries the
+ * stop's identity and the cancel action.
+ */
+export function StopCard({ stop, onClose }: StopCardProps) {
   const { t } = useTranslation();
   const colors = useAppColors();
   const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.closeButton} onPress={onClose} accessibilityLabel={t('closeStopCard', { ns: 'translation' })}>
-        <IconButton icon="close" size={24} />
-      </TouchableOpacity>
       <View style={styles.card}>
         <View style={styles.header}>
-          <Text style={styles.name}>{stop.stop_name}</Text>
-          {stop.stop_code && (
-            <Text style={styles.code}>{t('stopCode', { ns: 'translation', code: stop.stop_code })}</Text>
-          )}
-        </View>
-        <Text style={styles.sectionTitle}>{t('linesCount', { ns: 'translation', total: routes.length })}</Text>
-        <View style={styles.routeRow}>
-          {routes.length === 0 ? (
-            <Text style={styles.noRoutes}>{t('noLinesRegistered', { ns: 'translation' })}</Text>
-          ) : (
-            routes.map((route) => {
-              const color = getBadgeBackgroundColor(route.route_color, colors.primary);
-              const textColor = getBadgeTextColor(color, route.route_text_color);
-              return (
-                <TouchableOpacity
-                  key={route.route_id}
-                  style={[styles.routeBadge, { backgroundColor: color }]}
-                  onPress={() => onPressRoute(route)}
-                  accessibilityLabel={t('openLine', { ns: 'translation', line: route.route_short_name })}
-                >
-                  <Text style={[styles.routeBadgeText, { color: textColor }]}>
-                    {route.route_short_name}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })
-          )}
+          <View style={styles.headerText}>
+            <Text style={styles.name}>{stop.stop_name}</Text>
+            {stop.stop_code && (
+              <Text style={styles.code}>{t('stopCode', { ns: 'translation', code: stop.stop_code })}</Text>
+            )}
+          </View>
+          <IconButton
+            icon="close"
+            size={22}
+            iconColor={colors.onSurfaceVariant}
+            onPress={onClose}
+            accessibilityLabel={t('closeStopCard', { ns: 'translation' })}
+            testID="stop-card-close"
+            style={styles.closeButton}
+          />
         </View>
       </View>
     </View>
@@ -71,19 +59,12 @@ const createStyles = (colors: AppColors) =>
     paddingTop: 56,
     paddingHorizontal: 16,
   },
-  closeButton: {
-    position: "absolute",
-    top: 8,
-    end: 12,
-    zIndex: 100,
-  },
-  closeIcon: {
-    color: colors.onSurface,
-  },
   card: {
     backgroundColor: colors.surface,
     borderRadius: 16,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 16,
     shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
@@ -93,9 +74,12 @@ const createStyles = (colors: AppColors) =>
   },
   header: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 8,
-    marginBottom: 12,
+  },
+  headerText: {
+    flex: 1,
+    gap: 4,
   },
   name: {
     fontSize: 18,
@@ -106,33 +90,9 @@ const createStyles = (colors: AppColors) =>
     fontSize: 12,
     color: colors.outline,
   },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: colors.onSurfaceVariant,
-    marginBottom: 8,
-  },
-  routeRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  routeBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 16,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    minWidth: 44,
-    alignSelf: "flex-start",
-  },
-  routeBadgeText: {
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  noRoutes: {
-    fontSize: 13,
-    color: colors.outline,
+  closeButton: {
+    marginTop: -8,
+    marginEnd: -8,
   },
 });
 

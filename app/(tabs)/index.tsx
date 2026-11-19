@@ -6,7 +6,6 @@ import { StopCard } from '@/components/map/StopCard.native';
 import { useLines } from '@/hooks/useLines';
 import { Stop } from '@/types/gtfs';
 import { gtfsService } from '@/services/gtfs';
-import type { Route } from '@/types/gtfs';
 import { useThemedStyles } from '@/constants/themes';
 import type { AppColors } from '@/constants/colors';
 
@@ -38,14 +37,12 @@ export default function MapScreen() {
     return { latitude: lat, longitude: lon };
   }, [params.lat, params.lon]);
 
-  // Look up the focused stop's data for the StopCard overlay.
-  const stopCard = useMemo(() => {
+  // Look up the focused stop for the StopCard overlay. The lines serving it are
+  // already drawn on the map (one coloured circle per line on the marker), so
+  // the card only needs the stop itself.
+  const focusedStop = useMemo(() => {
     if (!params.stopId) return null;
-    const stop = gtfsService.getStop(params.stopId);
-    if (stop) {
-      return { stop, routes: gtfsService.getRoutesForStop(params.stopId) };
-    }
-    return null;
+    return gtfsService.getStop(params.stopId) ?? null;
   }, [params.stopId]);
 
   useEffect(() => {
@@ -61,12 +58,10 @@ export default function MapScreen() {
     void bus;
   };
 
+  // Clearing the focused-stop params resets the map filter, so every stop and
+  // line becomes visible again.
   const handleCloseStopCard = () => {
-    router.push('/');
-  };
-
-  const handlePressRoute = (route: Route) => {
-    router.push(`/line/${route.route_id}`);
+    router.setParams({ stopId: undefined, lat: undefined, lon: undefined });
   };
 
   return (
@@ -79,14 +74,9 @@ export default function MapScreen() {
         onStopPress={handleStopPress}
         onBusPress={handleBusPress}
       />
-      {stopCard && (
+      {focusedStop && (
         <View style={styles.cardContainer}>
-          <StopCard
-            stop={stopCard.stop}
-            routes={stopCard.routes}
-            onClose={handleCloseStopCard}
-            onPressRoute={handlePressRoute}
-          />
+          <StopCard stop={focusedStop} onClose={handleCloseStopCard} />
         </View>
       )}
     </View>

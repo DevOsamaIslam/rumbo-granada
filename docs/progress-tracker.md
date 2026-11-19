@@ -301,6 +301,17 @@
 
 ---
 
+### Phase 20: Map stop-focus polish
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 20.1 | Drop the line badges from the map `StopCard` | ✅ | The focused stop marker already draws one coloured circle per line at the focus zoom, so the card now shows only the stop name and code; the `routes`/`onPressRoute` props were removed from `StopCard.native.tsx` and from `app/(tabs)/index.tsx` |
+| 20.2 | Cancel icon that resets the map filter | ✅ | The card header carries a `close` `IconButton` wired to the screen's `handleCloseStopCard`, which clears the `stopId`/`lat`/`lon` params via `router.setParams` so the map returns to every stop and line; the old absolute icon nested in a `TouchableOpacity` (outside the card, dead to taps) was replaced |
+| 20.3 | Tests, typecheck and lint | ✅ | New `src/components/map/StopCard.test.tsx` (4 tests: name/code, no line list, no-code fallback, cancel resets the map); `npx tsc --noEmit` clean; ESLint clean on touched files; full suite 333 passed |
+
+**Depends on:** 4, 6
+
+---
+
 ## Dependency Graph
 
 ```mermaid
@@ -350,6 +361,6 @@ graph TD
 
 ---
 
-*Last updated: 2026-11-17*
+*Last updated: 2026-11-19*
 *Next task: Phase 18.3 iOS screenshots (needs macOS) → 18.5 store submissions (needs store credentials)*
 **Blocks:** Milestone 2
